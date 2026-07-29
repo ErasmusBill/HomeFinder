@@ -1,0 +1,23 @@
+ <header>
+        <a href="#" class="logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            HomeFinder <span>GHANA</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'home_finder:home' %}" class="active">Home</a></li>
+            <li><a href="#">Properties</a></li>
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div class="wishlist-icon">
+                <i class="fa-regular fa-heart"></i>
+            </div>
+            <a href="{% url 'account:login' %}" class="btn btn-outline">Login</a>
+            <a href="{% url 'account:register' %}" class="btn btn-primary">Sign Up</a>
+        </div>
+    </header>

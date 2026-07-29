@@ -1,0 +1,166 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}{% if is_update %}Edit District: {{ object_name }}{% else %}Add District{% if region %} for {{ region.name }}{% endif %}{% endif %} - HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="add-district-wrapper">
+
+    <!-- Breadcrumbs Header Section -->
+    <div class="page-breadcrumb-header">
+        <nav class="breadcrumb-nav" aria-label="breadcrumb">
+            <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
+            <i class="fa-solid fa-chevron-right separator"></i>
+            <a href="#">Locations</a>
+            <i class="fa-solid fa-chevron-right separator"></i>
+            <a href="{% url 'locations:list_locations' %}">Districts</a>
+            <i class="fa-solid fa-chevron-right separator"></i>
+            <span class="current">{% if is_update %}Edit District{% else %}Add District{% endif %}</span>
+        </nav>
+
+        <div class="page-title-block">
+            <h1>{% if is_update %}Edit District: {{ object_name }}{% else %}Add District{% if region %} (for {{ region.name }}){% endif %}{% endif %}</h1>
+            <p>{% if is_update %}Update existing district details.{% else %}Step 2 of 4: Continue your location hierarchy by adding a district under <strong>{{ region.name|default:"the selected region" }}</strong>.{% endif %}</p>
+        </div>
+    </div>
+
+    <!-- Add / Update District Form Container -->
+    <form method="POST" class="district-form-container">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert-error-box">
+            <i class="fa-solid fa-triangle-exclamation"></i> Please correct the errors below.
+        </div>
+        {% endif %}
+
+        <!-- District Information Card Box -->
+        <div class="dashboard-card-box">
+            <h3>{% if is_update %}Edit District Information{% else %}District & Hierarchy Information{% endif %}</h3>
+
+            <div class="form-grid-row">
+                <!-- Region Display / Info (Wizard Step Context) -->
+                <div class="form-group-field">
+                    <label for="{{ form.region.id_for_label }}">Region <span class="required-star">*</span></label>
+                    <div class="select-wrapper">
+                        {{ form.region }}
+                        <i class="fa-solid fa-chevron-down select-chevron"></i>
+                    </div>
+                    {% if form.region.errors %}<span class="field-error-text">{{ form.region.errors.0 }}</span>{% endif %}
+                    <small class="help-text-hint">Parent region for this district.</small>
+                </div>
+
+                <!-- District Name Input -->
+                <div class="form-group-field">
+                    <label for="{{ form.name.id_for_label }}">District Name <span class="required-star">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<span class="field-error-text">{{ form.name.errors.0 }}</span>{% endif %}
+                    <small class="help-text-hint">Enter the full name of the district.</small>
+                </div>
+            </div>
+
+            <!-- Example Helper Notice Box -->
+            <div class="example-notice-box">
+                <div class="notice-icon"><i class="fa-solid fa-circle-info"></i></div>
+                <div class="notice-text">
+                    <strong>Examples:</strong> Accra Metropolitan, Tema Metropolitan, Kumasi Metropolitan, Sekondi-Takoradi, Cape Coast, Sunyani, Tamale, Ho, Wa
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Card Box -->
+        <div class="dashboard-card-box">
+            <h3>Preview</h3>
+
+            <div class="form-group-field">
+                <label for="{{ form.slug.id_for_label }}">Slug (URL)</label>
+                {{ form.slug }}
+                <small class="help-text-hint">The slug is generated automatically from the district name. You can edit it after saving.</small>
+            </div>
+        </div>
+
+        <!-- Bottom Actions Footer Bar -->
+        <div class="form-actions-footer">
+            <a href="{% url 'locations:list_locations' %}" class="btn-cancel-action">Cancel Hierarchy</a>
+            <button type="submit" class="btn-save-action">
+                <i class="fa-solid fa-floppy-disk"></i> {% if is_update %}Update District{% else %}Save & Continue to Town{% endif %}
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<style>
+.add-district-wrapper { display: flex; flex-direction: column; gap: 25px; max-width: 1000px; margin: 0 auto; }
+.page-breadcrumb-header { display: flex; flex-direction: column; gap: 8px; }
+.breadcrumb-nav { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.breadcrumb-nav a { color: var(--text-muted); text-decoration: none; }
+.breadcrumb-nav a:hover { color: var(--primary-green); }
+.breadcrumb-nav .separator { font-size: 9px; color: #94a3b8; }
+.breadcrumb-nav .current { color: var(--text-main); font-weight: 600; }
+.page-title-block h1 { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 2px; }
+.page-title-block p { font-size: 13px; color: var(--text-muted); }
+
+.district-form-container { display: flex; flex-direction: column; gap: 20px; }
+.dashboard-card-box { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+.dashboard-card-box h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+
+.form-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group-field { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.form-group-field label { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.required-star { color: #ef4444; }
+.help-text-hint { font-size: 12px; color: var(--text-muted); }
+.field-error-text { font-size: 11px; color: #ef4444; font-weight: 600; }
+
+.select-wrapper { position: relative; display: flex; align-items: center; }
+.select-wrapper select, .form-group-field input[type="text"], .form-group-field input:not([type]) {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--text-main);
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+.select-wrapper select { appearance: none; -webkit-appearance: none; -moz-appearance: none; cursor: pointer; padding-right: 40px; }
+.select-chevron { position: absolute; right: 15px; color: var(--text-muted); font-size: 12px; pointer-events: none; }
+
+.example-notice-box { display: flex; gap: 12px; align-items: flex-start; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px; }
+.notice-icon { color: var(--primary-green); font-size: 16px; margin-top: 1px; }
+.notice-text { font-size: 12px; color: #166534; line-height: 1.5; }
+.notice-text strong { font-weight: 700; color: #14532d; }
+
+.form-actions-footer { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px 25px; }
+.btn-cancel-action { background: white; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.btn-save-action { background: var(--primary-green); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.btn-save-action:hover { background: var(--primary-green-hover); }
+
+@media(max-width: 768px) {
+    .form-grid-row { grid-template-columns: 1fr; }
+    .form-actions-footer { flex-direction: column-reverse; gap: 12px; }
+    .btn-cancel-action, .btn-save-action { width: 100%; text-align: center; justify-content: center; }
+}
+</style>
+
+<script>
+    const nameInput = document.getElementById("{{ form.name.id_for_label }}");
+    const slugInput = document.getElementById("{{ form.slug.id_for_label }}");
+
+    if (nameInput && slugInput) {
+        nameInput.addEventListener("input", function() {
+            let val = this.value;
+            if (!val.trim()) {
+                slugInput.value = "";
+                return;
+            }
+            slugInput.value = val.toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/[\s_-]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        });
+    }
+</script>
+{% endblock %}

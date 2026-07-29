@@ -1,0 +1,510 @@
+{% extends 'landloards/landlord_base.html' %}
+
+{% block title %}My Properties - HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="property-management-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <h1 class="page-title">My Properties</h1>
+            <p class="page-subtitle">Manage all your listed properties.</p>
+        </div>
+        <a href="{% url 'landloards:create_property' %}" class="btn-primary-green">
+            <i class="fa-solid fa-circle-plus"></i> Add New Property
+        </a>
+    </div>
+
+    <!-- Filter & Search Bar Card -->
+    <div class="filter-card">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="propertySearch" placeholder="Search properties..." onkeyup="filterProperties()">
+        </div>
+        <div class="filter-dropdowns">
+            <select id="statusFilter" class="filter-select" onchange="filterProperties()">
+                <option value="">All Status</option>
+                <option value="published">Published</option>
+                <option value="pending">Pending</option>
+                <option value="draft">Draft</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select id="roomTypeFilter" class="filter-select" onchange="filterProperties()">
+                <option value="">All Room Types</option>
+                <option value="apartment">Apartment</option>
+                <option value="self_contained">Self Contained</option>
+                <option value="chamber_and_hall">Chamber & Hall</option>
+                <option value="guest_house">Guest House</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Properties Table Card -->
+    <div class="table-responsive-card">
+        <table class="data-table" id="propertiesTable">
+            <thead>
+                <tr>
+                    <th>PROPERTY</th>
+                    <th>ROOM TYPE</th>
+                    <th>PRICE</th>
+                    <th>STATUS</th>
+                    <th>ADDED ON</th>
+                    <th class="text-right">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if properties %}
+                    {% for prop in properties %}
+                    <tr data-status="{{ prop.publication_status }}" data-room="{{ prop.room_type }}" data-title="{{ prop.title|lower }}">
+                        <!-- Property Info -->
+                        <td>
+                            <div class="property-info-cell">
+                                {% if prop.cover_image %}
+                                    <img src="{{ prop.cover_image.url }}" alt="{{ prop.title }}" class="property-thumb">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=150&q=80" alt="Default" class="property-thumb">
+                                {% endif %}
+                                <div class="property-text-meta">
+                                    <strong>{{ prop.title }}</strong>
+                                    <span><i class="fa-solid fa-location-dot"></i> {{ prop.area.name }}, {{ prop.town.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Room Type -->
+                        <td>
+                            <span class="room-pill">
+                                <i class="fa-solid fa-door-open"></i> {{ prop.get_room_type_display }}
+                            </span>
+                        </td>
+
+                        <!-- Price -->
+                        <td>
+                            <strong>GHS {{ prop.price|floatformat:0 }}</strong>
+                            <span class="text-xs text-muted">/ {{ prop.payment_period }}</span>
+                        </td>
+
+                        <!-- Publication / Verification Status -->
+                        <td>
+                            {% if prop.publication_status == 'published' %}
+                                <span class="status-badge published"><span class="dot"></span> Published</span>
+                            {% elif prop.publication_status == 'draft' %}
+                                <span class="status-badge draft"><span class="dot"></span> Draft</span>
+                            {% elif prop.verification_status == 'pending' %}
+                                <span class="status-badge pending"><span class="dot"></span> Pending Verification</span>
+                            {% else %}
+                                <span class="status-badge rejected"><span class="dot"></span> Rejected</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Created Date -->
+                        <td class="text-muted text-sm">
+                            {{ prop.created_at|date:"M j, Y" }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-right">
+                            <div class="action-buttons-group">
+                                <a href="{% url 'landloards:update_property' prop.id %}" class="action-btn edit" title="Edit Property">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'landloards:property_detail' prop.slug %}" class="action-btn view" title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <form action="{% url 'landloards:delete_property' prop.id %}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this property?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn delete" title="Delete Property">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-building-circle-exclamation"></i>
+                                <h3>No properties found</h3>
+                                <p>You haven't added any properties yet. Get started by clicking the button above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if properties.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing properties {{ properties.start_index }} to {{ properties.end_index }} of {{ properties.paginator.count }}
+        </div>
+        <div class="pagination-nav">
+            {% if properties.has_previous %}
+                <a href="?page=1" class="page-btn" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+                <a href="?page={{ properties.previous_page_number }}" class="page-btn" title="Previous Page"><i class="fa-solid fa-angle-left"></i></a>
+            {% else %}
+                <span class="page-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                <span class="page-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+            {% endif %}
+
+            <span class="page-indicator">
+                Page {{ properties.number }} of {{ properties.paginator.num_pages }}
+            </span>
+
+            {% if properties.has_next %}
+                <a href="?page={{ properties.next_page_number }}" class="page-btn" title="Next Page"><i class="fa-solid fa-angle-right"></i></a>
+                <a href="?page={{ properties.paginator.num_pages }}" class="page-btn" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
+            {% else %}
+                <span class="page-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
+                <span class="page-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tip Footer Banner -->
+    <div class="tip-banner">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span><strong>Tip:</strong> Keep your properties updated and respond to inquiries quickly to get more bookings.</span>
+    </div>
+
+</div>
+
+<!-- Page Specific CSS styling matching your design system -->
+<style>
+    .property-management-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .page-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+    .page-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .btn-primary-green {
+        background: var(--primary-green);
+        color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-primary-green:hover {
+        background: var(--primary-green-hover);
+    }
+
+    /* Filter Card */
+    .filter-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+    }
+    .search-input-wrapper i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 9px 12px 9px 38px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        background: #f8fafc;
+    }
+    .filter-dropdowns {
+        display: flex;
+        gap: 10px;
+    }
+    .filter-select {
+        padding: 9px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 13px;
+        background: white;
+        color: var(--text-main);
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Table Card */
+    .table-responsive-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    .data-table th {
+        background: #f8fafc;
+        padding: 12px 20px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+        letter-spacing: 0.5px;
+    }
+    .data-table td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 13px;
+        vertical-align: middle;
+        color: var(--text-main);
+    }
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Property Cell Info */
+    .property-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .property-thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    .property-text-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .property-text-meta strong {
+        font-size: 13px;
+        color: var(--text-main);
+    }
+    .property-text-meta span {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .room-pill {
+        background: #f1f5f9;
+        color: #334155;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+    .status-badge.published { background: #d1fae5; color: #065f46; }
+    .status-badge.published .dot { background: #059669; }
+
+    .status-badge.draft { background: #f1f5f9; color: #475569; }
+    .status-badge.draft .dot { background: #64748b; }
+
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.pending .dot { background: #d97706; }
+
+    .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+    .status-badge.rejected .dot { background: #dc2626; }
+
+    /* Action Buttons */
+    .action-buttons-group {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--text-muted);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .action-btn.edit:hover { background: #f0fdf4; color: var(--primary-green); border-color: var(--primary-green); }
+    .action-btn.view:hover { background: #eff6ff; color: #2563eb; border-color: #2563eb; }
+    .action-btn.delete:hover { background: #fef2f2; color: #dc2626; border-color: #dc2626; }
+
+    .text-right { text-align: right; }
+    .text-xs { font-size: 10px; }
+    .text-sm { font-size: 12px; }
+
+    /* Empty state */
+    .empty-state-cell {
+        text-align: center;
+        padding: 40px !important;
+    }
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-muted);
+    }
+    .empty-state i {
+        font-size: 32px;
+        color: #cbd5e1;
+    }
+    .empty-state h3 {
+        font-size: 15px;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    /* Pagination Styling */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 20px;
+    }
+    .pagination-info {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .page-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--text-main);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .page-btn:hover:not(.disabled) {
+        background: #f8fafc;
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+    .page-btn.disabled {
+        color: #cbd5e1;
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+    .page-indicator {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-main);
+        padding: 0 8px;
+    }
+
+    /* Tip Banner */
+    .tip-banner {
+        background: #f0fdf4;
+        border: 1px solid #d1fae5;
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #065f46;
+        font-size: 13px;
+    }
+    .tip-banner i {
+        font-size: 16px;
+        color: var(--primary-green);
+    }
+</style>
+
+<!-- Client-side filter functionality -->
+<script>
+    function filterProperties() {
+        const searchText = document.getElementById('propertySearch').value.toLowerCase();
+        const statusVal = document.getElementById('statusFilter').value;
+        const roomVal = document.getElementById('roomTypeFilter').value;
+
+        const table = document.getElementById('propertiesTable');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.dataset.title) continue; // Skip header or empty state row
+
+            const title = row.dataset.title;
+            const status = row.dataset.status;
+            const room = row.dataset.room;
+
+            const matchesSearch = title.includes(searchText);
+            const matchesStatus = !statusVal || status === statusVal;
+            const matchesRoom = !roomVal || room === roomVal;
+
+            if (matchesSearch && matchesStatus && matchesRoom) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,531 @@
+{% extends 'home_finder/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb-container">
+    <div class="breadcrumb">
+        <a href="{% url 'home_finder:home' %}">Home</a>
+        <i class="fa-solid fa-chevron-right"></i>
+        <a href="#">Properties</a>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>{{ property.title|default:"Luxury 4-Bedroom East Legon Residence" }}</span>
+    </div>
+</div>
+
+<!-- Property Detail Main Section -->
+<section class="property-detail-section">
+    <div class="property-detail-container">
+
+        <!-- Header: Title & Actions -->
+        <div class="detail-header-row">
+            <div class="detail-title-area">
+                <div class="badge-group">
+                    <span class="verified-badge"><i class="fa-solid fa-check"></i> Verified</span>
+                    <span class="property-tag">{{ property.type|default:"For Rent" }}</span>
+                </div>
+                <h1>{{ property.title|default:"Luxury 4-Bedroom East Legon Residence" }}</h1>
+                <p class="property-location"><i class="fa-solid fa-location-dot"></i> {{ property.location|default:"East Legon, Accra, Greater Accra Region" }}</p>
+            </div>
+            <div class="detail-action-area">
+                <div class="detail-price">
+                    <h2>$2,500 <span>/ month</span></h2>
+                </div>
+                <div class="action-buttons">
+                    <button class="favorite-btn detail-fav" title="Save Property">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    <button class="btn btn-outline" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!');">
+                        <i class="fa-solid fa-share-nodes"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo Grid Gallery -->
+        <div class="property-gallery-grid">
+            <div class="gallery-main-img">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Main Property View">
+            </div>
+            <div class="gallery-sub-imgs">
+                <div class="sub-img-card">
+                    <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Interior View">
+                </div>
+                <div class="sub-img-card">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" alt="Kitchen View">
+                </div>
+                <div class="sub-img-card">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80" alt="Bathroom View">
+                </div>
+                <div class="sub-img-card more-photos">
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" alt="More Photos">
+                    <div class="overlay-text">
+                        <i class="fa-solid fa-images"></i>
+                        <span>View All Photos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Split Layout -->
+        <div class="detail-content-layout">
+
+            <!-- Left Column: Specs, Description, Features -->
+            <div class="detail-main-content">
+
+                <!-- Quick Overview Bar -->
+                <div class="overview-bar">
+                    <div class="overview-item">
+                        <i class="fa-solid fa-bed"></i>
+                        <div>
+                            <span>Bedrooms</span>
+                            <strong>4 Beds</strong>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-bath"></i>
+                        <div>
+                            <span>Bathrooms</span>
+                            <strong>5 Baths</strong>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-ruler-combined"></i>
+                        <div>
+                            <span>Property Size</span>
+                            <strong>350 m²</strong>
+                        </div>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-warehouse"></i>
+                        <div>
+                            <span>Parking Space</span>
+                            <strong>2 Cars</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Card -->
+                <div class="content-block">
+                    <h3>About This Property</h3>
+                    <p>{{ property.description|default:"Experience refined living in this stunning, fully furnished 4-bedroom luxury home located in the prestigious neighborhood of East Legon, Accra. Featuring contemporary architecture, high ceilings, sprawling living spaces, a fully integrated modern kitchen, backup generator, private swimming pool, and 24/7 security. Perfect for corporate tenants and families seeking safety, elegance, and comfort close to Kotoka International Airport and top-tier amenities." }}</p>
+                </div>
+
+                <!-- Features & Amenities -->
+                <div class="content-block">
+                    <h3>Amenities & Features</h3>
+                    <div class="amenities-grid">
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Swimming Pool</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> 24/7 Security & CCTV</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Backup Generator</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Air Conditioning</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Fully Fitted Kitchen</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> High-Speed Internet Ready</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Water Reservoir & Pump</div>
+                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Paved Compound</div>
+                    </div>
+                </div>
+
+                <!-- Location / Map Context -->
+                <div class="content-block">
+                    <h3>Location & Neighborhood</h3>
+                    <p class="location-subtext"><i class="fa-solid fa-map-location-dot"></i> East Legon, near American House, Accra</p>
+                    <div class="map-placeholder">
+                        <div class="map-card-notice">
+                            <i class="fa-solid fa-map"></i>
+                            <span>Interactive Map Integrated (Accra Region)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Agent Contact Card Sticky Sidebar -->
+            <div class="detail-sidebar">
+                <div class="agent-card-sticky">
+                    <div class="agent-header">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Agent Profile" class="agent-avatar">
+                        <div>
+                            <h4>Akosua Mensah</h4>
+                            <p class="agent-role">Verified Prime Agent</p>
+                            <span class="rating"><i class="fa-solid fa-star"></i> 4.9 (42 reviews)</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-contact-actions">
+                        <a href="tel:+233201234567" class="btn btn-outline btn-block">
+                            <i class="fa-solid fa-phone"></i> Call Agent
+                        </a>
+                        <a href="https://wa.me/233201234567" target="_blank" class="btn btn-whatsapp btn-block">
+                            <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                        </a>
+                    </div>
+
+                    <hr class="sidebar-divider">
+
+                    <form class="tour-form" onsubmit="event.preventDefault(); alert('Tour request sent successfully! The agent will contact you shortly.');">
+                        <h4>Schedule a Tour</h4>
+                        <div class="form-group">
+                            <label>Your Name</label>
+                            <input type="text" placeholder="Kwame Owusu" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" placeholder="+233 XX XXX XXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Date</label>
+                            <input type="date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Request Property Tour</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- Scoped Page Styling extensions matching your existing variables -->
+<style>
+.breadcrumb-container {
+    background: var(--bg-light);
+    padding: 15px 5%;
+    border-bottom: 1px solid var(--border-color);
+}
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.breadcrumb a:hover {
+    color: var(--primary);
+}
+.breadcrumb i {
+    font-size: 10px;
+}
+
+.property-detail-section {
+    padding: 40px 5% 80px;
+    background: var(--white);
+}
+.property-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.detail-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.badge-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.detail-title-area h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+.detail-price h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: right;
+}
+.detail-price h2 span {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--text-muted);
+}
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Gallery Grid Styles */
+.property-gallery-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+    height: 480px;
+    margin-bottom: 40px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.gallery-main-img img, .sub-img-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.gallery-main-img img:hover, .sub-img-card img:hover {
+    transform: scale(1.02);
+}
+.gallery-sub-imgs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 15px;
+    height: 100%;
+}
+.sub-img-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+.more-photos {
+    cursor: pointer;
+}
+.more-photos .overlay-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Split Layout */
+.detail-content-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.overview-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+.overview-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.overview-item i {
+    font-size: 20px;
+    color: var(--primary);
+    background: #d1fae5;
+    padding: 10px;
+    border-radius: 8px;
+}
+.overview-item span {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: block;
+    text-transform: uppercase;
+}
+.overview-item strong {
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.content-block {
+    margin-bottom: 35px;
+}
+.content-block h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+}
+.content-block p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+.amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+.amenity-item i {
+    color: var(--primary);
+}
+
+.map-placeholder {
+    width: 100%;
+    height: 250px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+}
+.map-card-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.map-card-notice i {
+    font-size: 32px;
+    color: var(--primary);
+}
+
+/* Sidebar Agent Card & Tour Form */
+.agent-card-sticky {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 12px;
+    position: sticky;
+    top: 100px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.agent-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.agent-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.agent-header h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+.agent-role {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.rating {
+    font-size: 12px;
+    color: #f59e0b;
+    font-weight: 600;
+}
+.agent-contact-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.btn-block {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+}
+.btn-whatsapp {
+    background: #25d366;
+    color: white;
+    border: none;
+}
+.btn-whatsapp:hover {
+    background: #1ebe5d;
+    color: white;
+}
+.sidebar-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+.tour-form h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    color: var(--text-dark);
+}
+.form-group input:focus {
+    border-color: var(--primary);
+}
+
+/* Responsive Overrides */
+@media(max-width: 1024px) {
+    .property-gallery-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .gallery-sub-imgs {
+        display: none;
+    }
+    .detail-content-layout {
+        grid-template-columns: 1fr;
+    }
+    .overview-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+@media(max-width: 600px) {
+    .overview-bar, .amenities-grid {
+        grid-template-columns: 1fr;
+    }
+    .detail-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .detail-price h2 {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

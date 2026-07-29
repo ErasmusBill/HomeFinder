@@ -1,0 +1,593 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Amenities Management - HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="amenities-list-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>Amenities</h1>
+            <p>Manage all amenities that landlords can select when listing their properties.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'landloards:create_amenity' %}" class="btn-primary-action">
+                <i class="fa-solid fa-plus"></i> Add New Amenity
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Table Card Box -->
+    <div class="dashboard-card-box amenities-table-box">
+
+        <!-- Filter & Search Toolbar -->
+        <div class="table-toolbar-row">
+            <div class="toolbar-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="amenity-search-input" placeholder="Search amenities..." autocomplete="off">
+            </div>
+
+            <div class="toolbar-filters-group">
+                <div class="dropdown-filter-wrapper">
+                    <select id="category-filter" class="toolbar-select">
+                        <option value="">All Categories</option>
+                        <!-- Add category options dynamically if applicable -->
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-chevron"></i>
+                </div>
+
+                <div class="dropdown-filter-wrapper">
+                    <select id="status-filter" class="toolbar-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-chevron"></i>
+                </div>
+
+                <button type="button" class="btn-export" title="Export Amenities Data">
+                    <i class="fa-solid fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive">
+            <table class="styled-amenity-table" id="amenities-table">
+                <thead>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th>Amenity</th>
+                        <th>Description</th>
+                        <th>Slug</th>
+                        <th>Date Added</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for amenity in amenities %}
+                        <tr class="amenity-row" data-search-text="{{ amenity.name }} {{ amenity.description }} {{ amenity.slug }}">
+                            <td class="col-num text-muted">{{ forloop.counter0|add:amenities.start_index }}</td>
+                            <td>
+                                <div class="amenity-name-cell">
+                                    <div class="amenity-icon-badge">
+                                        <i class="fa-solid fa-couch text-green"></i>
+                                    </div>
+                                    <strong>{{ amenity.name }}</strong>
+                                </div>
+                            </td>
+                            <td class="description-cell">{{ amenity.description|truncatechars:50 }}</td>
+                            <td>
+                                <span class="slug-pill">{{ amenity.slug }}</span>
+                            </td>
+                            <td class="date-cell">{{ amenity.created_at|date:"M d, Y"|default:"May 20, 2025" }}</td>
+                            <td class="text-right actions-cell">
+                                <a href="{% url 'landloards:update_amenity' amenity.id %}" class="btn-action-icon btn-edit" title="Edit Amenity">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'landloards:delete_amenity' amenity.id %}" class="btn-action-icon btn-delete" title="Delete Amenity" data-amenity-name="{{ amenity.name }}">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="empty-state-container">
+                                    <i class="fa-solid fa-layer-group empty-icon"></i>
+                                    <p>No amenities found. Click "Add New Amenity" to create one.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div id="no-search-results" class="no-search-results" style="display:none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <p>No amenities match your search query.</p>
+            </div>
+        </div>
+
+        <!-- Table Footer / Pagination -->
+        <div class="table-footer-row">
+            <div class="table-count-info">
+                Showing {{ amenities.start_index|default:1 }} to {{ amenities.end_index|default:amenities|length }} of {{ amenities.paginator.count|default:amenities|length }} amenities
+            </div>
+
+            {% if amenities.has_other_pages %}
+                <div class="pagination-container">
+                    {% if amenities.has_previous %}
+                        <a href="?page={{ amenities.previous_page_number }}" class="btn-page">Previous</a>
+                    {% else %}
+                        <button class="btn-page disabled" disabled>Previous</button>
+                    {% endif %}
+
+                    <div class="page-numbers-group">
+                        {% for i in amenities.paginator.page_range %}
+                            {% if amenities.number == i %}
+                                <span class="btn-page active">{{ i }}</span>
+                            {% elif i > amenities.number|add:'-3' and i < amenities.number|add:'3' %}
+                                <a href="?page={{ i }}" class="btn-page">{{ i }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if amenities.has_next %}
+                        <a href="?page={{ amenities.next_page_number }}" class="btn-page">Next</a>
+                    {% else %}
+                        <button class="btn-page disabled" disabled>Next</button>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Styling and Layout Styles -->
+<style>
+/* ---------- PAGE HEADER (was missing — h1/p/button rendered unstyled) ---------- */
+.page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.header-titles h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-main, #1e293b);
+    margin: 0 0 6px 0;
+}
+
+.header-titles p {
+    font-size: 14px;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* "Add New Amenity" button */
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background: var(--primary-green, #10b981);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary-action i {
+    font-size: 12px;
+}
+
+.btn-primary-action:hover {
+    background: #0d9d6f;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.btn-primary-action:active {
+    transform: translateY(1px);
+}
+
+/* Toolbar row styling */
+.table-toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    margin-bottom: 0;
+    flex-wrap: wrap;
+}
+
+.toolbar-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: #ffffff;
+    width: 320px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toolbar-search-box:focus-within {
+    border-color: var(--primary-green, #10b981);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.toolbar-search-box i {
+    color: var(--text-muted, #94a3b8);
+    font-size: 14px;
+}
+
+.toolbar-search-box input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text-main, #1e293b);
+    width: 100%;
+    background: transparent;
+}
+
+.toolbar-filters-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dropdown-filter-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.toolbar-select {
+    appearance: none;
+    background: #ffffff;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    padding: 9px 36px 9px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main, #334155);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.toolbar-select:hover, .toolbar-select:focus {
+    border-color: var(--primary-green, #10b981);
+}
+
+.select-chevron {
+    position: absolute;
+    right: 14px;
+    font-size: 11px;
+    color: var(--text-muted, #64748b);
+    pointer-events: none;
+}
+
+.btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main, #334155);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-export:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+/* Table Design */
+.amenities-table-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.styled-amenity-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.styled-amenity-table th {
+    background: #f8fafc;
+    color: var(--text-muted, #64748b);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    letter-spacing: 0.03em;
+}
+
+.styled-amenity-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.styled-amenity-table th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.styled-amenity-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    font-size: 14px;
+    color: var(--text-main, #1e293b);
+    vertical-align: middle;
+}
+
+.styled-amenity-table tbody tr {
+    transition: background 0.15s;
+}
+
+.styled-amenity-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.styled-amenity-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.col-num {
+    width: 60px;
+    text-align: center;
+}
+
+.amenity-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.amenity-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.description-cell {
+    color: var(--text-muted, #64748b);
+    max-width: 300px;
+}
+
+.slug-pill {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.date-cell {
+    color: var(--text-muted, #64748b);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.actions-cell {
+    white-space: nowrap;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.py-5 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+.btn-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: var(--text-main, #334155);
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-left: 4px;
+}
+
+.btn-edit:hover {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Footer & Pagination */
+.table-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.table-count-info {
+    font-size: 13px;
+    color: var(--text-muted, #64748b);
+}
+
+.pagination-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.page-numbers-group {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-page {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: #ffffff;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--text-main, #334155);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-page:hover:not(.disabled):not(.active) {
+    background: #f1f5f9;
+}
+
+.btn-page.active {
+    background: var(--primary-green, #10b981);
+    color: #ffffff;
+    border-color: var(--primary-green, #10b981);
+}
+
+.btn-page.disabled {
+    color: #cbd5e1;
+    background: #f8fafc;
+    cursor: not-allowed;
+}
+
+.no-search-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 0;
+    color: var(--text-muted, #64748b);
+    font-size: 14px;
+}
+
+.empty-state-container {
+    padding: 20px;
+    color: var(--text-muted, #64748b);
+}
+
+.empty-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+}
+
+.text-green {
+    color: var(--primary-green, #10b981);
+}
+
+@media (max-width: 768px) {
+    .table-toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-search-box {
+        width: 100%;
+    }
+    .toolbar-filters-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .toolbar-select, .btn-export {
+        flex: 1;
+    }
+}
+</style>
+
+<!-- Live Search JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Delete Confirmation Handler
+    document.querySelectorAll('.btn-delete').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            var name = btn.getAttribute('data-amenity-name') || 'this amenity';
+            var confirmed = window.confirm('Are you sure you want to delete "' + name + '"? This action cannot be undone.');
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Client-side instant filter search
+    var searchInput = document.getElementById('amenity-search-input');
+    var rows = document.querySelectorAll('#amenities-table .amenity-row');
+    var noResults = document.getElementById('no-search-results');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            var query = searchInput.value.trim().toLowerCase();
+            var visibleCount = 0;
+
+            rows.forEach(function (row) {
+                var haystack = (row.getAttribute('data-search-text') || '').toLowerCase();
+                var isMatch = haystack.indexOf(query) !== -1;
+                row.style.display = isMatch ? '' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            if (noResults) {
+                noResults.style.display = (rows.length > 0 && visibleCount === 0) ? 'flex' : 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,824 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Add New Location Hierarchy - HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="locations-management-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>Add Complete Location Hierarchy</h1>
+            <p>Fill in one field per level to create a Region, District, Town and Area together, or use "Add separately" if the parent already exists.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'locations:list_locations' %}" class="btn-secondary-action">
+                <i class="fa-solid fa-list"></i> View All Locations
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Container Box -->
+    <div class="dashboard-card-box">
+        <form method="POST" class="location-form" id="hierarchy-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error-banner">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Helper banner explaining how the flow works -->
+            <div class="info-banner">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Steps flow top to bottom: a Region contains Districts, a District contains Towns, and a Town contains Areas. Only the top field is required — leave the rest blank if you're just adding a Region.</span>
+            </div>
+
+            <div class="form-grid">
+
+                <!-- Region Section Card -->
+                <div class="form-section-group">
+                    <div class="card-header-row">
+                        <h3><span class="step-badge">1</span> Region Information</h3>
+                        <a href="{% url 'locations:create_region' %}" class="manage-separately-link" title="Create a Region on its own page">
+                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.region_name.id_for_label }}">Region Name <span class="required-star">*</span></label>
+                        {{ form.region_name }}
+                        {% if form.region_name.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.region_name.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">e.g., Greater Accra, Ashanti</small>
+                    </div>
+                </div>
+
+                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
+
+                <!-- District Section Card -->
+                <div class="form-section-group">
+                    <div class="card-header-row">
+                        <h3><span class="step-badge">2</span> District Information</h3>
+                        <a href="{% url 'locations:add_district' %}" class="manage-separately-link" title="Add a District under an existing Region">
+                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.district_name.id_for_label }}">District Name <span class="optional-tag">optional</span></label>
+                        {{ form.district_name }}
+                        {% if form.district_name.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.district_name.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">e.g., Accra Metropolitan, Kumasi Metropolitan</small>
+                    </div>
+                </div>
+
+                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
+
+                <!-- Town Section Card -->
+                <div class="form-section-group">
+                    <div class="card-header-row">
+                        <h3><span class="step-badge">3</span> Town Information</h3>
+                        <a href="{% url 'locations:add_town' %}" class="manage-separately-link" title="Add a Town under an existing District">
+                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.town_name.id_for_label }}">Town Name <span class="optional-tag">optional</span></label>
+                        {{ form.town_name }}
+                        {% if form.town_name.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.town_name.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">e.g., Accra, Tema, Kumasi</small>
+                    </div>
+                </div>
+
+                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
+
+                <!-- Area Section Card -->
+                <div class="form-section-group">
+                    <div class="card-header-row">
+                        <h3><span class="step-badge">4</span> Area / Neighborhood</h3>
+                        <a href="{% url 'locations:add_area' %}" class="manage-separately-link" title="Add an Area under an existing Town">
+                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.area_name.id_for_label }}">Area Name <span class="optional-tag">optional</span></label>
+                        {{ form.area_name }}
+                        {% if form.area_name.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.area_name.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">e.g., Osu, East Legon, Bantama</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions Submission Footer -->
+            <div class="form-actions-footer">
+                <a href="{% url 'locations:list_locations' %}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-primary-action">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Full Hierarchy
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Existing Locations Table Section (Beneath Cards) -->
+    <div class="dashboard-card-box locations-table-box">
+        <div class="table-header-row">
+            <h2>Existing Location Hierarchies</h2>
+            <div class="table-header-tools">
+                <span class="badge-count">Total Regions: {{ locations.paginator.count }}</span>
+                <div class="table-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="location-search-input" placeholder="Search region, district, town or area..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="styled-location-table" id="locations-table">
+                <thead>
+                    <tr>
+                        <th>Region</th>
+                        <th>Districts / Towns / Areas</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for region in locations %}
+                        <tr class="location-row" data-search-text="{{ region.name }} {% for district in region.districts.all %}{{ district.name }} {% for town in district.towns.all %}{{ town.name }} {% for area in town.areas.all %}{{ area.name }} {% endfor %}{% endfor %}{% endfor %}">
+                            <td class="region-cell">
+                                <strong><i class="fa-solid fa-map-location-dot text-green"></i> {{ region.name }}</strong>
+                            </td>
+                            <td>
+                                <div class="nested-hierarchy-list">
+                                    {% for district in region.districts.all %}
+                                        <div class="district-badge-group">
+                                            <span class="district-name"><i class="fa-solid fa-map"></i> {{ district.name }}</span>
+                                            <div class="towns-sublist">
+                                                {% for town in district.towns.all %}
+                                                    <span class="town-tag">
+                                                        <i class="fa-solid fa-city"></i> {{ town.name }}
+                                                        <small class="areas-text">
+                                                            ({% for area in town.areas.all %}{{ area.name }}{% if not forloop.last %}, {% endif %}{% empty %}No areas{% endfor %})
+                                                        </small>
+                                                    </span>
+                                                {% empty %}
+                                                    <span class="text-muted text-xs">No towns</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <span class="text-muted">No districts configured yet.</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="text-right actions-cell">
+                                <!-- Update / Edit Region Button -->
+                                <a href="{% url 'locations:update_region' region.id %}" class="btn-action-icon btn-edit" title="Edit Region">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <!-- Delete Region Button -->
+                                <a href="{% url 'locations:delete_region' region.id %}" class="btn-action-icon btn-delete" title="Delete Region" data-region-name="{{ region.name }}">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No location records found. Use the form above to add locations.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div id="no-search-results" class="no-search-results" style="display:none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <p>No locations match your search.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if locations.has_other_pages %}
+            <div class="pagination-container">
+                {% if locations.has_previous %}
+                    <a href="?page={{ locations.previous_page_number }}" class="btn-page">Previous</a>
+                {% endif %}
+                <span class="page-info">Page {{ locations.number }} of {{ locations.paginator.num_pages }}</span>
+                {% if locations.has_next %}
+                    <a href="?page={{ locations.next_page_number }}" class="btn-page">Next</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Additional Styles for Table Layout -->
+<style>
+/* ---------- PAGE HEADER (was missing) ---------- */
+.page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.header-titles h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-main, #1e293b);
+    margin: 0 0 6px 0;
+}
+
+.header-titles p {
+    font-size: 14px;
+    color: var(--text-muted, #64748b);
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* "View All Locations" button (was missing) */
+.btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #ffffff;
+    color: var(--primary-green, #10b981);
+    border: 1.5px solid var(--primary-green, #10b981);
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-secondary-action i {
+    font-size: 12px;
+}
+
+.btn-secondary-action:hover {
+    background: var(--primary-green, #10b981);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    text-decoration: none;
+}
+
+.btn-secondary-action:active {
+    transform: translateY(1px);
+}
+
+/* ---------- Info banner ---------- */
+.info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+.info-banner i {
+    margin-top: 2px;
+    color: var(--primary-green);
+}
+
+.form-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* ---------- Form cards ---------- */
+.form-section-group {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    background: #ffffff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-section-group:focus-within {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+.card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.card-header-row h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-green);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.manage-separately-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.manage-separately-link:hover {
+    background: #f1f5f9;
+    color: var(--primary-green);
+}
+.manage-separately-link i {
+    font-size: 10px;
+}
+
+/* ---------- Form fields (padding/borders/rounded edges were missing) ---------- */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main, #1e293b);
+    margin-bottom: 8px;
+}
+
+.required-star {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.optional-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+
+.form-group input[type="text"],
+.form-group input:not([type]),
+.form-group input[type="email"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-main, #1e293b);
+    background-color: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-green, #10b981);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.form-group input:hover:not(:focus),
+.form-group select:hover:not(:focus) {
+    border-color: #cbd5e1;
+}
+
+.form-group.has-error input {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.error-msg {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.help-text-hint {
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* Flow connector arrows between stacked cards */
+.flow-connector {
+    display: flex;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: -4px 0;
+}
+
+/* On wider screens the grid becomes a single flowing column so the
+    vertical arrows always make sense between steps */
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ---------- Form actions footer (was missing) ---------- */
+.form-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    padding-top: 20px;
+    margin-top: 24px;
+}
+
+.btn-cancel {
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    background: #f1f5f9;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-cancel:hover {
+    background: #e2e8f0;
+    color: var(--text-main, #1e293b);
+}
+
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--primary-green, #10b981);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-primary-action:hover {
+    background: #0d9d6f;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.btn-primary-action:active {
+    transform: translateY(1px);
+}
+
+/* ---------- Table header tools ---------- */
+.table-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.table-header-row h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+.table-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.badge-count {
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.table-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #ffffff;
+    min-width: 240px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.table-search-box:focus-within {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+.table-search-box i {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.table-search-box input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text-main);
+    width: 100%;
+    background: transparent;
+}
+.no-search-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 30px 0;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.no-search-results i {
+    font-size: 22px;
+}
+
+.locations-table-box {
+    margin-top: 10px;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+.styled-location-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+.styled-location-table th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+.styled-location-table th:first-child {
+    border-top-left-radius: 8px;
+}
+.styled-location-table th:last-child {
+    border-top-right-radius: 8px;
+}
+.styled-location-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+    color: var(--text-main);
+    vertical-align: top;
+}
+.styled-location-table tbody tr {
+    transition: background 0.15s;
+}
+.styled-location-table tbody tr:hover {
+    background: #fafcff;
+}
+.styled-location-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.region-cell {
+    white-space: nowrap;
+    font-weight: 600;
+}
+.text-green {
+    color: var(--primary-green);
+}
+.text-muted {
+    color: var(--text-muted, #64748b);
+}
+.text-xs {
+    font-size: 11px;
+}
+.py-4 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+.nested-hierarchy-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.district-badge-group {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+}
+.district-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: #334155;
+    display: block;
+    margin-bottom: 6px;
+}
+.towns-sublist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.town-tag {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.areas-text {
+    color: var(--text-muted);
+}
+.actions-cell {
+    white-space: nowrap;
+}
+.text-right {
+    text-align: right;
+}
+.text-center {
+    text-align: center;
+}
+.btn-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-left: 4px;
+}
+.btn-edit:hover {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+}
+.btn-page {
+    padding: 6px 14px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: background 0.15s;
+}
+.btn-page:hover {
+    background: #f1f5f9;
+}
+.page-info {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* ---------- Accessibility: visible keyboard focus ---------- */
+.manage-separately-link:focus-visible,
+.btn-action-icon:focus-visible,
+.btn-page:focus-visible,
+.btn-primary-action:focus-visible,
+.btn-cancel:focus-visible,
+.btn-secondary-action:focus-visible,
+#location-search-input:focus-visible {
+    outline: 2px solid var(--primary-green);
+    outline-offset: 2px;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 640px) {
+    .table-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .table-search-box {
+        min-width: 0;
+        width: 100%;
+    }
+    .card-header-row {
+        align-items: flex-start;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Confirm before deleting a region and everything nested under it
+    document.querySelectorAll('.btn-delete').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            var name = btn.getAttribute('data-region-name') || 'this region';
+            var confirmed = window.confirm(
+                'Delete "' + name + '"? This will also remove all districts, towns and areas under it. This cannot be undone.'
+            );
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Live client-side search across region / district / town / area names
+    var searchInput = document.getElementById('location-search-input');
+    var rows = document.querySelectorAll('#locations-table .location-row');
+    var noResults = document.getElementById('no-search-results');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            var query = searchInput.value.trim().toLowerCase();
+            var visibleCount = 0;
+
+            rows.forEach(function (row) {
+                var haystack = (row.getAttribute('data-search-text') || '').toLowerCase();
+                var isMatch = haystack.indexOf(query) !== -1;
+                row.style.display = isMatch ? '' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            if (noResults) {
+                noResults.style.display = (rows.length > 0 && visibleCount === 0) ? 'flex' : 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

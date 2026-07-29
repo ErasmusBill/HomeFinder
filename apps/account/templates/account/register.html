@@ -1,0 +1,294 @@
+{% extends 'home_finder/base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block content %}
+<section class="login-section">
+    <div class="login-container">
+
+        <!-- Left Column: Register Form -->
+        <div class="login-form-column">
+
+            <div class="back-link-wrap">
+                <a href="{% url 'home_finder:home' %}" class="back-home-link">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+
+            <div class="login-header-block">
+                <h1>Create <span>Account</span></h1>
+                <p>Join HomeFinder Ghana to find or list your next property.</p>
+            </div>
+
+            <!-- Social Auth Buttons: only rendered for providers actually configured in the DB/settings -->
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
+                <div class="social-auth-group">
+                    {% for provider in socialaccount_providers %}
+                        {% if provider.id == 'google' %}
+                            <a href="{% provider_login_url 'google' %}" class="social-btn google-btn">
+                                <i class="fa-brands fa-google"></i> Continue with Google
+                            </a>
+                        {% elif provider.id == 'facebook' %}
+                            <a href="{% provider_login_url 'facebook' %}" class="social-btn facebook-btn">
+                                <i class="fa-brands fa-facebook-f"></i> Continue with Facebook
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="divider-text">
+                    <span>or sign up with email</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="" enctype="multipart/form-data" class="login-main-form">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="form-errors-box">
+                        <p><i class="fa-solid fa-circle-exclamation"></i> Please correct the errors below.</p>
+                    </div>
+                {% endif %}
+
+                <!-- Full Name -->
+                <div class="form-group-item {% if form.full_name.errors %}has-error{% endif %}">
+                    <label for="{{ form.full_name.id_for_label }}">Full Name</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-user"></i>
+                        {{ form.full_name }}
+                    </div>
+                    {% if form.full_name.errors %}
+                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ form.full_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Email Address -->
+                <div class="form-group-item {% if form.email.errors %}has-error{% endif %}">
+                    <label for="{{ form.email.id_for_label }}">Email Address</label>
+                    <div class="input-with-icon">
+                        <i class="fa-regular fa-envelope"></i>
+                        {{ form.email }}
+                    </div>
+                    {% if form.email.errors %}
+                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ form.email.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Number -->
+                <div class="form-group-item {% if form.phone_number.errors %}has-error{% endif %}">
+                    <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-phone"></i>
+                        {{ form.phone_number }}
+                    </div>
+                    {% if form.phone_number.errors %}
+                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ form.phone_number.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="form-group-item {% if form.password.errors %}has-error{% endif %}">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-lock"></i>
+                        {{ form.password }}
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('{{ form.password.id_for_label }}', this)" aria-label="Show password">
+                            <i class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ form.password.errors.0 }}</span>
+                    {% else %}
+                        <span class="field-hint">Use at least 8 characters, with a number or symbol.</span>
+                    {% endif %}
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group-item {% if form.confirm_password.errors %}has-error{% endif %}">
+                    <label for="{{ form.confirm_password.id_for_label }}">Confirm Password</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-lock"></i>
+                        {{ form.confirm_password }}
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('{{ form.confirm_password.id_for_label }}', this)" aria-label="Show password">
+                            <i class="fa-regular fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    {% if form.confirm_password.errors %}
+                        <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ form.confirm_password.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-block login-submit-btn">
+                    Create Account <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <!-- Login Redirect Footer -->
+                <div class="auth-redirect-footer">
+                    <p>Already have an account? <a href="{% url 'account:login' %}">Login</a></p>
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- Right Column: Features & Imagery Banner -->
+        <div class="login-banner-column">
+            <div class="banner-features-stack">
+                <div class="banner-feature-item">
+                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div><h4>Verified & Safe</h4><p>Every property and landlord is verified for your safety.</p></div>
+                </div>
+                <div class="banner-feature-item">
+                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-lock-open"></i></div>
+                    <div><h4>No Hidden Fees</h4><p>Transparent pricing with no surprise charges.</p></div>
+                </div>
+                <div class="banner-feature-item">
+                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-headset"></i></div>
+                    <div><h4>24/7 Support</h4><p>Our team is here to help you every step of the way.</p></div>
+                </div>
+                <div class="banner-feature-item">
+                    <div class="banner-icon-box green-bg"><i class="fa-regular fa-heart"></i></div>
+                    <div><h4>Save Favorites</h4><p>Save and compare your favorite properties.</p></div>
+                </div>
+            </div>
+
+            <div class="banner-property-graphic">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80" alt="Luxury Modern Architecture">
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+* { box-sizing: border-box; }
+
+.login-section { background: #f8fafc; padding: 40px 5% 80px; }
+.login-container { max-width: 1350px; margin: 0 auto; background: white; border: 1px solid #e2e8f0; border-radius: 16px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+.login-form-column { padding: 50px 60px; }
+
+.back-link-wrap { margin-bottom: 25px; }
+.back-home-link { font-size: 13px; color: #64748b; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: color .15s ease, gap .15s ease; }
+.back-home-link:hover { color: #059669; gap: 10px; }
+
+.login-header-block { margin-bottom: 25px; }
+.login-header-block h1 { font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+.login-header-block h1 span { color: #059669; }
+.login-header-block p { font-size: 14px; color: #64748b; line-height: 1.5; }
+
+.form-errors-box { margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; }
+.form-errors-box p { display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 13px; font-weight: 500; margin: 0; }
+
+.social-auth-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.social-btn { width: 100%; padding: 12px; background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 600; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; transition: background .15s ease, border-color .15s ease, transform .08s ease; }
+.social-btn:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+.social-btn:active { transform: translateY(1px); }
+.google-btn i { color: #ea4335; }
+.facebook-btn i { color: #1877f2; }
+
+.divider-text { position: relative; text-align: center; margin: 20px 0; }
+.divider-text::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #e2e8f0; }
+.divider-text span { position: relative; background: white; padding: 0 15px; font-size: 12px; color: #64748b; text-transform: lowercase; }
+
+.form-group-item { margin-bottom: 18px; }
+.form-group-item label { display: block; font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 8px; letter-spacing: 0.01em; }
+
+.input-with-icon { position: relative; display: flex; align-items: center; }
+.input-with-icon i:not(.password-toggle-btn i) { position: absolute; left: 16px; color: #94a3b8; font-size: 14px; pointer-events: none; z-index: 1; transition: color .15s ease; }
+
+.input-with-icon input {
+    width: 100%;
+    padding: 13px 16px 13px 42px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input-with-icon input::placeholder { color: #b0b8c4; }
+.input-with-icon input:hover { border-color: #cbd5e1; }
+.input-with-icon input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(5,150,105,0.12); }
+.input-with-icon:focus-within i:not(.password-toggle-btn i) { color: #059669; }
+
+.input-with-icon input[type="password"],
+.input-with-icon input[type="text"].password-visible {
+    padding-right: 44px;
+}
+
+.password-toggle-btn { position: absolute; right: 14px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color .15s ease; z-index: 1; }
+.password-toggle-btn:hover { color: #475569; }
+
+.has-error .input-with-icon input { border-color: #fca5a5; }
+.has-error .input-with-icon input:focus { border-color: #dc2626; box-shadow: 0 0 0 4px rgba(220,38,38,0.10); }
+.field-error { display: flex; align-items: center; gap: 6px; color: #dc2626; font-size: 12px; font-weight: 500; margin-top: 6px; }
+.field-hint { display: block; color: #94a3b8; font-size: 11.5px; margin-top: 6px; }
+
+.login-submit-btn {
+    width: 100%;
+    background-color: #059669;
+    color: white;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+    margin-top: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background .15s ease, transform .08s ease, box-shadow .15s ease;
+}
+.login-submit-btn i { font-size: 13px; transition: transform .15s ease; }
+.login-submit-btn:hover { background-color: #047857; box-shadow: 0 4px 12px rgba(5,150,105,0.25); }
+.login-submit-btn:hover i { transform: translateX(3px); }
+.login-submit-btn:active { transform: translateY(1px); }
+.login-submit-btn:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
+
+.auth-redirect-footer { text-align: center; margin-top: 15px; font-size: 13px; color: #64748b; }
+.auth-redirect-footer a { color: #059669; font-weight: 700; text-decoration: none; }
+.auth-redirect-footer a:hover { text-decoration: underline; }
+
+.login-banner-column { background: #f1f5f9; padding: 50px 40px 0; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.banner-features-stack { display: flex; flex-direction: column; gap: 20px; z-index: 2; }
+.banner-feature-item { display: flex; align-items: flex-start; gap: 15px; }
+.banner-icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.banner-icon-box.green-bg { background: #d1fae5; color: #059669; }
+.banner-feature-item h4 { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+.banner-feature-item p { font-size: 13px; color: #64748b; line-height: 1.4; }
+.banner-property-graphic { margin-top: 30px; border-top-left-radius: 16px; overflow: hidden; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); }
+.banner-property-graphic img { width: 100%; height: 280px; object-fit: cover; display: block; }
+
+@media(max-width: 1024px) {
+    .login-container { grid-template-columns: 1fr; }
+    .login-banner-column { display: none; }
+    .login-form-column { padding: 30px 20px; }
+}
+</style>
+
+<script>
+function togglePassword(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    const icon = btn.querySelector('i');
+    if (!field) return;
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+        btn.setAttribute('aria-label', 'Hide password');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+        btn.setAttribute('aria-label', 'Show password');
+    }
+}
+</script>
+{% endblock %}
