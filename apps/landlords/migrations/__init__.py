@@ -1,1 +1,1 @@
-# empty migrations package placeholder
+# migrations package
