@@ -35,6 +35,11 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
+# Site framework
+SITE_ID = env.int('SITE_ID', default=1)
+
+# Cache TTL used across the project (seconds)
+CACHE_TTL = env.int('CACHE_TTL', default=300)
 
 # Application definition
 
@@ -81,12 +86,17 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR, 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -143,7 +153,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [ BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
@@ -158,8 +168,7 @@ CACHES = {
     }
 }
 
-# Use app label (not python path) for AUTH_USER_MODEL
-AUTH_USER_MODEL = 'user_account.User'
+AUTH_USER_MODEL = 'apps.account.User'
 
 AUTHENTICATION_BACKENDS = [
     'apps.account.backends.EmailOrPhoneBackend',
@@ -169,7 +178,8 @@ AUTHENTICATION_BACKENDS = [
 
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-ACCOUNT_LOGIN_METHODS = {'email'}
+# make login methods explicit and simple (allauth will accept this)
+ACCOUNT_LOGIN_METHODS = ('email',)
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 
 
@@ -199,7 +209,7 @@ SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
             "client_id": "YOUR_GOOGLE_CLIENT_ID",
- "secret": "YOUR_GOOGLE_CLIENT_SECRET",
+            "secret": "YOUR_GOOGLE_CLIENT_SECRET",
             "key": "",
         }
     },
@@ -212,11 +222,15 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
+# Email settings: use safe defaults so local development doesn't crash when env vars are missing
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@homefinder.com")
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
