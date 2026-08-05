@@ -1,21 +1,20 @@
 [project]
-name = "vacant-hommie"
+name = "homefinder"
 version = "0.1.0"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = [
     "blurhash-python>=1.2.2",
     "celery>=5.6.3",
     "celery-types>=0.26.0",
     "cookiecutter>=2.7.1",
     "django>=6.0.7",
-    "django-allauth>=65.18.0",
+    "django-allauth>=0.58.0",
     "django-environ>=0.14.0",
     "django-jazzmin>=3.0.5",
     "django-redis>=7.0.0",
     "django-tailwind[reload]>=4.5.0",
-    "gunicorn>=26.0.0",
-    "jwt>=1.4.0",
-    "logging>=0.4.9.6",
+    "gunicorn>=20.1.0",
+    "PyJWT>=2.8.0",
     "pillow>=12.3.0",
     "psycopg[binary]>=3.3.4",
     "redis>=8.0.1",
