@@ -1,1 +1,1 @@
-# Moved from apps/landloards to apps/landlords to fix typo
+# Moved app source files from landloards to landlords
