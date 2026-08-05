@@ -1,2 +1,2 @@
--    'apps.Subscription',
-+    'apps.subscription',
+-    'apps.landloards',
++    'apps.landlords',
