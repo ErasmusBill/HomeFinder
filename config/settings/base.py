@@ -159,7 +159,7 @@ CACHES = {
 }
 
 # Use app label (not python path) for AUTH_USER_MODEL
-AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = 'user_account.User'
 
 AUTHENTICATION_BACKENDS = [
     'apps.account.backends.EmailOrPhoneBackend',
@@ -199,7 +199,7 @@ SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
             "client_id": "YOUR_GOOGLE_CLIENT_ID",
-            "secret": "YOUR_GOOGLE_CLIENT_SECRET",
+ "secret": "YOUR_GOOGLE_CLIENT_SECRET",
             "key": "",
         }
     },
