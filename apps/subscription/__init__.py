@@ -1,1 +1,1 @@
-# Renamed Subscription package to lowercase 'subscription'
+# Subscription package
