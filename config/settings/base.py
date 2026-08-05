@@ -158,7 +158,8 @@ CACHES = {
     }
 }
 
-AUTH_USER_MODEL = 'apps.account.User'
+# Use app label (not python path) for AUTH_USER_MODEL
+AUTH_USER_MODEL = 'account.User'
 
 AUTHENTICATION_BACKENDS = [
     'apps.account.backends.EmailOrPhoneBackend',
