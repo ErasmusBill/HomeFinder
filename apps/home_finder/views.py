@@ -5,8 +5,10 @@ from .selectors import get_recent_properties, get_published_properties, get_prop
 # Create your views here.
 
 def home(request):
-    properties = get_recent_properties()
+    # Show verified & published properties on landing page
+    properties = get_published_properties()
     return render(request, 'home_finder/index.html', {'properties': properties})
+
 
 def get_all_properties(request):
     # properties = get_published_properties()

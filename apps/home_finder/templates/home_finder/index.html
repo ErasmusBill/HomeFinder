@@ -115,93 +115,34 @@
         </div>
 
         <div class="property-grid">
-            <!-- Property 1 -->
+            {% for property in properties %}
             <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='2-bedroom-apartment-east-legon' %}" class="property-card-link">
+                <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
                 <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" alt="Apartment">
+                    {% if property.cover_image %}
+                        <img src="{{ property.cover_image.url }}" alt="{{ property.title }}">
+                    {% else %}
+                        <img src="{% static 'images/property-placeholder.jpg' %}" alt="{{ property.title }}">
+                    {% endif %}
                     <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Apartment</div>
+                    <div class="property-tag">{{ property.get_room_type_display }}</div>
                     <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
                 </div>
                 <div class="property-details">
-                    <h3 class="property-title">2 Bedroom Apartment</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> East Legon, Accra</div>
-                    <div class="property-price">GH₵ 2,500 <span>/ month</span></div>
+                    <h3 class="property-title">{{ property.title }}</h3>
+                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> {% if property.town %}{{ property.town.name }}, {% endif %}{{ property.region.name }}</div>
+                    <div class="property-price">GH₵ {{ property.price }} <span>/ {{ property.get_payment_period_display }}</span></div>
                     <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 2 Beds</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 2 Baths</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 120m²</div>
+                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Beds</div>
+                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Baths</div>
+                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> {{ property.floor_area }}m²</div>
                     </div>
                 </div>
                 </a>
             </div>
-
-            <!-- Property 2 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='single-room-self-contained-madina' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80" alt="Self Contained">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Self Contained</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">Single Room (Self Contained)</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Madina, Accra</div>
-                    <div class="property-price">GH₵ 800 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 1 Bed</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 1 Bath</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 35m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
-
-            <!-- Property 3 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='chamber-and-hall-haatso' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80" alt="Chamber & Hall">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Chamber & Hall</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">Chamber & Hall</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Haatso, Accra</div>
-                    <div class="property-price">GH₵ 1,200 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 1 Bed</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 1 Bath</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 45m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
-
-            <!-- Property 4 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='3-bedroom-apartment-adjiringanor' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" alt="3 Bedroom Apartment">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">3 Bedroom Apartment</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">3 Bedroom Apartment</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Adjiringanor, Accra</div>
-                    <div class="property-price">GH₵ 3,500 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 3 Beds</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 3 Baths</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 160m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
+            {% empty %}
+            <p>No verified properties available at the moment. Please check back later.</p>
+            {% endfor %}
         </div>
     </section>
 
