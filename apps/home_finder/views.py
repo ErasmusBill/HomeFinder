@@ -1,14 +1,14 @@
 from django.shortcuts import render
 
 from django.core.paginator import Paginator
-from .selectors import get_recent_properties, get_published_properties, get_property_by_slug
+from .selectors import get_recent_properties, get_published_properties, get_property_by_slug, get_featured_properties
 # Create your views here.
 
 def home(request):
-    # Show verified & published properties on landing page
-    properties = get_published_properties()
-    return render(request, 'home_finder/index.html', {'properties': properties})
-
+    # Show featured properties and recent verified & published properties on landing page
+    featured = get_featured_properties(limit=8)
+    recent = get_recent_properties(limit=8)
+    return render(request, 'home_finder/index.html', {'featured_properties': featured, 'recent_properties': recent})
 
 def get_all_properties(request):
     # properties = get_published_properties()

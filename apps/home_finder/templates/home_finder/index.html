@@ -115,22 +115,26 @@
         </div>
 
         <div class="property-grid">
-            {% for property in properties %}
+            {% for property in featured_properties %}
             <div class="property-card">
                 <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
                 <div class="property-img-container">
                     {% if property.cover_image %}
-                        <img src="{{ property.cover_image.url }}" alt="{{ property.title }}">
+                        <img src="{{ property.cover_image.url }}" loading="lazy" alt="{{ property.title }}">
                     {% else %}
-                        <img src="{% static 'images/property-placeholder.jpg' %}" alt="{{ property.title }}">
+                        <img src="{% static 'images/property-placeholder.jpg' %}" loading="lazy" alt="{{ property.title }}">
                     {% endif %}
                     <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
+                    {% if property.landlord_has_active_subscription %}
+                        <div class="subscription-badge">SUBSCRIBED</div>
+                    {% endif %}
                     <div class="property-tag">{{ property.get_room_type_display }}</div>
                     <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
                 </div>
                 <div class="property-details">
                     <h3 class="property-title">{{ property.title }}</h3>
                     <div class="property-location"><i class="fa-solid fa-location-dot"></i> {% if property.town %}{{ property.town.name }}, {% endif %}{{ property.region.name }}</div>
+                    <div class="property-meta">By {{ property.landlord.full_name }}{% if property.landlord_has_active_subscription %} • Pro{% endif %}</div>
                     <div class="property-price">GH₵ {{ property.price }} <span>/ {{ property.get_payment_period_display }}</span></div>
                     <div class="property-features">
                         <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Beds</div>
@@ -141,7 +145,50 @@
                 </a>
             </div>
             {% empty %}
-            <p>No verified properties available at the moment. Please check back later.</p>
+            <p>No featured properties at the moment.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Recent Properties Section -->
+    <section class="section-container">
+        <div class="section-header">
+            <div class="section-title">
+                <h2>Recently Added</h2>
+                <p>Latest verified properties on the platform.</p>
+            </div>
+            <a href="{% url 'home_finder:list_properties'%}" class="btn-link">View All Properties <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+
+        <div class="property-grid">
+            {% for property in recent_properties %}
+            <div class="property-card">
+                <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
+                <div class="property-img-container">
+                    {% if property.cover_image %}
+                        <img src="{{ property.cover_image.url }}" loading="lazy" alt="{{ property.title }}">
+                    {% else %}
+                        <img src="{% static 'images/property-placeholder.jpg' %}" loading="lazy" alt="{{ property.title }}">
+                    {% endif %}
+                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
+                    <div class="property-tag">{{ property.get_room_type_display }}</div>
+                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
+                </div>
+                <div class="property-details">
+                    <h3 class="property-title">{{ property.title }}</h3>
+                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> {% if property.town %}{{ property.town.name }}, {% endif %}{{ property.region.name }}</div>
+                    <div class="property-meta">By {{ property.landlord.full_name }}</div>
+                    <div class="property-price">GH₵ {{ property.price }} <span>/ {{ property.get_payment_period_display }}</span></div>
+                    <div class="property-features">
+                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Beds</div>
+                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Baths</div>
+                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> {{ property.floor_area }}m²</div>
+                    </div>
+                </div>
+                </a>
+            </div>
+            {% empty %}
+            <p>No recent properties at the moment.</p>
             {% endfor %}
         </div>
     </section>
