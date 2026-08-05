@@ -320,7 +320,7 @@ def create_property(request):
 def update_property(request, property_id: str):
     if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
         messages.error(request, "Access denied.")
-        return redirect('landlords:dashboard')
+        return redirect('landlords:landlords_dashboard')
 
     if request.user.role == request.user.Role.ADMIN or request.user.is_staff:
         property_obj = get_object_or_404(Property, id=property_id)
@@ -382,7 +382,7 @@ def delete_property(request, property_id: str):
 def verify_property(request, property_id: str):
     if not request.user.is_staff and request.user.role != request.user.Role.ADMIN:
         messages.error(request, "Unauthorized action. Only admins can verify properties.")
-        return redirect('landlords:landloards_dashboard')
+        return redirect('landlords:landlords_dashboard')
 
     property_obj = get_object_or_404(Property, id=property_id)
     if request.method == 'POST':
@@ -403,7 +403,7 @@ def verify_property(request, property_id: str):
 def add_property_media(request, property_id: str):
     if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
         messages.error(request, "Access denied.")
-        return redirect('landlords:landloards_dashboard')
+        return redirect('landlords:landlords_dashboard')
 
     if request.user.role == request.user.Role.ADMIN or request.user.is_staff:
         property_obj = get_object_or_404(Property, id=property_id)
@@ -433,7 +433,7 @@ def add_property_media(request, property_id: str):
 def delete_property_media(request, media_id: str):
     if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
         messages.error(request, "Access denied.")
-        return redirect('landlords:landloards_dashboard')
+        return redirect('landlords:landlords_dashboard')
 
     if request.user.role == request.user.Role.ADMIN or request.user.is_staff:
         media = get_object_or_404(PropertyMedia, id=media_id)
