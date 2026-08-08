@@ -7,18 +7,20 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Sum, F
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.account.models import User
 from apps.home_finder.forms import (
     AmenityForm,
     PropertyCreateForm,
     PropertyMediaForm,
     PropertyUpdateForm,
     PropertyVerificationForm,
+    LandlordDocumentForm,
 )
-from apps.home_finder.models import Amenity, Property, PropertyMedia
+from apps.home_finder.models import Amenity, Property, PropertyMedia, LandlordDocument
 from apps.home_finder.tasks import process_property_cover, process_property_media
 from apps.landloards.forms import PropertyMediaFormSet
 from apps.locations.models import Region, District, Town, Area
-from apps.Subscription.models import LandlordSubscription
+from apps.Subscription.models import LandlordSubscription, SubscriptionPlan
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', 300)
 
@@ -29,6 +31,10 @@ def amenity_cache_key(prefix: str, *args, **kwargs):
 
 def property_cache_key(prefix: str, *args, **kwargs):
     return ":".join(["home_finder", "properties", prefix, *[str(arg) for arg in args if arg is not None]])
+
+
+def document_cache_key(prefix: str, *args, **kwargs):
+    return ":".join(["home_finder", "documents", prefix, *[str(arg) for arg in args if arg is not None]])
 
 
 def _invalidate_amenity_cache():
@@ -42,6 +48,26 @@ def _invalidate_property_cache(user_id, property_id=None):
         cache.delete(property_cache_key("detail", property_id))
 
 
+def _invalidate_document_cache(landlord_id, document_id=None):
+    cache.delete(document_cache_key(f"landlord_{landlord_id}"))
+    cache.delete(document_cache_key("all"))
+    if document_id:
+        cache.delete(document_cache_key("detail", document_id))
+
+
+
+def _is_landlord(user):
+    return user.role in (User.Role.LANDLORD, "landlord")
+
+
+def _is_admin(user):
+    return user.role in (User.Role.ADMIN, "admin") or getattr(user, "is_staff", False)
+
+
+def _is_landlord_or_admin(user):
+    return _is_landlord(user) or _is_admin(user)
+
+
 def list_amenities(request):
     cache_key = amenity_cache_key("all")
     amenities = cache.get(cache_key)
@@ -53,136 +79,6 @@ def list_amenities(request):
     page = request.GET.get('page')
     page_obj = paginator.get_page(page)
     return render(request, 'landloards/amenity_list.html', {'amenities': page_obj})
-
-
-@login_required
-def list_landlord_subscription(request):
-    global subscription
-    user = request.user
-
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
-        messages.error(request, "Access denied.")
-        return redirect("home_finder:home")
-
-    if user.role == "admin":
-        subscription_qs = LandlordSubscription.objects.all()
-    elif user.role == "landlord":
-        subscription_qs = LandlordSubscription.objects.filter(lanlord=user)
-
-    return render(request, 'landloards/landlord_subscription_list.html', {'subscription': subscription_qs})
-
-
-
-
-@login_required
-def landlords_dashboard(request):
-    user = request.user
-
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
-        messages.error(request, "Access denied.")
-        return redirect("home_finder:home")
-
-    # Filter properties based on user role
-    if user.role == "admin":
-        properties_qs = Property.objects.all()
-    else:
-        properties_qs = Property.objects.filter(landlord=user)
-
-
-    total_properties = properties_qs.count()
-    total_views = properties_qs.aggregate(total_views=Sum('views_count'))['total_views'] or 0
-
-    # Locations summary breakdown counts
-    total_regions = Region.objects.count()
-    total_districts = District.objects.count()
-    total_towns = Town.objects.count()
-    total_areas = Area.objects.count()
-
-    # Recent locations added
-    recent_locations = Area.objects.select_related('town__district__region').order_by('-created_at')[:3]
-
-
-    total_amenities = Amenity.objects.count()
-    popular_amenities = Amenity.objects.annotate(
-        property_count=Count('properties')
-    ).order_by('-property_count')[:5]
-
-    most_added_amenity = popular_amenities[0] if popular_amenities else None
-
-    context = {
-        "total_properties": total_properties,
-        "total_views": total_views,
-        "total_regions": total_regions,
-        "total_districts": total_districts,
-        "total_towns": total_towns,
-        "total_areas": total_areas,
-        "recent_locations": recent_locations,
-        "total_amenities": total_amenities,
-        "most_added_amenity": most_added_amenity,
-        "popular_amenities": popular_amenities,
-    }
-
-    return render(request, "landloards/dashboard.html", context)
-
-
-def property_detail(request, slug):
-    user = request.user
-
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
-        messages.error(request, "Access denied.")
-        return redirect("home_finder:home")
-
-    Property.objects.filter(slug=slug).update(views_count=F("views_count") + 1)
-
-    property_obj = get_object_or_404(
-        Property.objects.select_related(
-            "landlord", "region", "district", "town", "area"
-        ).prefetch_related("media", "amenities"),
-        slug=slug
-    )
-
-    context = {
-        "property": property_obj,
-    }
-    return render(request, "landloards/property_detail_admin.html", context)
-
-
-
-@login_required
-def list_properties_related_landlords(request):
-    user = request.user
-
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
-        messages.error(request, "Access denied.")
-        return redirect("home_finder:home")
-
-    cache_key = property_cache_key(f"user_{user.id}")
-    properties = cache.get(cache_key)
-
-    if properties is None:
-        if user.role == "admin" or user.is_staff:
-            queryset = Property.objects.all()
-        else:
-            queryset = Property.objects.filter(landlord=user)
-
-        properties = list(
-            queryset.select_related(
-                "region", "district", "town", "area", "landlord"
-            ).prefetch_related("amenities", "media").order_by("-created_at")
-        )
-
-        cache.set(cache_key, properties, CACHE_TTL)
-
-    paginator = Paginator(properties, 10)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        "amenities": page_obj,
-        "properties": page_obj,
-    }
-
-    return render(request, "landloards/properties_list.html", context)
 
 
 @login_required
@@ -237,6 +133,328 @@ def delete_amenity(request, amenity_id: str):
     _invalidate_amenity_cache()
     messages.success(request, 'Amenity deleted successfully.')
     return redirect('landloards:amenity_list')
+
+
+
+
+@login_required
+def list_landlord_documents(request):
+    user = request.user
+
+    if not _is_landlord_or_admin(user):
+        messages.error(request, "Access denied.")
+        return redirect("home_finder:home")
+
+    if _is_admin(user):
+        cache_key = document_cache_key("all")
+        documents = cache.get(cache_key)
+        if documents is None:
+            documents = list(
+                LandlordDocument.objects
+                .select_related('landlord', 'property', 'reviewed_by')
+                .order_by('-created_at')
+            )
+            cache.set(cache_key, documents, CACHE_TTL)
+    else:
+        cache_key = document_cache_key(f"landlord_{user.id}")
+        documents = cache.get(cache_key)
+        if documents is None:
+            documents = list(
+                LandlordDocument.objects
+                .filter(landlord=user)
+                .select_related('property', 'reviewed_by')
+                .order_by('-created_at')
+            )
+            cache.set(cache_key, documents, CACHE_TTL)
+
+    paginator = Paginator(documents, 20)
+    page = request.GET.get('page')
+    page_obj = paginator.get_page(page)
+
+    return render(request, 'landloards/landlord_document_list.html', {
+        'documents': page_obj,
+    })
+
+
+@login_required
+def create_landlord_document(request):
+    """
+    Landlord-only. Admins review documents rather than uploading on a
+    landlord's behalf here, so unlike most other views in this file this
+    one deliberately does NOT allow admin/staff access.
+    """
+    user = request.user
+
+    if not _is_landlord(user):
+        messages.error(request, "Only landlords can upload documents.")
+        return redirect('landloards:landloards_dashboard')
+
+    if request.method == 'POST':
+        form = LandlordDocumentForm(request.POST, request.FILES, landlord=user)
+        if form.is_valid():
+            document = form.save(commit=False)
+            document.landlord = user
+            document.save()
+            _invalidate_document_cache(user.id)
+            messages.success(request, 'Document uploaded and pending review.')
+            return redirect('landloards:landlord_document_list')
+        else:
+            messages.error(request, 'Error uploading document. Please check the fields below.')
+    else:
+        form = LandlordDocumentForm(landlord=user)
+
+    return render(request, 'landloards/landlord_document_form.html', {
+        'form': form,
+        'is_update': False,
+    })
+
+
+@login_required
+def update_landlord_document(request, document_id: str):
+    user = request.user
+
+    if not _is_landlord_or_admin(user):
+        messages.error(request, "Access denied.")
+        return redirect('landloards:landloards_dashboard')
+
+    if _is_admin(user):
+        document = get_object_or_404(LandlordDocument, id=document_id)
+    else:
+        document = get_object_or_404(LandlordDocument, id=document_id, landlord=user)
+
+    if document.verification_status == LandlordDocument.VerificationStatus.VERIFIED and not _is_admin(user):
+        messages.error(
+            request,
+            "This document has already been verified and can't be edited. "
+            "Please upload a new document if something needs to change."
+        )
+        return redirect('landloards:landlord_document_list')
+
+    if request.method == 'POST':
+        form = LandlordDocumentForm(
+            request.POST, request.FILES, instance=document, landlord=document.landlord
+        )
+        if form.is_valid():
+            updated_document = form.save(commit=False)
+            # Editing resets verification — a changed file/type needs
+            # re-review, it can't stay marked verified against new content.
+            updated_document.verification_status = LandlordDocument.VerificationStatus.PENDING
+            updated_document.rejection_reason = ""
+            updated_document.reviewed_by = None
+            updated_document.reviewed_at = None
+            updated_document.save()
+
+            _invalidate_document_cache(document.landlord_id, document_id)
+            messages.success(request, 'Document updated and pending re-review.')
+            return redirect('landloards:landlord_document_list')
+        else:
+            messages.error(request, 'Error updating document. Please check the fields below.')
+    else:
+        form = LandlordDocumentForm(instance=document, landlord=document.landlord)
+
+    return render(request, 'landloards/landlord_document_form.html', {
+        'form': form,
+        'document': document,
+        'is_update': True,
+    })
+
+
+@login_required
+def delete_landlord_document(request, document_id: str):
+    user = request.user
+
+    if not _is_landlord_or_admin(user):
+        messages.error(request, "Access denied.")
+        return redirect('landloards:landloards_dashboard')
+
+    if _is_admin(user):
+        document = get_object_or_404(LandlordDocument, id=document_id)
+    else:
+        document = get_object_or_404(LandlordDocument, id=document_id, landlord=user)
+
+    landlord_id = document.landlord_id
+    document.file.delete(save=False)  # remove the underlying file from storage too
+    document.delete()
+
+    _invalidate_document_cache(landlord_id, document_id)
+    messages.success(request, 'Document deleted successfully.')
+    return redirect('landloards:landlord_document_list')
+
+
+
+@login_required
+def list_landlord_subscription(request):
+    user = request.user
+
+    if user.role not in (User.Role.ADMIN, User.Role.LANDLORD, "admin", "landlord"):
+        messages.error(request, "Access denied.")
+        return redirect("home_finder:home")
+
+    if _is_admin(user):
+        subscriptions = (
+            LandlordSubscription.objects
+            .select_related('plan', 'landlord')
+            .order_by('-created_at')
+        )
+        active_subscription = None
+    else:
+        subscriptions = (
+            LandlordSubscription.objects
+            .filter(landlord=user)
+            .select_related('plan')
+            .order_by('-created_at')
+        )
+        active_subscription = (
+            subscriptions
+            .filter(status=LandlordSubscription.Status.SUCCESS, is_active=True)
+            .order_by('-end_date')
+            .first()
+        )
+
+    return render(request, 'landloards/landlord_subscription_list.html', {
+        'subscriptions': subscriptions,
+        'active_subscription': active_subscription,
+    })
+
+
+@login_required
+def confirm_plan_change_view(request, plan_id):
+    """
+    Shown when a landlord with an active subscription picks a different
+    plan. Tells them what will actually happen (immediate upgrade vs
+    scheduled downgrade) and lets them back out and keep what they have,
+    instead of silently kicking off a new payment.
+    """
+    new_plan = get_object_or_404(SubscriptionPlan, id=plan_id, is_active=True)
+
+    active_subscription = get_object_or_404(
+        LandlordSubscription,
+        landlord=request.user,
+        status=LandlordSubscription.Status.SUCCESS,
+        is_active=True,
+    )
+
+    if active_subscription.plan_id == new_plan.id:
+        messages.info(request, f"You already have an active {new_plan.name} subscription.")
+        return redirect('subscription:list')
+
+    is_upgrade = new_plan.price > active_subscription.plan.price
+
+    return render(request, 'landloards/confirm_plan_change.html', {
+        'current_subscription': active_subscription,
+        'new_plan': new_plan,
+        'is_upgrade': is_upgrade,
+    })
+
+
+
+@login_required
+def landlords_dashboard(request):
+    user = request.user
+
+    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+        messages.error(request, "Access denied.")
+        return redirect("home_finder:home")
+
+    # Filter properties based on user role
+    if user.role == "admin":
+        properties_qs = Property.objects.all()
+    else:
+        properties_qs = Property.objects.filter(landlord=user)
+
+    total_properties = properties_qs.count()
+    total_views = properties_qs.aggregate(total_views=Sum('views_count'))['total_views'] or 0
+
+    # Locations summary breakdown counts
+    total_regions = Region.objects.count()
+    total_districts = District.objects.count()
+    total_towns = Town.objects.count()
+    total_areas = Area.objects.count()
+
+    # Recent locations added
+    recent_locations = Area.objects.select_related('town__district__region').order_by('-created_at')[:3]
+
+    total_amenities = Amenity.objects.count()
+    popular_amenities = Amenity.objects.annotate(
+        property_count=Count('properties')
+    ).order_by('-property_count')[:5]
+
+    most_added_amenity = popular_amenities[0] if popular_amenities else None
+
+    context = {
+        "total_properties": total_properties,
+        "total_views": total_views,
+        "total_regions": total_regions,
+        "total_districts": total_districts,
+        "total_towns": total_towns,
+        "total_areas": total_areas,
+        "recent_locations": recent_locations,
+        "total_amenities": total_amenities,
+        "most_added_amenity": most_added_amenity,
+        "popular_amenities": popular_amenities,
+    }
+
+    return render(request, "landloards/dashboard.html", context)
+
+
+def property_detail(request, slug):
+    user = request.user
+
+    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+        messages.error(request, "Access denied.")
+        return redirect("home_finder:home")
+
+    Property.objects.filter(slug=slug).update(views_count=F("views_count") + 1)
+
+    property_obj = get_object_or_404(
+        Property.objects.select_related(
+            "landlord", "region", "district", "town", "area"
+        ).prefetch_related("media", "amenities"),
+        slug=slug
+    )
+
+    context = {
+        "property": property_obj,
+    }
+    return render(request, "landloards/property_detail_admin.html", context)
+
+
+@login_required
+def list_properties_related_landlords(request):
+    user = request.user
+
+    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+        messages.error(request, "Access denied.")
+        return redirect("home_finder:home")
+
+    cache_key = property_cache_key(f"user_{user.id}")
+    properties = cache.get(cache_key)
+
+    if properties is None:
+        if user.role == "admin" or user.is_staff:
+            queryset = Property.objects.all()
+        else:
+            queryset = Property.objects.filter(landlord=user)
+
+        properties = list(
+            queryset.select_related(
+                "region", "district", "town", "area", "landlord"
+            ).prefetch_related("amenities", "media").order_by("-created_at")
+        )
+
+        cache.set(cache_key, properties, CACHE_TTL)
+
+    paginator = Paginator(properties, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "amenities": page_obj,
+        "properties": page_obj,
+    }
+
+    return render(request, "landloards/properties_list.html", context)
+
 
 
 @login_required

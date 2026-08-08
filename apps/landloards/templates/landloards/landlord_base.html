@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Landlord Dashboard - HomeFinder Ghana{% endblock %}</title>
-    <!-- FontAwesome Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_head %}{% endblock %}
 </head>
@@ -45,7 +45,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'landloards:amenity_list' %}" class="sidebar-item">
+                        <a href="{% url 'landloards:amenity_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'amenity_list,create_amenity,update_amenity,delete_amenity' %}active{% endif %}">
                             <i class="fa-solid fa-layer-group"></i> Amenities
                         </a>
                     </li>
@@ -61,16 +61,35 @@
                 <!-- Property Management Category -->
                 <div class="sidebar-section-title">Property Management</div>
                 <ul class="sidebar-menu-list">
-                    <li><a href="{% url 'landloards:property_list' %}" class="sidebar-item"><i class="fa-solid fa-building"></i> My Properties</a></li>
-                    <li><a href="{% url 'landloards:create_property' %}" class="sidebar-item"><i class="fa-solid fa-circle-plus"></i> Add New Property</a></li>
+                    <li>
+                        <a href="{% url 'landloards:property_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'property_list,property_detail,update_property,delete_property,verify_property,add_property_media,delete_property_media' %}active{% endif %}">
+                            <i class="fa-solid fa-building"></i> My Properties
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:create_property' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_property' %}active{% endif %}">
+                            <i class="fa-solid fa-circle-plus"></i> Add New Property
+                        </a>
+                    </li>
                     <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> Tenants</a></li>
                 </ul>
 
                 <!-- Account Category -->
                 <div class="sidebar-section-title">Account</div>
                 <ul class="sidebar-menu-list">
-                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-id-card"></i> Subscription</a></li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-file-shield"></i> Documents & Verification</a></li>
+                    <li>
+                        <a href="{% url 'landloards:list_landlord_subscription' %}" class="sidebar-item {% if request.resolver_match.namespace == 'subscription' or request.resolver_match.url_name == 'list_landlord_subscription' %}active{% endif %}">
+                            <i class="fa-solid fa-id-card"></i> Subscription
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:landlord_document_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'landlord_document_list,create_landlord_document,update_landlord_document,delete_landlord_document' %}active{% endif %}">
+                            <i class="fa-solid fa-file-shield"></i> Documents & Verification
+                            {% if pending_documents_count %}
+                            <span class="badge-pill amber">{{ pending_documents_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
                     <li>
                         <a href="#" class="sidebar-item">
                             <i class="fa-solid fa-message"></i> Messages
@@ -314,6 +333,10 @@
         .badge-pill.green {
             background: #d1fae5;
             color: var(--primary-green);
+        }
+        .badge-pill.amber {
+            background: #fef3c7;
+            color: #b45309;
         }
 
         /* Sidebar Warning Banner Box */

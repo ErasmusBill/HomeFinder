@@ -1,0 +1,35 @@
+{% extends "landloards/landlord_base.html" %}
+{% block content %}
+<div class="plan-change-confirm">
+  <h2>Change your subscription?</h2>
+
+  <p>
+    You currently have an active <strong>{{ current_subscription.plan.name }}</strong>
+    plan running until {{ current_subscription.end_date|date:"F d, Y" }}.
+  </p>
+
+  {% if is_upgrade %}
+    <p>
+      Switching to <strong>{{ new_plan.name }}</strong> is an upgrade — you'll be
+      charged {{ new_plan.price }} now and your new plan starts immediately.
+      Your current plan will be closed out.
+    </p>
+  {% else %}
+    <p>
+      Switching to <strong>{{ new_plan.name }}</strong> is a downgrade — you'll keep
+      your current plan and full access until {{ current_subscription.end_date|date:"F d, Y" }},
+      then automatically move to {{ new_plan.name }} at no extra charge.
+    </p>
+  {% endif %}
+
+  <form method="get" action="{% url 'subscription:change_plan' new_plan.id %}" style="display:inline;">
+    <button type="submit">
+      {% if is_upgrade %}Yes, upgrade to {{ new_plan.name }}{% else %}Yes, downgrade to {{ new_plan.name }}{% endif %}
+    </button>
+  </form>
+
+  <form method="get" action="{% url 'subscription:list' %}" style="display:inline;">
+    <button type="submit">No, keep my {{ current_subscription.plan.name }} plan</button>
+  </form>
+</div>
+{% endblock %}

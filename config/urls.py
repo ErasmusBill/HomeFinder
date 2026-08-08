@@ -27,7 +27,7 @@ urlpatterns = [
     path('', include('apps.home_finder.urls')),
     path('locations/', include('apps.locations.urls')),
     path('landloards/', include('apps.landloards.urls')),
-    path('account/', include('allauth.urls')),
     path('account/', include('apps.account.urls')),
+    path('accounts/', include('allauth.urls')),
     path('subscription/', include('apps.Subscription.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

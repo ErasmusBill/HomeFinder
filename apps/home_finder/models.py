@@ -167,3 +167,48 @@ class PropertyMedia(BaseModel):
 
     def __str__(self):
         return f"{self.get_media_type_display()} - {self.property.title}"
+
+class LandlordDocument(BaseModel):
+
+    class DocumentType(models.TextChoices):
+        NATIONAL_ID = "national_id", "National ID / Ghana Card"
+        BUSINESS_REGISTRATION = "business_registration", "Business Registration Certificate"
+        PROOF_OF_ADDRESS = "proof_of_address", "Proof of Address"
+        PROPERTY_OWNERSHIP = "property_ownership", "Proof of Property Ownership"
+        OTHER = "other", "Other"
+
+    class VerificationStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        VERIFIED = "verified", "Verified"
+        REJECTED = "rejected", "Rejected"
+
+    landlord = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        limit_choices_to={"role": User.Role.LANDLORD},
+    )
+    document_type = models.CharField(max_length=30, choices=DocumentType.choices)
+    file = models.FileField(upload_to="landlords/documents/")
+
+    property = models.ForeignKey(
+        Property, on_delete=models.CASCADE, related_name="landlord_documents",
+        null=True, blank=True,
+    )
+
+    verification_status = models.CharField(
+        max_length=20, choices=VerificationStatus.choices, default=VerificationStatus.PENDING
+    )
+    rejection_reason = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateField(null=True, blank=True, help_text="For documents with an expiry, e.g. licenses.")
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Landlord Documents"
+
+    def __str__(self):
+        return f"{self.get_document_type_display()} - {self.landlord.full_name} ({self.verification_status})"

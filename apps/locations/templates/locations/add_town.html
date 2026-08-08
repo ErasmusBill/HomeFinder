@@ -43,13 +43,14 @@
                 <div class="form-group-field">
                     <label for="id_region_filter">Region <span class="required-star">*</span></label>
                     <div class="select-wrapper">
-                        <select id="id_region_filter" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500/20 cursor-pointer">
-                            <option value="" disabled selected>Select region</option>
-                            <option value="greater-accra">Greater Accra</option>
-                            <option value="ashanti">Ashanti</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down select-chevron"></i>
-                    </div>
+    <select id="id_region_filter" class="block w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 focus:border-green-600 focus:outline-none focus:ring-2 focus:ring-green-500/20 cursor-pointer">
+        <option value="" disabled selected>Select region</option>
+        {% for region in regions %}
+        <option value="{{ region.id }}">{{ region.name }}</option>
+        {% endfor %}
+    </select>
+    <i class="fa-solid fa-chevron-down select-chevron"></i>
+</div>
                     <small class="help-text-hint">Choose the region this town belongs to.</small>
                 </div>
 

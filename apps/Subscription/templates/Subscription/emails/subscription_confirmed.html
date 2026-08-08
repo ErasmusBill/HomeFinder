@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #0f172a; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #059669;">Subscription Confirmed</h2>
+    <p>Hi {{ full_name }},</p>
+    <p>
+        Your payment was successful and your
+        <strong>{{ plan_name }}</strong> subscription is now active.
+    </p>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr>
+            <td style="padding: 8px 0; color: #64748b;">Plan</td>
+            <td style="padding: 8px 0; font-weight: bold;">{{ plan_name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #64748b;">Price</td>
+            <td style="padding: 8px 0; font-weight: bold;">GHS {{ price }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #64748b;">Listing limit</td>
+            <td style="padding: 8px 0; font-weight: bold;">{{ maximum_listings }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #64748b;">Valid from</td>
+            <td style="padding: 8px 0; font-weight: bold;">{{ start_date|date:"F j, Y" }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; color: #64748b;">Renews / expires</td>
+            <td style="padding: 8px 0; font-weight: bold;">{{ end_date|date:"F j, Y" }}</td>
+        </tr>
+    </table>
+    <p>Thanks for using HomeFinder.</p>
+</body>
+</html>

@@ -123,9 +123,15 @@ def update_district(request, district_id: str):
     return render(request, 'locations/add_district.html', {'form': form})
 
 
+import json
+
 def add_town(request):
   district_id = request.session.get('pending_district_id')
   district = District.objects.filter(id=district_id).first() if district_id else None
+
+  regions = Region.objects.all().order_by('name')
+  districts = District.objects.select_related('region').order_by('name')
+  district_region_map = json.dumps({str(d.id): str(d.region_id) for d in districts})
 
   if request.method == 'POST':
     form = TownForm(request.POST)
@@ -146,17 +152,28 @@ def add_town(request):
       return redirect('locations:list_locations')
     else:
       messages.error(request, 'Error adding town')
-      return redirect('locations:list_locations')
   else:
     initial_data = {'district': district} if district else {}
     form = TownForm(initial=initial_data)
-    return render(
-        request, 'locations/add_town.html', {'form': form, 'district': district}
-    )
+
+  return render(
+      request,
+      'locations/add_town.html',
+      {
+          'form': form,
+          'district': district,
+          'regions': regions,
+          'district_region_map': district_region_map,
+      },
+  )
 
 
 def update_town(request, town_id: str):
   town = get_object_or_404(Town, id=town_id)
+  regions = Region.objects.all().order_by('name')
+  districts = District.objects.select_related('region').order_by('name')
+  district_region_map = json.dumps({str(d.id): str(d.region_id) for d in districts})
+
   if request.method == 'POST':
     form = TownForm(request.POST, instance=town)
     if form.is_valid():
@@ -169,7 +186,18 @@ def update_town(request, town_id: str):
       return redirect('locations:list_locations')
   else:
     form = TownForm(instance=town)
-    return render(request, 'locations/add_town.html', {'form': form})
+
+  return render(
+      request,
+      'locations/add_town.html',
+      {
+          'form': form,
+          'is_update': True,
+          'object_name': town.name,
+          'regions': regions,
+          'district_region_map': district_region_map,
+      },
+  )
 
 
 def add_area(request):

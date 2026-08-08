@@ -1,0 +1,165 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+{% block title %}My Subscriptions & Billing | HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Subscription & Billing</h1>
+            <p class="text-sm text-slate-600">Manage your active landlord listing plans, history, and billing preferences.</p>
+        </div>
+        <div>
+            <a href="{% url 'subscription:plans' %}" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Upgrade Plan
+            </a>
+        </div>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg px-4 py-3 text-sm font-medium
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
+            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
+            {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Active Subscription Status Card -->
+    {% if active_subscription %}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-6">
+            <div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 mb-2">
+                    Active Plan
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">{{ active_subscription.plan.name }}</h2>
+                <p class="text-sm text-slate-500 mt-1">
+                    Includes up to {{ active_subscription.plan.maximum_listings }} active property listings.
+                </p>
+
+                {% if active_subscription.cancel_at_period_end %}
+                <p class="text-xs text-amber-600 font-medium mt-2">
+                    ⚠ Cancellation scheduled — access ends {{ active_subscription.end_date|date:"M d, Y" }}.
+                </p>
+                {% elif active_subscription.pending_plan %}
+                <p class="text-xs text-sky-600 font-medium mt-2">
+                    Scheduled to switch to <strong>{{ active_subscription.pending_plan.name }}</strong>
+                    on {{ active_subscription.end_date|date:"M d, Y" }}.
+                </p>
+                {% endif %}
+            </div>
+            <div class="text-left md:text-right">
+                <span class="text-2xl font-extrabold text-slate-900">GH₵ {{ active_subscription.plan.price }}</span>
+                <span class="text-sm text-slate-500"> / {{ active_subscription.plan.duration_days }} days</span>
+                {% if active_subscription.end_date %}
+                <p class="text-xs text-emerald-600 font-medium mt-1">
+                    Renews / expires on {{ active_subscription.end_date|date:"M d, Y" }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-4 pt-6">
+            <div class="flex items-center space-x-4 text-sm text-slate-600">
+                <div>
+                    <span class="font-semibold text-slate-900">{{ active_listings_count|default:"0" }}</span>
+                    / {{ active_subscription.plan.maximum_listings }} Listings Used
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'subscription:plans' %}" class="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium rounded-lg transition">
+                    Change Plan
+                </a>
+
+                {% if active_subscription.cancel_at_period_end %}
+                <form method="post" action="{% url 'subscription:reactivate' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 border border-emerald-300 text-emerald-600 hover:bg-emerald-50 text-sm font-medium rounded-lg transition">
+                        Reactivate Plan
+                    </button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'subscription:cancel' %}"
+                      onsubmit="return confirm('Cancel your {{ active_subscription.plan.name }} plan? You will keep access until {{ active_subscription.end_date|date:"M d, Y" }}.');">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 border border-rose-300 text-rose-600 hover:bg-rose-50 text-sm font-medium rounded-lg transition">
+                        Cancel Plan
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+        <p class="text-slate-600">You don't have an active subscription yet.</p>
+        <a href="{% url 'subscription:plans' %}" class="inline-block mt-3 text-emerald-600 font-medium hover:underline">
+            View available plans →
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Billing History Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-100">
+            <h3 class="text-lg font-semibold text-slate-900">Billing & Invoice History</h3>
+            <p class="text-sm text-slate-500">All payment attempts processed via Paystack.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        <th class="py-3 px-6">Reference ID</th>
+                        <th class="py-3 px-6">Plan Name</th>
+                        <th class="py-3 px-6">Amount</th>
+                        <th class="py-3 px-6">Status</th>
+                        <th class="py-3 px-6">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                    {% for subscription in subscriptions %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 font-mono text-xs text-slate-500">{{ subscription.payment_reference|default:"—" }}</td>
+                        <td class="py-4 px-6 font-medium text-slate-900">{{ subscription.plan.name }}</td>
+                        <td class="py-4 px-6 font-semibold text-slate-900">GH₵ {{ subscription.plan.price }}</td>
+                        <td class="py-4 px-6">
+                            {% if subscription.status == 'success' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Successful
+                                </span>
+                            {% elif subscription.status == 'pending' %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                    Pending
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">
+                                    Failed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-slate-500">{{ subscription.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-500">
+                            No billing history found. Your completed payments will appear here.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

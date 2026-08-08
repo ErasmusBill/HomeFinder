@@ -44,9 +44,10 @@ def login_view(request):
 
         if not identifier or not password:
             messages.error(request, 'Please enter your identifier and password.')
-            return redirect('login')
+            return redirect('account:login')
 
-        user = authenticate(request, username=identifier, password=password)
+        user = authenticate(request, email=identifier, password=password)
+        print("AUTH RESULT:", user, "| is_active:", getattr(user, 'is_active', None))
 
         if user is not None:
             if user.is_active:
@@ -57,7 +58,7 @@ def login_view(request):
                 if role_val == User.Role.TENANT or role_val == 'tenant':
                     return redirect('tenant-dashboard')
                 elif role_val == User.Role.LANDLORD or role_val == 'landlord':
-                    return redirect('landlord-dashboard')
+                    return redirect('landloards:landloards_dashboard')
                 elif role_val == User.Role.ADMIN or role_val == 'admin' or user.is_staff or user.is_superuser:
                     return redirect('/admin/')
                 else:
@@ -74,7 +75,7 @@ def login_view(request):
 
 @login_required
 def user_logout(request):
-    logout(request.user)
+    logout(request)
     return redirect('home_finder:home')
 
 
