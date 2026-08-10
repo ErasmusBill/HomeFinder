@@ -37,11 +37,11 @@ PLANS_CACHE_KEY = "active_subscription_plans_cache"
 # ---------------------------------------------------------------------------
 # Cache Invalidation Signals for Subscription Plans
 # ---------------------------------------------------------------------------
+from apps.common.cache import invalidate_subscription_plans_cache
+
 @receiver([post_save, post_delete], sender=SubscriptionPlan)
-def invalidate_subscription_plans_cache(sender, **kwargs):
-    """Automatically clears plan cache whenever an admin updates or deletes a plan."""
-    cache.delete(PLANS_CACHE_KEY)
-    logger.info("SubscriptionPlan cache invalidated due to database change.")
+def trigger_invalidate_subscription_plans_cache(sender, **kwargs):
+    invalidate_subscription_plans_cache()
 
 
 # ---------------------------------------------------------------------------

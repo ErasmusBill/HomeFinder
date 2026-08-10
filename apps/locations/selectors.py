@@ -7,9 +7,6 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', 300)
 def location_cache_key(prefix: str, *args, **kwargs):
     return ":".join(["properties", prefix, *[str(arg) for arg in args if arg is not None]])
 
-def _invalidate_location_cache(location_obj=None):
-    cache.delete(location_cache_key("locations"))
-
 def get_all_locations():
     cache_key = location_cache_key("locations")
     locations = cache.get(cache_key)

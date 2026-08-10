@@ -1,6 +1,253 @@
 {% extends 'home_finder/base.html' %}
 {% load static %}
 {% block content %}
+
+<style>
+    /* ============================================================
+       Responsive layer for the home page.
+       Content/text is unchanged — this only controls layout/sizing
+       so the page adapts cleanly from small phones up to large
+       desktops. Written mobile-first with progressive enhancement.
+       ============================================================ */
+
+    .hero-content h1 {
+        font-size: clamp(1.6rem, 4.5vw + 0.5rem, 2.75rem);
+        line-height: 1.2;
+    }
+
+    .hero-content p {
+        font-size: clamp(0.95rem, 1.2vw + 0.6rem, 1.1rem);
+        max-width: 60ch;
+    }
+
+    /* Search box: stack fields on small screens, grid on larger ones */
+    .search-box {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .search-field {
+        min-width: 0; /* prevent flex/grid overflow */
+    }
+
+    .search-input-group select,
+    .search-input-group input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .search-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    @media (min-width: 640px) {
+        .search-box {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .search-btn {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .search-box {
+            grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+            align-items: end;
+        }
+        .search-btn {
+            grid-column: auto;
+            width: auto;
+            white-space: nowrap;
+        }
+    }
+
+    .popular-searches {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+    }
+
+    /* Features bar */
+    .features-bar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    @media (min-width: 560px) {
+        .features-bar {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 992px) {
+        .features-bar {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .feature-card {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        min-width: 0;
+    }
+
+    /* Section header: stack on mobile, row on desktop */
+    .section-header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    @media (min-width: 768px) {
+        .section-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    /* Property grid: fluid columns, no fixed breakpoints needed */
+    .property-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+        gap: 20px;
+    }
+
+    .property-card {
+        min-width: 0;
+    }
+
+    /* The whole card is one <a>; without this reset, browsers apply their
+       default underline + link color to everything inside it (title,
+       location, price, etc). */
+    .property-card-link,
+    .property-card-link:hover,
+    .property-card-link:visited {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .property-card-link * {
+        text-decoration: none;
+    }
+
+    .property-img-container {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background-color: #e5e7eb; /* neutral fallback while the image loads */
+    }
+
+    .property-img-container img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.45s ease;
+    }
+
+    .property-img-container img.is-loaded {
+        opacity: 1;
+    }
+
+    .property-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+    }
+
+    /* How it works */
+    .steps-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    @media (min-width: 640px) {
+        .steps-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 992px) {
+        .steps-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .step-card {
+        min-width: 0;
+    }
+
+    .step-connector {
+        display: none;
+    }
+
+    @media (min-width: 992px) {
+        .step-connector {
+            display: block;
+        }
+    }
+
+    /* CTA banner */
+    .cta-banner {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    @media (min-width: 992px) {
+        .cta-banner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+    }
+
+    .cta-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .cta-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    @media (min-width: 480px) {
+        .cta-stats {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .stat-item {
+        min-width: 0;
+        text-align: center;
+    }
+
+    /* Respect users who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .property-img-container img {
+            transition: none;
+        }
+    }
+</style>
+
     <section class="hero">
         <div class="hero-content">
             <h1>Find <span>Verified</span> Homes. Rent with Confidence.</h1>
@@ -115,93 +362,55 @@
         </div>
 
         <div class="property-grid">
-            <!-- Property 1 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='2-bedroom-apartment-east-legon' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" alt="Apartment">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Apartment</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
+            {% for property in properties %}
+                <div class="property-card">
+                    <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
+                        <div class="property-img-container">
+                            {% if property.cover_image %}
+                                <img
+                                    src="{{ property.cover_image.url }}"
+                                    alt="{{ property.title }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="property-cover-img"
+                                >
+                            {% else %}
+                                <img
+                                    src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80"
+                                    alt="{{ property.title }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="property-cover-img"
+                                >
+                            {% endif %}
+                            <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
+                            <div class="property-tag">{{ property.get_room_type_display }}</div>
+                            <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
+                        </div>
+                        <div class="property-details">
+                            <h3 class="property-title">{{ property.title }}</h3>
+                            <div class="property-location">
+                                <i class="fa-solid fa-location-dot"></i>
+                                {{ property.area.name }}, {{ property.town.name }}
+                            </div>
+                            <div class="property-price">
+                                GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span>
+                            </div>
+                            <div class="property-features">
+                                <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</div>
+                                <div class="property-feature-item"><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</div>
+                                {% if property.floor_area %}
+                                    <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> {{ property.floor_area }}m²</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="property-details">
-                    <h3 class="property-title">2 Bedroom Apartment</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> East Legon, Accra</div>
-                    <div class="property-price">GH₵ 2,500 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 2 Beds</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 2 Baths</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 120m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
-
-            <!-- Property 2 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='single-room-self-contained-madina' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80" alt="Self Contained">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Self Contained</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">Single Room (Self Contained)</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Madina, Accra</div>
-                    <div class="property-price">GH₵ 800 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 1 Bed</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 1 Bath</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 35m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
-
-            <!-- Property 3 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='chamber-and-hall-haatso' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80" alt="Chamber & Hall">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">Chamber & Hall</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">Chamber & Hall</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Haatso, Accra</div>
-                    <div class="property-price">GH₵ 1,200 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 1 Bed</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 1 Bath</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 45m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
-
-            <!-- Property 4 -->
-            <div class="property-card">
-                <a href="{% url 'home_finder:property_detail' slug='3-bedroom-apartment-adjiringanor' %}" class="property-card-link">
-                <div class="property-img-container">
-                    <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" alt="3 Bedroom Apartment">
-                    <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                    <div class="property-tag">3 Bedroom Apartment</div>
-                    <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                </div>
-                <div class="property-details">
-                    <h3 class="property-title">3 Bedroom Apartment</h3>
-                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> Adjiringanor, Accra</div>
-                    <div class="property-price">GH₵ 3,500 <span>/ month</span></div>
-                    <div class="property-features">
-                        <div class="property-feature-item"><i class="fa-solid fa-bed"></i> 3 Beds</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-bath"></i> 3 Baths</div>
-                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> 160m²</div>
-                    </div>
-                </div>
-                </a>
-            </div>
+            {% empty %}
+                <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px;">
+                    No properties available right now. Please check back later.
+                </p>
+            {% endfor %}
         </div>
     </section>
 
@@ -280,5 +489,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Simple fade-in once each lazy-loaded cover image finishes downloading.
+         The grey background on .property-img-container acts as the placeholder
+         until then. -->
+    <script>
+        (function () {
+            function revealImage(img) {
+                img.classList.add('is-loaded');
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.property-cover-img').forEach(function (img) {
+                    if (img.complete && img.naturalWidth > 0) {
+                        revealImage(img);
+                    } else {
+                        img.addEventListener('load', function () { revealImage(img); });
+                        img.addEventListener('error', function () { revealImage(img); });
+                    }
+                });
+            });
+        })();
+    </script>
 
 {% endblock %}

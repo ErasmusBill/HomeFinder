@@ -145,7 +145,7 @@
                     </div>
                     <div class="listing-controls-block">
                         <div class="result-count-badge">
-                            <strong>136</strong> Properties Found
+                            <strong>{{ page_obj.paginator.count|default:0 }}</strong> Properties Found
                         </div>
                         <div class="sort-dropdown-wrap">
                             <label>Sort by:</label>
@@ -171,204 +171,92 @@
                 <!-- Properties Grid Container -->
                 <div class="properties-grid-results">
 
-                    <!-- Property Card 1 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" alt="Apartment">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 2 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">2 Bedroom Apartment</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> East Legon, Accra</p>
-                            <div class="card-price">GH₵ 2,500 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 2 Beds</span>
-                                <span><i class="fa-solid fa-bath"></i> 2 Baths</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 120m²</span>
+                    {% for property in page_obj %}
+                        <div class="property-card-item">
+                            <div class="card-img-wrapper">
+                                {% if property.cover_image %}
+                                    <img src="{{ property.cover_image.url }}" alt="{{ property.title }}">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80" alt="{{ property.title }}">
+                                {% endif %}
+                                <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
+                                <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> {{ property.media.count }} Photo{{ property.media.count|pluralize }}</span>
+                                <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
                             </div>
-                            <p class="card-snippet">Spacious 2 bedroom apartment in a secure gated community with constant water supply.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available Now</span>
-                                <span class="tag-type">Apartment</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 10, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Property Card 2 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80" alt="Single Room">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 6 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">Single Room (Self Contained)</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> Madina, Accra</p>
-                            <div class="card-price">GH₵ 800 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 1 Bed</span>
-                                <span><i class="fa-solid fa-bath"></i> 1 Bath</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 35m²</span>
-                            </div>
-                            <p class="card-snippet">Self contained single room with kitchen. Good location and easy transportation.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available Now</span>
-                                <span class="tag-type">Self Contained</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 12, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
+                            <div class="card-body-content">
+                                <h3><a href="{% url 'home_finder:property_detail' slug=property.slug %}">{{ property.title }}</a></h3>
+                                <p class="card-location"><i class="fa-solid fa-location-dot"></i> {{ property.area.name }}, {{ property.town.name }}</p>
+                                <div class="card-price">GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span></div>
+                                <div class="card-features-row">
+                                    <span><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</span>
+                                    <span><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</span>
+                                    {% if property.floor_area %}
+                                        <span><i class="fa-solid fa-ruler-combined"></i> {{ property.floor_area }}m²</span>
+                                    {% endif %}
+                                </div>
+                                <p class="card-snippet">{{ property.description|truncatewords:20 }}</p>
+                                <div class="card-meta-footer">
+                                    {% if property.is_available %}
+                                        <span class="tag-status available">
+                                            {% if property.available_from %}
+                                                Available From {{ property.available_from|date:"M j, Y" }}
+                                            {% else %}
+                                                Available Now
+                                            {% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="tag-status" style="background:#fee2e2;color:#991b1b;">Unavailable</span>
+                                    {% endif %}
+                                    <span class="tag-type">{{ property.get_room_type_display }}</span>
+                                </div>
+                                <div class="card-sub-footer">
+                                    <span><i class="fa-regular fa-calendar"></i> {{ property.created_at|date:"M j, Y" }}</span>
+                                    <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Property Card 3 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" alt="Chamber & Hall">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 4 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">Chamber & Hall</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> Haatso, Accra</p>
-                            <div class="card-price">GH₵ 1,200 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 1 Bed</span>
-                                <span><i class="fa-solid fa-bath"></i> 1 Bath</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 45m²</span>
-                            </div>
-                            <p class="card-snippet">Neat chamber and hall self contained with spacious compound.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available From Jun 1, 2025</span>
-                                <span class="tag-type">Chamber & Hall</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 11, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Property Card 4 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" alt="3 Bedroom Apartment">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 8 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">3 Bedroom Apartment</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> Adjiringanor, Accra</p>
-                            <div class="card-price">GH₵ 3,500 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 3 Beds</span>
-                                <span><i class="fa-solid fa-bath"></i> 3 Baths</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 160m²</span>
-                            </div>
-                            <p class="card-snippet">Modern 3 bedroom apartment with all en-suite rooms and a balcony.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available Now</span>
-                                <span class="tag-type">Apartment</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 9, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Property Card 5 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="2 Bedroom Spintex">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 5 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">2 Bedroom Apartment</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> Spintex, Accra</p>
-                            <div class="card-price">GH₵ 2,800 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 2 Beds</span>
-                                <span><i class="fa-solid fa-bath"></i> 2 Baths</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 110m²</span>
-                            </div>
-                            <p class="card-snippet">Lovely 2 bedroom apartment in Spintex. 24/7 security and backup power.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available Now</span>
-                                <span class="tag-type">Apartment</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 8, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Property Card 6 -->
-                    <div class="property-card-item">
-                        <div class="card-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=600&q=80" alt="Executive Chamber">
-                            <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
-                            <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> 7 Photos</span>
-                            <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="card-body-content">
-                            <h3><a href="#">Executive Chamber & Hall</a></h3>
-                            <p class="card-location"><i class="fa-solid fa-location-dot"></i> Kumasi - Patasi</p>
-                            <div class="card-price">GH₵ 950 <span>/ month</span></div>
-                            <div class="card-features-row">
-                                <span><i class="fa-solid fa-bed"></i> 1 Bed</span>
-                                <span><i class="fa-solid fa-bath"></i> 1 Bath</span>
-                                <span><i class="fa-solid fa-ruler-combined"></i> 40m²</span>
-                            </div>
-                            <p class="card-snippet">Executive chamber and hall fully self contained in a serene environment.</p>
-                            <div class="card-meta-footer">
-                                <span class="tag-status available">Available From May 20, 2025</span>
-                                <span class="tag-type">Chamber & Hall</span>
-                            </div>
-                            <div class="card-sub-footer">
-                                <span><i class="fa-regular fa-calendar"></i> May 7, 2025</span>
-                                <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
-                            </div>
-                        </div>
-                    </div>
+                    {% empty %}
+                        <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">
+                            No properties match your filters. Try adjusting your search criteria.
+                        </p>
+                    {% endfor %}
 
                 </div>
 
                 <!-- Pagination & Footer Page controls -->
                 <div class="listing-pagination-footer">
                     <div class="pagination-info">
-                        Showing 1 to 12 of 136 properties
+                        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} properties
                     </div>
                     <div class="pagination-controls">
-                        <button class="page-nav-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
-                        <button class="page-num active">1</button>
-                        <button class="page-num">2</button>
-                        <button class="page-num">3</button>
-                        <button class="page-num">4</button>
-                        <button class="page-num">5</button>
-                        <span class="page-dots">...</span>
-                        <button class="page-num">12</button>
-                        <button class="page-nav-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="page-nav-btn"><i class="fa-solid fa-chevron-left"></i></a>
+                        {% else %}
+                            <button class="page-nav-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <button class="page-num active">{{ num }}</button>
+                            {% elif num == 1 or num == page_obj.paginator.num_pages or num|add:"-2" <= page_obj.number and num|add:"2" >= page_obj.number %}
+                                <a href="?page={{ num }}" class="page-num">{{ num }}</a>
+                            {% elif num|add:"1" == page_obj.number|add:"-3" or num|add:"-1" == page_obj.number|add:"3" %}
+                                <span class="page-dots">...</span>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="page-nav-btn"><i class="fa-solid fa-chevron-right"></i></a>
+                        {% else %}
+                            <button class="page-nav-btn" disabled><i class="fa-solid fa-chevron-right"></i></button>
+                        {% endif %}
                     </div>
                     <div class="per-page-select-wrap">
                         <label>Show per page:</label>
-                        <select class="filter-select per-page-dropdown">
-                            <option value="12" selected>12</option>
-                            <option value="24">24</option>
-                            <option value="48">48</option>
+                        <select class="filter-select per-page-dropdown" name="per_page" onchange="window.location.href='?per_page='+this.value">
+                            <option value="12" {% if page_obj.paginator.per_page == 12 %}selected{% endif %}>12</option>
+                            <option value="24" {% if page_obj.paginator.per_page == 24 %}selected{% endif %}>24</option>
+                            <option value="48" {% if page_obj.paginator.per_page == 48 %}selected{% endif %}>48</option>
                         </select>
                     </div>
                 </div>

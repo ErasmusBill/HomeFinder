@@ -23,7 +23,8 @@ class EmailOrPhoneBackend(ModelBackend):
                 models.Q(phone_number__iexact=identifier)
             )
         except User.DoesNotExist:
-            User().set_password(password)
+            from django.contrib.auth.hashers import check_password
+            check_password(password, "!")
             return None
         except User.MultipleObjectsReturned:
             return None

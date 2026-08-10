@@ -40,10 +40,15 @@ class Amenity(BaseModel):
         ordering = ["name"]
         verbose_name_plural = "Amenities"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_name = self.name
+
     def save(self, *args, **kwargs):
-        if not self.slug or self.name != Amenity.objects.filter(pk=self.pk).values_list("name", flat=True).first():
+        if not self.slug or getattr(self, '_original_name', None) != self.name:
             self.slug = generate_unique_slug(self, self.name)
         super().save(*args, **kwargs)
+        self._original_name = self.name
 
     def __str__(self):
         return self.name
@@ -116,6 +121,10 @@ class Property(BaseModel):
         ordering = ["-created_at"]
         verbose_name_plural = "Properties"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_title = getattr(self, 'title', None)
+
     def generate_reference_number(self):
         """Generates a unique reference number for the property (e.g., HF-ABC123XY)."""
         while True:
@@ -128,10 +137,18 @@ class Property(BaseModel):
         if not self.reference_number:
             self.reference_number = self.generate_reference_number()
 
-        if not self.slug or self.title != Property.objects.filter(pk=self.pk).values_list("title", flat=True).first():
+        if not self.slug or getattr(self, '_original_title', None) != self.title:
             self.slug = generate_unique_slug(self, self.title)
 
-        super().save(*args, **kwargs)
+        try:
+            super().save(*args, **kwargs)
+        except models.deletion.IntegrityError as e:
+            if 'reference_number' in str(e):
+                self.reference_number = self.generate_reference_number()
+                super().save(*args, **kwargs)
+            else:
+                raise
+        self._original_title = self.title
 
     def __str__(self):
         return f"{self.title} (Landlord: {self.landlord.full_name})"

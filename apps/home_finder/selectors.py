@@ -116,13 +116,8 @@ def get_property(pk):
         cache.set(cache_key, property_obj, CACHE_TTL)
     return property_obj
 
-def invalidate_property_cache(property_obj=None):
-    cache.delete(_property_cache_key("published"))
-    cache.delete(_property_cache_key("featured", 8))
-    cache.delete(_property_cache_key("recent", 12))
-    if property_obj:
-        cache.delete(_property_cache_key("slug", property_obj.slug))
-        cache.delete(_property_cache_key("detail", property_obj.pk))
+# The local invalidate_property_cache has been moved to apps.common.cache
+from apps.common.cache import invalidate_property_cache
 
 
 def get_admin_property_queryset():

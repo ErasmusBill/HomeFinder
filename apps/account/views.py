@@ -47,7 +47,6 @@ def login_view(request):
             return redirect('account:login')
 
         user = authenticate(request, email=identifier, password=password)
-        print("AUTH RESULT:", user, "| is_active:", getattr(user, 'is_active', None))
 
         if user is not None:
             if user.is_active:
@@ -161,6 +160,27 @@ def reset_password_confirm_view(request):
     else:
         messages.error(request, 'The password reset link is invalid or has expired.')
         return redirect('login')
+
+
+def verify_email_view(request):
+    from .tokens import email_verification_token
+    uidb64 = request.GET.get('uid') or request.POST.get('uid')
+    token = request.GET.get('token') or request.POST.get('token')
+    
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and email_verification_token.check_token(user, token):
+        user.is_email_verified = True
+        user.save(update_fields=['is_email_verified'])
+        messages.success(request, 'Your email has been verified successfully. You can now log in.')
+        return redirect('account:login')
+    else:
+        messages.error(request, 'The activation link is invalid or has expired.')
+        return redirect('account:login')
 
 
 @login_required

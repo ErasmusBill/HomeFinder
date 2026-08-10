@@ -2,14 +2,698 @@
 {% load static %}
 
 {% block content %}
+<style>
+    /* ============================================================
+        Responsive layout and sizing definitions for property_detail.html
+        Built mobile-first with robust container safety and scaling.
+        ============================================================ */
+
+    .breadcrumb-container {
+        background: var(--bg-light, #f7f8fa);
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color, #e9ebef);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-muted, #5a6478);
+        max-width: 1400px;
+        margin: 0 auto;
+        white-space: nowrap;
+    }
+    .breadcrumb a {
+        color: var(--text-muted, #5a6478);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .breadcrumb a:hover {
+        color: var(--primary, #1f8a4c);
+    }
+    .breadcrumb i {
+        font-size: 9px;
+    }
+
+    .property-detail-section {
+        padding: clamp(16px, 3vw, 40px) clamp(12px, 3vw, 5%) clamp(32px, 5vw, 80px);
+        background: var(--white, #ffffff);
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    .property-detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .detail-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: clamp(16px, 3vw, 25px);
+        flex-wrap: wrap;
+        gap: 16px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .detail-title-area {
+        flex: 1 1 280px;
+        min-width: 0;
+    }
+
+    .badge-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .verified-badge {
+        background: var(--primary, #1f8a4c);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .property-tag {
+        background: rgba(20, 33, 61, 0.1);
+        color: var(--text-dark, #14213d);
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 999px;
+    }
+
+    .detail-title-area h1 {
+        font-size: clamp(1.35rem, 4.5vw + 0.5rem, 2.25rem);
+        font-weight: 800;
+        color: var(--text-dark, #14213d);
+        margin-bottom: 6px;
+        line-height: 1.2;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .property-location {
+        font-size: clamp(0.85rem, 1.2vw + 0.5rem, 1rem);
+        color: var(--text-muted, #5a6478);
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+    .property-location i {
+        color: var(--primary, #1f8a4c);
+        margin-top: 3px;
+        flex-shrink: 0;
+    }
+
+    .detail-action-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 12px;
+        flex-shrink: 0;
+        min-width: 0;
+    }
+
+    .detail-price h2 {
+        font-size: clamp(1.4rem, 3.5vw + 0.5rem, 2rem);
+        font-weight: 800;
+        color: var(--primary, #1f8a4c);
+        text-align: right;
+        margin: 0;
+        overflow-wrap: break-word;
+        line-height: 1.1;
+    }
+    .detail-price h2 span {
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: var(--text-muted, #5a6478);
+        display: inline-block;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .action-buttons .btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .favorite-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e9ebef);
+        background: white;
+        color: var(--text-dark, #14213d);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+    }
+    .favorite-btn:hover {
+        background: var(--bg-light, #f7f8fa);
+    }
+
+    /* Responsive Photo Grid Gallery */
+    .property-gallery-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+        height: 440px;
+        margin-bottom: clamp(24px, 4vw, 36px);
+        border-radius: 12px;
+        overflow: hidden;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .gallery-main-img {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #e5e7eb;
+        min-width: 0;
+    }
+
+    .gallery-main-img img, .sub-img-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .gallery-main-img img:hover, .sub-img-card img:hover {
+        transform: scale(1.02);
+    }
+
+    .gallery-sub-imgs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 12px;
+        height: 100%;
+        min-width: 0;
+    }
+
+    .sub-img-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #e5e7eb;
+        min-width: 0;
+    }
+
+    .more-photos {
+        cursor: pointer;
+    }
+
+    .more-photos .overlay-text {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+        padding: 4px;
+    }
+
+    /* Split Layout for Content and Sidebar */
+    .detail-content-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 32px;
+        align-items: flex-start;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .detail-main-content {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .overview-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        background: var(--bg-light, #f7f8fa);
+        border: 1px solid var(--border-color, #e9ebef);
+        padding: 18px 14px;
+        border-radius: 12px;
+        margin-bottom: clamp(20px, 3vw, 28px);
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .overview-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .overview-item i {
+        font-size: 18px;
+        color: var(--primary, #1f8a4c);
+        background: #d1fae5;
+        padding: 10px;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .overview-item div {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .overview-item span {
+        font-size: 0.7rem;
+        color: var(--text-muted, #5a6478);
+        display: block;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .overview-item strong {
+        font-size: 0.85rem;
+        color: var(--text-dark, #14213d);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .content-block {
+        margin-bottom: clamp(24px, 3vw, 32px);
+        min-width: 0;
+        width: 100%;
+    }
+
+    .content-block h3 {
+        font-size: clamp(1.1rem, 2vw + 0.3rem, 1.3rem);
+        font-weight: 700;
+        color: var(--text-dark, #14213d);
+        margin-bottom: 12px;
+    }
+
+    .content-block p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--text-muted, #5a6478);
+        overflow-wrap: break-word;
+    }
+
+    .location-subtext {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 12px;
+        font-weight: 500;
+        overflow-wrap: break-word;
+    }
+    .location-subtext i {
+        color: var(--primary, #1f8a4c);
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .amenities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .amenity-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: var(--text-dark, #14213d);
+        background: var(--bg-light, #f7f8fa);
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #e9ebef);
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .amenity-item i {
+        color: var(--primary, #1f8a4c);
+        flex-shrink: 0;
+    }
+
+    .map-placeholder {
+        width: 100%;
+        height: 260px;
+        background: var(--bg-light, #f7f8fa);
+        border: 1px solid var(--border-color, #e9ebef);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .map-card-notice {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-muted, #5a6478);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 0 16px;
+    }
+
+    .map-card-notice i {
+        font-size: 28px;
+        color: var(--primary, #1f8a4c);
+    }
+
+    /* Sticky Agent Sidebar */
+    .detail-sidebar {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .agent-card-sticky {
+        background: white;
+        border: 1px solid var(--border-color, #e9ebef);
+        padding: clamp(16px, 3vw, 24px);
+        border-radius: 12px;
+        position: sticky;
+        top: 90px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .agent-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .agent-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .agent-header h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-dark, #14213d);
+        margin: 0 0 2px;
+    }
+
+    .agent-role {
+        font-size: 0.78rem;
+        color: var(--text-muted, #5a6478);
+        margin-bottom: 4px;
+    }
+
+    .rating {
+        font-size: 0.78rem;
+        color: #f59e0b;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .agent-contact-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: background 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .btn-outline {
+        background: transparent;
+        border-color: var(--border-color, #e9ebef);
+        color: var(--text-dark, #14213d);
+    }
+    .btn-outline:hover {
+        background: var(--bg-light, #f7f8fa);
+    }
+
+    .btn-primary {
+        background: var(--primary, #1f8a4c);
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #176e3d;
+    }
+
+    .btn-block {
+        width: 100%;
+    }
+
+    .btn-whatsapp {
+        background: #25d366;
+        color: white;
+        border: none;
+    }
+    .btn-whatsapp:hover {
+        background: #1ebe5d;
+    }
+
+    .sidebar-divider {
+        border: none;
+        border-top: 1px solid var(--border-color, #e9ebef);
+        margin: 18px 0;
+    }
+
+    .tour-form h4 {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--text-dark, #14213d);
+        margin-bottom: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted, #5a6478);
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color, #e9ebef);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        outline: none;
+        color: var(--text-dark, #14213d);
+        background: #fff;
+        box-sizing: border-box;
+    }
+    .form-group input:focus {
+        border-color: var(--primary, #1f8a4c);
+    }
+
+    /* ================= Responsive Media Queries ================= */
+
+    @media (max-width: 1100px) {
+        .detail-content-layout {
+            grid-template-columns: 1fr;
+            gap: 28px;
+        }
+        .agent-card-sticky {
+            position: static;
+            box-shadow: none;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .property-gallery-grid {
+            grid-template-columns: 1fr;
+            height: auto;
+            gap: 10px;
+        }
+        .gallery-main-img {
+            aspect-ratio: 16 / 10;
+            height: auto;
+        }
+        .gallery-sub-imgs {
+            display: flex;
+            grid-template-columns: unset;
+            grid-template-rows: unset;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 4px;
+            gap: 10px;
+        }
+        .sub-img-card {
+            flex: 0 0 clamp(130px, 38vw, 180px);
+            aspect-ratio: 1 / 1;
+            scroll-snap-align: start;
+            height: auto;
+        }
+        .overview-bar {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 650px) {
+        .detail-header-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .detail-action-area {
+            align-items: stretch;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color, #e9ebef);
+            padding-top: 14px;
+            width: 100%;
+        }
+        .detail-price h2 {
+            text-align: left;
+        }
+        .overview-bar {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .overview-bar {
+            grid-template-columns: 1fr;
+        }
+        .amenities-grid {
+            grid-template-columns: 1fr;
+        }
+        .action-buttons {
+            width: 100%;
+        }
+        .action-buttons .btn {
+            flex: 1;
+        }
+        .detail-action-area {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .detail-price h2 {
+            text-align: left;
+        }
+        .sub-img-card {
+            flex-basis: 42vw;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .property-detail-section {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .agent-card-sticky {
+            padding: 14px;
+        }
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+        .gallery-main-img img,
+        .sub-img-card img {
+            transition: none;
+        }
+    }
+</style>
+
 <!-- Breadcrumb Navigation -->
 <div class="breadcrumb-container">
     <div class="breadcrumb">
         <a href="{% url 'home_finder:home' %}">Home</a>
         <i class="fa-solid fa-chevron-right"></i>
-        <a href="#">Properties</a>
+        <a href="{% url 'home_finder:list_properties' %}">Properties</a>
         <i class="fa-solid fa-chevron-right"></i>
-        <span>{{ property.title|default:"Luxury 4-Bedroom East Legon Residence" }}</span>
+        <span>{{ property.title|default:"Property Details" }}</span>
     </div>
 </div>
 
@@ -21,15 +705,20 @@
         <div class="detail-header-row">
             <div class="detail-title-area">
                 <div class="badge-group">
-                    <span class="verified-badge"><i class="fa-solid fa-check"></i> Verified</span>
-                    <span class="property-tag">{{ property.type|default:"For Rent" }}</span>
+                    {% if property.verification_status == 'verified' %}
+                        <span class="verified-badge"><i class="fa-solid fa-check"></i> Verified</span>
+                    {% endif %}
+                    <span class="property-tag">{{ property.get_room_type_display|default:"For Rent" }}</span>
                 </div>
-                <h1>{{ property.title|default:"Luxury 4-Bedroom East Legon Residence" }}</h1>
-                <p class="property-location"><i class="fa-solid fa-location-dot"></i> {{ property.location|default:"East Legon, Accra, Greater Accra Region" }}</p>
+                <h1>{{ property.title|default:"Property Details" }}</h1>
+                <p class="property-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    {{ property.area.name }}, {{ property.town.name }}, {{ property.district.name }}, {{ property.region.name }}
+                </p>
             </div>
             <div class="detail-action-area">
                 <div class="detail-price">
-                    <h2>$2,500 <span>/ month</span></h2>
+                    <h2>GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span></h2>
                 </div>
                 <div class="action-buttons">
                     <button class="favorite-btn detail-fav" title="Save Property">
@@ -45,25 +734,35 @@
         <!-- Photo Grid Gallery -->
         <div class="property-gallery-grid">
             <div class="gallery-main-img">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Main Property View">
+                {% if property.cover_image %}
+                    <img src="{{ property.cover_image.url }}" alt="{{ property.title }}" loading="lazy" decoding="async">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Main Property View" loading="lazy" decoding="async">
+                {% endif %}
             </div>
             <div class="gallery-sub-imgs">
-                <div class="sub-img-card">
-                    <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Interior View">
-                </div>
-                <div class="sub-img-card">
-                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" alt="Kitchen View">
-                </div>
-                <div class="sub-img-card">
-                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80" alt="Bathroom View">
-                </div>
-                <div class="sub-img-card more-photos">
-                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" alt="More Photos">
-                    <div class="overlay-text">
-                        <i class="fa-solid fa-images"></i>
-                        <span>View All Photos</span>
+                {% for media in property.media.all|slice:":4" %}
+                    <div class="sub-img-card">
+                        {% if media.thumbnail %}
+                            <img src="{{ media.thumbnail.url }}" alt="{{ media.caption|default:property.title }}" loading="lazy" decoding="async">
+                        {% elif media.file %}
+                            <img src="{{ media.file.url }}" alt="{{ media.caption|default:property.title }}" loading="lazy" decoding="async">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Property View" loading="lazy" decoding="async">
+                        {% endif %}
                     </div>
-                </div>
+                {% empty %}
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Interior View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" alt="Kitchen View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80" alt="Bathroom View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card more-photos">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" alt="More Photos" loading="lazy" decoding="async">
+                        <div class="overlay-text">
+                            <i class="fa-solid fa-images"></i>
+                            <span>View All Photos</span>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -79,28 +778,28 @@
                         <i class="fa-solid fa-bed"></i>
                         <div>
                             <span>Bedrooms</span>
-                            <strong>4 Beds</strong>
+                            <strong>{{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</strong>
                         </div>
                     </div>
                     <div class="overview-item">
                         <i class="fa-solid fa-bath"></i>
                         <div>
                             <span>Bathrooms</span>
-                            <strong>5 Baths</strong>
+                            <strong>{{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</strong>
                         </div>
                     </div>
                     <div class="overview-item">
                         <i class="fa-solid fa-ruler-combined"></i>
                         <div>
                             <span>Property Size</span>
-                            <strong>350 m²</strong>
+                            <strong>{% if property.floor_area %}{{ property.floor_area }} m²{% else %}N/A{% endif %}</strong>
                         </div>
                     </div>
                     <div class="overview-item">
                         <i class="fa-solid fa-warehouse"></i>
                         <div>
                             <span>Parking Space</span>
-                            <strong>2 Cars</strong>
+                            <strong>{% if property.parking_spaces %}{{ property.parking_spaces }} Car{{ property.parking_spaces|pluralize }}{% else %}None{% endif %}</strong>
                         </div>
                     </div>
                 </div>
@@ -108,32 +807,35 @@
                 <!-- Description Card -->
                 <div class="content-block">
                     <h3>About This Property</h3>
-                    <p>{{ property.description|default:"Experience refined living in this stunning, fully furnished 4-bedroom luxury home located in the prestigious neighborhood of East Legon, Accra. Featuring contemporary architecture, high ceilings, sprawling living spaces, a fully integrated modern kitchen, backup generator, private swimming pool, and 24/7 security. Perfect for corporate tenants and families seeking safety, elegance, and comfort close to Kotoka International Airport and top-tier amenities." }}</p>
+                    <p>{{ property.description|default:"No description provided for this property." }}</p>
                 </div>
 
                 <!-- Features & Amenities -->
                 <div class="content-block">
                     <h3>Amenities & Features</h3>
                     <div class="amenities-grid">
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Swimming Pool</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> 24/7 Security & CCTV</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Backup Generator</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Air Conditioning</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Fully Fitted Kitchen</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> High-Speed Internet Ready</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Water Reservoir & Pump</div>
-                        <div class="amenity-item"><i class="fa-solid fa-check"></i> Paved Compound</div>
+                        {% for amenity in property.amenities.all %}
+                            <div class="amenity-item"><i class="fa-solid fa-check"></i> {{ amenity.name }}</div>
+                        {% empty %}
+                            <p style="grid-column: 1 / -1; color: var(--text-muted);">No amenities listed for this property.</p>
+                        {% endfor %}
                     </div>
                 </div>
 
                 <!-- Location / Map Context -->
                 <div class="content-block">
                     <h3>Location & Neighborhood</h3>
-                    <p class="location-subtext"><i class="fa-solid fa-map-location-dot"></i> East Legon, near American House, Accra</p>
+                    <p class="location-subtext">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        {{ property.area.name }}, {{ property.town.name }}, {{ property.district.name }}
+                        {% if property.latitude and property.longitude %}
+                            ({{ property.latitude }}, {{ property.longitude }})
+                        {% endif %}
+                    </p>
                     <div class="map-placeholder">
                         <div class="map-card-notice">
                             <i class="fa-solid fa-map"></i>
-                            <span>Interactive Map Integrated (Accra Region)</span>
+                            <span>Map of {{ property.area.name }}, {{ property.region.name }}</span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +846,7 @@
             <div class="detail-sidebar">
                 <div class="agent-card-sticky">
                     <div class="agent-header">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Agent Profile" class="agent-avatar">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Agent Profile" class="agent-avatar" loading="lazy" decoding="async">
                         <div>
                             <h4>Akosua Mensah</h4>
                             <p class="agent-role">Verified Prime Agent</p>
@@ -156,7 +858,7 @@
                         <a href="tel:+233201234567" class="btn btn-outline btn-block">
                             <i class="fa-solid fa-phone"></i> Call Agent
                         </a>
-                        <a href="https://wa.me/233201234567" target="_blank" class="btn btn-whatsapp btn-block">
+                        <a href="https://wa.me/233201234567" target="_blank" class="btn btn-whatsapp btn-block" rel="noopener noreferrer">
                             <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
                         </a>
                     </div>
@@ -186,346 +888,4 @@
 
     </div>
 </section>
-
-<!-- Scoped Page Styling extensions matching your existing variables -->
-<style>
-.breadcrumb-container {
-    background: var(--bg-light);
-    padding: 15px 5%;
-    border-bottom: 1px solid var(--border-color);
-}
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--text-muted);
-    max-width: 1400px;
-    margin: 0 auto;
-}
-.breadcrumb a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-.breadcrumb a:hover {
-    color: var(--primary);
-}
-.breadcrumb i {
-    font-size: 10px;
-}
-
-.property-detail-section {
-    padding: 40px 5% 80px;
-    background: var(--white);
-}
-.property-detail-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.detail-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-.badge-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.detail-title-area h1 {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--text-dark);
-    margin-bottom: 8px;
-}
-.detail-price h2 {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--primary);
-    text-align: right;
-}
-.detail-price h2 span {
-    font-size: 14px;
-    font-weight: normal;
-    color: var(--text-muted);
-}
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-/* Gallery Grid Styles */
-.property-gallery-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 15px;
-    height: 480px;
-    margin-bottom: 40px;
-    border-radius: 12px;
-    overflow: hidden;
-}
-.gallery-main-img img, .sub-img-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
-}
-.gallery-main-img img:hover, .sub-img-card img:hover {
-    transform: scale(1.02);
-}
-.gallery-sub-imgs {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 15px;
-    height: 100%;
-}
-.sub-img-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 8px;
-}
-.more-photos {
-    cursor: pointer;
-}
-.more-photos .overlay-text {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-/* Split Layout */
-.detail-content-layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 40px;
-    align-items: flex-start;
-}
-
-.overview-bar {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-}
-.overview-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.overview-item i {
-    font-size: 20px;
-    color: var(--primary);
-    background: #d1fae5;
-    padding: 10px;
-    border-radius: 8px;
-}
-.overview-item span {
-    font-size: 11px;
-    color: var(--text-muted);
-    display: block;
-    text-transform: uppercase;
-}
-.overview-item strong {
-    font-size: 14px;
-    color: var(--text-dark);
-}
-
-.content-block {
-    margin-bottom: 35px;
-}
-.content-block h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 15px;
-}
-.content-block p {
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--text-muted);
-}
-
-.amenities-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-.amenity-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: var(--text-dark);
-}
-.amenity-item i {
-    color: var(--primary);
-}
-
-.map-placeholder {
-    width: 100%;
-    height: 250px;
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 15px;
-}
-.map-card-notice {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-muted);
-    font-size: 14px;
-}
-.map-card-notice i {
-    font-size: 32px;
-    color: var(--primary);
-}
-
-/* Sidebar Agent Card & Tour Form */
-.agent-card-sticky {
-    background: white;
-    border: 1px solid var(--border-color);
-    padding: 25px;
-    border-radius: 12px;
-    position: sticky;
-    top: 100px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-}
-.agent-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.agent-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-.agent-header h4 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-.agent-role {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-}
-.rating {
-    font-size: 12px;
-    color: #f59e0b;
-    font-weight: 600;
-}
-.agent-contact-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.btn-block {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-}
-.btn-whatsapp {
-    background: #25d366;
-    color: white;
-    border: none;
-}
-.btn-whatsapp:hover {
-    background: #1ebe5d;
-    color: white;
-}
-.sidebar-divider {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 20px 0;
-}
-.tour-form h4 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 15px;
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-    text-transform: uppercase;
-}
-.form-group input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    outline: none;
-    color: var(--text-dark);
-}
-.form-group input:focus {
-    border-color: var(--primary);
-}
-
-/* Responsive Overrides */
-@media(max-width: 1024px) {
-    .property-gallery-grid {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    .gallery-sub-imgs {
-        display: none;
-    }
-    .detail-content-layout {
-        grid-template-columns: 1fr;
-    }
-    .overview-bar {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-}
-@media(max-width: 600px) {
-    .overview-bar, .amenities-grid {
-        grid-template-columns: 1fr;
-    }
-    .detail-header-row {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .detail-price h2 {
-        text-align: left;
-    }
-}
-</style>
 {% endblock %}

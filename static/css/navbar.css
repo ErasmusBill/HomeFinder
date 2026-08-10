@@ -1,0 +1,330 @@
+/* ============================================================
+   HomeFinder Ghana — Responsive Navbar Stylesheet
+   Isolated from index.css so the rules below never collide with
+   generic `header`, `.logo`, `.nav-links`, `.btn`, etc.
+   ============================================================ */
+
+/* ---- Reset for the navbar root — strip inherited generic
+        `header` styling from index.css that would otherwise
+        give it the wrong padding/height/shadow. ---- */
+.site-header {
+    all: unset;
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e9ebef;
+    box-sizing: border-box;
+}
+
+.site-header *, .site-header *::before, .site-header *::after {
+    box-sizing: border-box;
+}
+
+.header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(16px, 2.5vw, 32px);
+    padding: 0 clamp(16px, 4vw, 40px);
+}
+
+/* ---- Logo ---- */
+.site-header .logo {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #14213d;
+    font-weight: 700;
+    font-size: clamp(1rem, 1.4vw + 0.4rem, 1.25rem);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.site-header .logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+    background: #14213d;
+    color: #e8a33d;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.site-header .logo-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-header .logo-accent {
+    color: #cf8c28;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+/* ---- Drawer (desktop = inline) ---- */
+.site-header .nav-drawer-head,
+.site-header .nav-drawer-close { display: none; }
+
+.site-header .nav-drawer {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+}
+
+.site-header .nav-links {
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 1.8vw, 26px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: nowrap;
+}
+
+.site-header .nav-links a {
+    display: inline-block;
+    text-decoration: none;
+    color: #5a6478;
+    font-size: 0.95rem;
+    font-weight: 500;
+    position: relative;
+    padding: 6px 2px;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.site-header .nav-links a:hover,
+.site-header .nav-links a:focus-visible {
+    color: #14213d;
+}
+
+.site-header .nav-links a.active {
+    color: #14213d;
+    font-weight: 700;
+}
+
+.site-header .nav-links a.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: #e8a33d;
+    border-radius: 2px;
+}
+
+.site-header .nav-drawer-actions { display: none; }
+
+/* ---- Right side actions ---- */
+.site-header .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.site-header .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+    border: 1px solid #e9ebef;
+    background: transparent;
+    color: #14213d;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    font: inherit;
+}
+
+.site-header .icon-btn:hover { background: #f5f6f8; border-color: #d8dbe2; }
+
+.site-header .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.site-header .btn-outline {
+    color: #14213d;
+    border-color: #e9ebef;
+    background: transparent;
+}
+.site-header .btn-outline:hover { border-color: #14213d; }
+
+.site-header .btn-primary {
+    background: #e8a33d;
+    color: #14213d;
+}
+.site-header .btn-primary:hover {
+    background: #cf8c28;
+    box-shadow: 0 4px 14px rgba(232, 163, 61, 0.35);
+}
+
+.site-header .btn:active { transform: translateY(1px); }
+
+/* ---- Hamburger (hidden on desktop) ---- */
+.site-header .menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.site-header .menu-bar {
+    width: 20px;
+    height: 2px;
+    background: #14213d;
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+    display: block;
+}
+
+.nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 33, 61, 0.35);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.nav-overlay.visible { display: block; opacity: 1; }
+
+/* =========================================================
+   ≤1024px — Tablets and small screens: collapse to drawer
+   ========================================================= */
+@media (max-width: 1024px) {
+    .site-header .header-inner { height: 68px; }
+
+    .site-header .nav-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100dvh;
+        width: min(320px, 88vw);
+        background: #ffffff;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        z-index: 999;
+        box-shadow: -8px 0 24px rgba(20, 33, 61, 0.1);
+        overflow-y: auto;
+        padding-bottom: 24px;
+    }
+
+    .site-header .nav-drawer.open { transform: translateX(0); }
+
+    .site-header .nav-drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e9ebef;
+    }
+
+    .site-header .nav-drawer-title { font-weight: 700; color: #14213d; }
+
+    .site-header .nav-drawer-close {
+        display: flex;
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+    }
+
+    .site-header .nav-links {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        width: 100%;
+        padding: 8px 20px;
+    }
+
+    .site-header .nav-links li { width: 100%; }
+
+    .site-header .nav-links a {
+        display: block;
+        width: 100%;
+        padding: 13px 2px;
+        font-size: 1rem;
+        border-bottom: 1px solid #e9ebef;
+    }
+
+    .site-header .nav-links a.active::after { display: none; }
+
+    .site-header .nav-drawer-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px;
+    }
+    .site-header .nav-drawer-actions .btn { width: 100%; padding: 12px; font-size: 0.95rem; }
+
+    .site-header .btn-desktop { display: none; }
+    .site-header .menu-toggle { display: flex; }
+}
+
+/* =========================================================
+   ≤560px — Phones: trim padding, scale down elements
+   ========================================================= */
+@media (max-width: 560px) {
+    .site-header .header-inner { height: 60px; padding: 0 14px; gap: 8px; }
+    .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; }
+    .site-header .logo-text { max-width: 44vw; }
+}
+
+/* =========================================================
+   ≤380px — Tiny screens
+   ========================================================= */
+@media (max-width: 380px) {
+    .site-header .wishlist-icon { display: none; }
+    .site-header .icon-btn { width: 36px; height: 36px; min-width: 36px; }
+}
+
+/* ---- Accessibility & motion ---- */
+.site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) { opacity: 0; }
+.site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.site-header .icon-btn:focus-visible,
+.site-header .btn:focus-visible,
+.site-header .nav-links a:focus-visible {
+    outline: 2px solid #e8a33d;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-header .nav-drawer,
+    .site-header .menu-bar,
+    .nav-overlay,
+    .site-header .btn { transition: none; }
+}

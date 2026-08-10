@@ -37,22 +37,22 @@ def document_cache_key(prefix: str, *args, **kwargs):
     return ":".join(["home_finder", "documents", prefix, *[str(arg) for arg in args if arg is not None]])
 
 
+from apps.common.cache import (
+    invalidate_property_cache,
+    invalidate_amenities_cache,
+    invalidate_documents_cache,
+)
+
 def _invalidate_amenity_cache():
-    cache.delete(amenity_cache_key("all"))
+    invalidate_amenities_cache()
 
 
 def _invalidate_property_cache(user_id, property_id=None):
-    cache.delete(property_cache_key(f"user_{user_id}"))
-    cache.delete(property_cache_key("all"))
-    if property_id:
-        cache.delete(property_cache_key("detail", property_id))
+    invalidate_property_cache(landlord_id=user_id, property_id=property_id)
 
 
 def _invalidate_document_cache(landlord_id, document_id=None):
-    cache.delete(document_cache_key(f"landlord_{landlord_id}"))
-    cache.delete(document_cache_key("all"))
-    if document_id:
-        cache.delete(document_cache_key("detail", document_id))
+    invalidate_documents_cache(landlord_id=landlord_id, document_id=document_id)
 
 
 
@@ -83,7 +83,7 @@ def list_amenities(request):
 
 @login_required
 def create_amenity(request):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff or not request.user.is_superuser:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can create amenities.")
         return redirect('landloards:landloards_dashboard')
 
@@ -103,7 +103,7 @@ def create_amenity(request):
 
 @login_required
 def update_amenity(request, amenity_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can update amenities.")
         return redirect('landloards:landloards_dashboard')
 
@@ -124,7 +124,7 @@ def update_amenity(request, amenity_id: str):
 
 @login_required
 def delete_amenity(request, amenity_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can delete amenities.")
         return redirect('landloards:landloards_dashboard')
 
@@ -281,41 +281,46 @@ def delete_landlord_document(request, document_id: str):
     return redirect('landloards:landlord_document_list')
 
 
-
 @login_required
 def list_landlord_subscription(request):
-    user = request.user
+    """Landlord billing history, active subscription, and plan selection view."""
+    if request.user.role != User.Role.LANDLORD:
+        messages.error(request, "Access restricted to landlords.")
+        return redirect('dashboard')
 
-    if user.role not in (User.Role.ADMIN, User.Role.LANDLORD, "admin", "landlord"):
-        messages.error(request, "Access denied.")
-        return redirect("home_finder:home")
+    # Fetch the most recent active successful subscription
+    active_subscription = LandlordSubscription.objects.filter(
+        landlord=request.user,
+        status=LandlordSubscription.Status.SUCCESS,
+        is_active=True
+    ).order_by('-end_date').first()
 
-    if _is_admin(user):
-        subscriptions = (
-            LandlordSubscription.objects
-            .select_related('plan', 'landlord')
-            .order_by('-created_at')
-        )
-        active_subscription = None
-    else:
-        subscriptions = (
-            LandlordSubscription.objects
-            .filter(landlord=user)
-            .select_related('plan')
-            .order_by('-created_at')
-        )
-        active_subscription = (
-            subscriptions
-            .filter(status=LandlordSubscription.Status.SUCCESS, is_active=True)
-            .order_by('-end_date')
-            .first()
-        )
+    # Fetch full billing / subscription logs for the history table
+    subscriptions = LandlordSubscription.objects.filter(
+        landlord=request.user
+    ).select_related('plan').order_by('-created_at')
 
-    return render(request, 'landloards/landlord_subscription_list.html', {
-        'subscriptions': subscriptions,
+    # Fetch all subscription plans from the database (.all() or .filter(is_active=True))
+    all_plans = SubscriptionPlan.objects.all()
+
+    # Calculate active property listings count for the progress bar
+    active_listings_count = 0
+    if hasattr(request.user, 'properties'):
+        active_listings_count = request.user.properties.filter(is_available=True).count()
+    elif hasattr(request.user, 'property_set'):
+        active_listings_count = request.user.property_set.filter(is_available=True).count()
+
+    context = {
         'active_subscription': active_subscription,
-    })
+        'subscriptions': subscriptions,
+        # Providing multiple aliases guarantees compatibility with any template loop variable name
+        'available_plans': all_plans,
+        'plans': all_plans,
+        'subscription_plans': all_plans,
+        'active_listings_count': active_listings_count,
+    }
 
+    return render(request, 'landloards/landlord_subscription_list.html', context)
 
 @login_required
 def confirm_plan_change_view(request, plan_id):
@@ -352,7 +357,7 @@ def confirm_plan_change_view(request, plan_id):
 def landlords_dashboard(request):
     user = request.user
 
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+    if not _is_landlord_or_admin(user):
         messages.error(request, "Access denied.")
         return redirect("home_finder:home")
 
@@ -397,21 +402,29 @@ def landlords_dashboard(request):
     return render(request, "landloards/dashboard.html", context)
 
 
+@login_required
 def property_detail(request, slug):
     user = request.user
 
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+    if not _is_landlord_or_admin(user):
         messages.error(request, "Access denied.")
         return redirect("home_finder:home")
 
-    Property.objects.filter(slug=slug).update(views_count=F("views_count") + 1)
-
-    property_obj = get_object_or_404(
-        Property.objects.select_related(
-            "landlord", "region", "district", "town", "area"
-        ).prefetch_related("media", "amenities"),
-        slug=slug
-    )
+    if _is_admin(user):
+        property_obj = get_object_or_404(
+            Property.objects.select_related(
+                "landlord", "region", "district", "town", "area"
+            ).prefetch_related("media", "amenities"),
+            slug=slug
+        )
+    else:
+        property_obj = get_object_or_404(
+            Property.objects.select_related(
+                "landlord", "region", "district", "town", "area"
+            ).prefetch_related("media", "amenities"),
+            slug=slug,
+            landlord=user
+        )
 
     context = {
         "property": property_obj,
@@ -423,7 +436,7 @@ def property_detail(request, slug):
 def list_properties_related_landlords(request):
     user = request.user
 
-    if not user.is_authenticated or user.role not in ["admin", "landlord"]:
+    if not _is_landlord_or_admin(user):
         messages.error(request, "Access denied.")
         return redirect("home_finder:home")
 
@@ -459,7 +472,7 @@ def list_properties_related_landlords(request):
 
 @login_required
 def list_properties(request):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can view this page.")
         return redirect('landloards:landloards_dashboard')
 
@@ -487,7 +500,7 @@ def list_properties(request):
 
 @login_required
 def create_property(request):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff and not request.user.is_superuser:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Only registered landlords and administrators can create properties.")
         return redirect('landloards:landloards_dashboard')
 
@@ -536,9 +549,9 @@ def create_property(request):
 
 @login_required
 def update_property(request, property_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
-        return redirect('landloards:dashboard')
+        return redirect('landloards:landloards_dashboard')
 
     if request.user.role == request.user.Role.ADMIN or request.user.is_staff:
         property_obj = get_object_or_404(Property, id=property_id)
@@ -580,7 +593,7 @@ def update_property(request, property_id: str):
 
 @login_required
 def delete_property(request, property_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
         return redirect('landloards:landloards_dashboard')
 
@@ -598,7 +611,7 @@ def delete_property(request, property_id: str):
 
 @login_required
 def verify_property(request, property_id: str):
-    if not request.user.is_staff and request.user.role != request.user.Role.ADMIN:
+    if not _is_admin(request.user):
         messages.error(request, "Unauthorized action. Only admins can verify properties.")
         return redirect('landloards:landloards_dashboard')
 
@@ -619,7 +632,7 @@ def verify_property(request, property_id: str):
 
 @login_required
 def add_property_media(request, property_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
         return redirect('landloards:landloards_dashboard')
 
@@ -649,7 +662,7 @@ def add_property_media(request, property_id: str):
 
 @login_required
 def delete_property_media(request, media_id: str):
-    if request.user.role != request.user.Role.LANDLORD and request.user.role != request.user.Role.ADMIN and not request.user.is_staff:
+    if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
         return redirect('landloards:landloards_dashboard')
 

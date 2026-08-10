@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'apps.locations',
     'apps.landloards',
     'apps.Subscription',
+    'apps.notifications',
     'apps.account.apps.AccountConfig',
 
     'allauth',
