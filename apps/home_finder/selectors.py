@@ -24,13 +24,103 @@ def _property_queryset():
         "media",
     )
 
-def get_published_properties():
-    cache_key = _property_cache_key("published")
-    properties = cache.get(cache_key)
-    if properties is None:
-        properties = list(_property_queryset().order_by("-created_at"))
-        cache.set(cache_key, properties, CACHE_TTL)
-    return properties
+
+def _apply_filters(qs, filters):
+    """
+    Apply user-selected filters to a Property queryset.
+    `filters` is a dict of cleaned values coming from request.GET.
+    Unknown / empty values are ignored.
+    """
+    # Free-text search (title / description / location names)
+    q = (filters.get("q") or "").strip()
+    if q:
+        qs = qs.filter(
+            Q(title__icontains=q)
+            | Q(description__icontains=q)
+            | Q(region__name__icontains=q)
+            | Q(district__name__icontains=q)
+            | Q(town__name__icontains=q)
+            | Q(area__name__icontains=q)
+        ).distinct()
+
+    # Location filters — accept either a pk or a slug
+    region = (filters.get("region") or "").strip()
+    if region:
+        qs = qs.filter(Q(region__pk=region) | Q(region__slug=region))
+
+    district = (filters.get("district") or "").strip()
+    if district:
+        qs = qs.filter(Q(district__pk=district) | Q(district__slug=district))
+
+    town = (filters.get("town") or "").strip()
+    if town:
+        qs = qs.filter(Q(town__pk=town) | Q(town__slug=town))
+
+    area = (filters.get("area") or "").strip()
+    if area:
+        qs = qs.filter(Q(area__pk=area) | Q(area__slug=area))
+
+    # Property type / room type
+    room_type = (filters.get("room_type") or "").strip()
+    if room_type:
+        qs = qs.filter(room_type=room_type)
+
+    # Payment period
+    payment_period = (filters.get("payment_period") or "").strip()
+    if payment_period:
+        qs = qs.filter(payment_period=payment_period)
+
+    # Price range
+    min_price = filters.get("min_price")
+    if min_price not in (None, ""):
+        try:
+            qs = qs.filter(price__gte=float(min_price))
+        except (TypeError, ValueError):
+            pass
+
+    max_price = filters.get("max_price")
+    if max_price not in (None, ""):
+        try:
+            qs = qs.filter(price__lte=float(max_price))
+        except (TypeError, ValueError):
+            pass
+
+    # Bedrooms (minimum)
+    bedrooms = filters.get("bedrooms")
+    if bedrooms not in (None, "", "any"):
+        try:
+            qs = qs.filter(bedrooms__gte=int(bedrooms))
+        except (TypeError, ValueError):
+            pass
+
+    # Furnished
+    if filters.get("furnished") == "1" and not filters.get("unfurnished"):
+        qs = qs.filter(is_furnished=True)
+    elif filters.get("unfurnished") == "1" and not filters.get("furnished"):
+        qs = qs.filter(is_furnished=False)
+    # If both are checked (or neither), no filter is applied.
+
+    return qs
+
+
+def get_published_properties(filters=None):
+    """
+    Return the list of published+verified+available properties.
+    If `filters` is given, it is passed to `_apply_filters` first.
+    """
+    qs = _property_queryset()
+    if filters:
+        qs = _apply_filters(qs, filters)
+    return list(qs.order_by("-created_at"))
+
+
+def get_filtered_properties_count(filters):
+    """Return the count of properties matching the filters, ignoring pagination."""
+    qs = _property_queryset()
+    if filters:
+        qs = _apply_filters(qs, filters)
+    return qs.count()
+
 
 def get_property_by_slug(slug):
     cache_key = _property_cache_key("slug", slug)

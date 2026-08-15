@@ -27,6 +27,7 @@ urlpatterns = [
     path('documents/create/', views.create_landlord_document, name='create_landlord_document'),
     path('documents/<str:document_id>/update/', views.update_landlord_document, name='update_landlord_document'),
     path('documents/<str:document_id>/delete/', views.delete_landlord_document, name='delete_landlord_document'),
+    path('documents/<str:document_id>/review/', views.review_landlord_document, name='review_landlord_document'),
 
     # Subscription
     path('subcription/list_landlord_subscription/', views.list_landlord_subscription, name='list_landlord_subscription'),

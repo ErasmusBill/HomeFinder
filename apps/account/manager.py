@@ -23,6 +23,12 @@ class UserManager(BaseUserManager):
             **extra_fields
         )
         user.set_password(password)
+        # Belt-and-braces: the model save() will also enforce this, but
+        # setting it here means even code paths that bypass save() (or that
+        # inspect the in-memory object before save) see the correct flags.
+        if role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
         user.save(using=self._db)
         return user
 

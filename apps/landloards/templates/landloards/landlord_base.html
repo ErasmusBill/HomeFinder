@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Landlord Dashboard - HomeFinder Ghana{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static tailwind_tags %}
+    {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_head %}{% endblock %}
 </head>
@@ -21,7 +22,7 @@
                 <a href="{% url 'home_finder:home' %}" class="sidebar-logo">
                     <span>HomeFinder</span>
                 </a>
-                <button class="mobile-close-btn" onclick="toggleSidebar()">
+                <button class="mobile-close-btn" onclick="toggleSidebar()" aria-label="Close navigation menu">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -90,14 +91,18 @@
                             {% endif %}
                         </a>
                     </li>
+<!--                    <li>-->
+<!--                        <a href="#" class="sidebar-item">-->
+<!--                            <i class="fa-solid fa-message"></i> Messages-->
+<!--                            <span class="badge-pill green">5</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
                     <li>
-                        <a href="#" class="sidebar-item">
-                            <i class="fa-solid fa-message"></i> Messages
-                            <span class="badge-pill green">5</span>
+                        <a href="{% url 'notifications:list-notifications' %}" class="sidebar-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
+                            <i class="fa-regular fa-bell"></i> Notifications
                         </a>
                     </li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-regular fa-bell"></i> Notifications</a></li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-gear"></i> Account Settings</a></li>
+                    <li><a href="{% url 'account:settings' %}" class="sidebar-item"><i class="fa-solid fa-gear"></i> Account Settings</a></li>
                     <li><a href="#" class="sidebar-item"><i class="fa-regular fa-circle-question"></i> Help & Support</a></li>
                 </ul>
             </div>
@@ -138,35 +143,94 @@
                         <input type="text" placeholder="Search anything...">
                     </div>
 
+                    <!-- Mobile Search Trigger (shown only on small screens) -->
+                    <button class="nav-icon-btn mobile-search-btn" type="button" aria-label="Search" onclick="toggleMobileSearch()">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+
                     <!-- Action Icons -->
                     <div class="top-nav-actions">
+                        {% if request.user.is_authenticated and request.user.role == 'landlord' %}
+                            {% if request.user.is_trial_active %}
+                            <span class="trial-status-pill active" title="Your free trial is still running">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span class="trial-status-text">{{ request.user.trial_days_remaining }} day{{ request.user.trial_days_remaining|pluralize }} left</span>
+                            </span>
+                            {% elif request.user.is_trial_expired %}
+                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="trial-status-pill expired" title="Your free trial has ended — subscribe to keep going">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span class="trial-status-text">Trial ended</span>
+                            </a>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if request.user.is_authenticated and not request.user.is_email_verified %}
+                        <a href="{% url 'account:settings' %}" class="nav-icon-btn unverified-badge" title="Your email is not verified yet">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
+                        </a>
+                        {% endif %}
+
                         <a href="#" class="nav-icon-btn" title="Messages">
                             <i class="fa-regular fa-comment-dots"></i>
                         </a>
-                        <a href="#" class="nav-icon-btn notification-bell" title="Notifications">
+                        <a href="{% url 'notifications:list-notifications' %}" class="nav-icon-btn notification-bell" title="Notifications">
                             <i class="fa-regular fa-bell"></i>
                             <span class="notification-dot">3</span>
                         </a>
                     </div>
 
                     <!-- User Profile Dropdown info -->
-                    <div class="top-user-profile">
-                        {% if request.user.profile.avatar %}
-                            <img src="{{ request.user.profile.avatar.url }}" alt="{% if request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}">
-                        {% else %}
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{% if request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}">
-                        {% endif %}
-                        <div class="user-meta-info">
-                            <strong>{% if request.user.get_full_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}</strong>
-                            <span>{% if request.user.is_staff %}Administrator{% else %}Landlord{% endif %}</span>
+                    {% if request.user.is_authenticated %}
+                    <div class="top-user-profile-wrap">
+                        <button type="button" class="top-user-profile" id="userProfileTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="userProfileMenu">
+                            {% if request.user.role == 'landlord' and request.user.landlord_profile.profile_picture %}
+                                <img src="{{ request.user.landlord_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
+                            {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
+                                <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{{ request.user.full_name|default:request.user.email }}">
+                            {% endif %}
+                            <div class="user-meta-info">
+                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
+                                <span>{{ request.user.get_role_display }}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+
+                        <div class="user-profile-menu" id="userProfileMenu">
+                            <div class="user-profile-menu-header">
+                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
+                                <span>{{ request.user.email }}</span>
+                            </div>
+                            <a href="{% url 'account:settings' %}" class="user-profile-menu-item">
+                                <i class="fa-solid fa-gear"></i> Account Settings
+                            </a>
+                            <div class="user-profile-menu-divider"></div>
+                            <form method="POST" action="{% url 'account:logout' %}" class="user-profile-menu-item logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="user-profile-menu-item logout-item">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                                </button>
+                            </form>
                         </div>
-                        <i class="fa-solid fa-chevron-down"></i>
                     </div>
+                    {% else %}
+                    <div class="top-user-profile">
+                        <a href="{% url 'account:login' %}" class="guest-login-link">Log In</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Search Expandable Row -->
+                <div class="mobile-search-row" id="mobileSearchRow">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search anything...">
                 </div>
             </header>
 
             <!-- Page Content Injection Block -->
             <main class="dashboard-content-body">
+                {% include "landloards/_trial_banner.html" %}
                 {% block content %}
                 <!-- Child templates will insert content here -->
                 {% endblock %}
@@ -205,26 +269,37 @@
             font-family: 'Inter', sans-serif, system-ui;
         }
 
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--bg-body);
             color: var(--text-main);
         }
 
+        img { max-width: 100%; display: block; }
+
         .dashboard-wrapper {
             display: flex;
             min-height: 100vh;
+            min-height: 100dvh;
             position: relative;
         }
 
         /* Sidebar Styling */
         .dashboard-sidebar {
             width: var(--sidebar-width);
+            max-width: 85vw;
             background: #ffffff;
             border-right: 1px solid var(--border-color);
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             z-index: 1000;
@@ -237,6 +312,7 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
+            gap: 10px;
         }
 
         .sidebar-logo {
@@ -247,9 +323,15 @@
             font-weight: 800;
             font-size: 18px;
             color: var(--text-main);
+            min-width: 0;
         }
         .sidebar-logo img {
             height: 28px;
+        }
+        .sidebar-logo span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .mobile-close-btn {
@@ -259,11 +341,13 @@
             color: var(--text-muted);
             cursor: pointer;
             display: none; /* hidden on desktop */
+            flex-shrink: 0;
         }
 
         .sidebar-menu-scroll {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 15px;
         }
 
@@ -302,6 +386,12 @@
             color: #64748b;
             width: 20px;
             text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item span,
+        .sidebar-item {
+            min-width: 0;
         }
 
         .sidebar-item:hover, .sidebar-item.active {
@@ -321,6 +411,7 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 700;
+            flex-shrink: 0;
         }
 
         .badge-pill {
@@ -329,6 +420,7 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 700;
+            flex-shrink: 0;
         }
         .badge-pill.green {
             background: #d1fae5;
@@ -417,15 +509,18 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
             position: sticky;
             top: 0;
             z-index: 99;
+            gap: 10px;
         }
 
         .top-navbar-left {
             display: flex;
             align-items: center;
             gap: 15px;
+            min-width: 0;
         }
 
         .hamburger-menu-btn {
@@ -440,12 +535,19 @@
             font-size: 16px;
             color: var(--text-main);
             cursor: pointer;
+            flex-shrink: 0;
         }
 
+        .welcome-text-block {
+            min-width: 0;
+        }
         .welcome-text-block h1 {
             font-size: 18px;
             font-weight: 800;
             color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .welcome-text-block p {
             font-size: 12px;
@@ -456,6 +558,7 @@
             display: flex;
             align-items: center;
             gap: 20px;
+            flex-shrink: 0;
         }
 
         .top-search-bar {
@@ -485,10 +588,94 @@
             background: white;
         }
 
+        .mobile-search-btn {
+            display: none; /* shown only on small screens */
+        }
+
+        .mobile-search-row {
+            display: none;
+            width: 100%;
+            position: relative;
+            align-items: center;
+            margin-top: 12px;
+        }
+        .mobile-search-row.active {
+            display: flex;
+        }
+        .mobile-search-row i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .mobile-search-row input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px 10px 36px;
+            font-size: 13px;
+            outline: none;
+        }
+        .mobile-search-row input:focus {
+            border-color: var(--primary-green);
+            background: white;
+        }
+
         .top-nav-actions {
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        /* Trial status pill in header */
+        .trial-status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .trial-status-pill.active {
+            background: #d1fae5;
+            color: var(--primary-green-hover);
+        }
+        .trial-status-pill.expired {
+            background: #fee2e2;
+            color: #b91c1c;
+            transition: background 0.2s;
+        }
+        .trial-status-pill.expired:hover {
+            background: #fecaca;
+        }
+
+        .unverified-badge {
+            color: #b45309;
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+        .unverified-badge:hover {
+            color: #b45309;
+            border-color: #f59e0b;
+        }
+
+        .guest-login-link {
+            color: var(--primary-green);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 8px 14px;
+            border: 1px solid var(--primary-green);
+            border-radius: 8px;
+        }
+        .guest-login-link:hover {
+            background: var(--primary-green);
+            color: white;
         }
         .nav-icon-btn {
             width: 38px;
@@ -503,6 +690,8 @@
             position: relative;
             background: white;
             transition: color 0.2s;
+            flex-shrink: 0;
+            cursor: pointer;
         }
         .nav-icon-btn:hover {
             color: var(--primary-green);
@@ -529,23 +718,38 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding-left: 10px;
+            padding: 6px 6px 6px 10px;
             border-left: 1px solid var(--border-color);
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            background: none;
             cursor: pointer;
+            flex-shrink: 0;
+        }
+        .top-user-profile-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
         .top-user-profile img {
             width: 38px;
             height: 38px;
             border-radius: 50%;
             object-fit: cover;
+            flex-shrink: 0;
         }
         .user-meta-info {
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
         .user-meta-info strong {
             font-size: 13px;
             color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 140px;
         }
         .user-meta-info span {
             font-size: 11px;
@@ -555,12 +759,113 @@
             font-size: 11px;
             color: var(--text-muted);
             margin-left: 5px;
+            transition: transform 0.2s;
+        }
+        .top-user-profile[aria-expanded="true"] > i {
+            transform: rotate(180deg);
+        }
+
+        /* User profile dropdown menu */
+        .user-profile-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 220px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+            padding: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: all 0.15s ease;
+            z-index: 200;
+        }
+        .user-profile-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .user-profile-menu-header {
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px 10px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .user-profile-menu-header strong {
+            font-size: 13px;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-header span {
+            font-size: 11px;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+        }
+        .user-profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .user-profile-menu-item:hover {
+            background: #f0fdf4;
+            color: var(--primary-green);
+        }
+        .user-profile-menu-item:hover i {
+            color: var(--primary-green);
+        }
+        .logout-form {
+            padding: 0;
+            margin: 0;
+        }
+        .logout-item {
+            color: #ef4444;
+        }
+        .logout-item i {
+            color: #ef4444;
+        }
+        .logout-item:hover {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .logout-item:hover i {
+            color: #ef4444;
+        }
+        .user-profile-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 6px 4px;
         }
 
         /* Content Body Wrapper */
         .dashboard-content-body {
             padding: 30px;
             flex: 1;
+            min-width: 0;
+            overflow-x: hidden;
         }
 
         /* Footer bar */
@@ -571,11 +876,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
             font-size: 12px;
             color: var(--text-muted);
         }
         .footer-links-inline {
             display: flex;
+            flex-wrap: wrap;
             gap: 20px;
         }
         .footer-links-inline a {
@@ -592,7 +900,7 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100vw;
+            height: 100vh;
             background: rgba(15, 23, 42, 0.4);
             z-index: 999;
             opacity: 0;
@@ -604,7 +912,9 @@
             visibility: visible;
         }
 
-        /* Responsive Breakpoints */
+        /* ===== Responsive Breakpoints ===== */
+
+        /* Tablets and below: collapse sidebar into a drawer */
         @media (max-width: 1024px) {
             .dashboard-sidebar {
                 transform: translateX(-100%);
@@ -622,13 +932,111 @@
                 display: block;
             }
             .top-search-bar {
-                display: none; /* Hide search bar on compact viewports to save space */
+                display: none; /* Hide inline search bar on compact viewports */
+            }
+            .mobile-search-btn {
+                display: flex;
             }
             .dashboard-top-navbar {
                 padding: 15px 20px;
             }
             .dashboard-content-body {
                 padding: 20px 15px;
+            }
+        }
+
+        /* Small tablets / large phones */
+        @media (max-width: 768px) {
+            .dashboard-top-navbar {
+                padding: 12px 16px;
+            }
+            .welcome-text-block h1 {
+                font-size: 16px;
+                max-width: 45vw;
+            }
+            .top-navbar-right {
+                gap: 10px;
+            }
+            .top-nav-actions {
+                gap: 8px;
+            }
+            .user-meta-info {
+                display: none; /* keep avatar only, hide name/role text */
+            }
+            .top-user-profile {
+                padding-left: 6px;
+                gap: 6px;
+            }
+            .top-user-profile > i {
+                display: none;
+            }
+            .dashboard-footer-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+            .footer-links-inline {
+                gap: 14px;
+            }
+            .trial-status-text {
+                display: none; /* icon-only pill to save header space */
+            }
+            .trial-status-pill {
+                padding: 8px;
+                border-radius: 50%;
+            }
+        }
+
+        /* Phones */
+        @media (max-width: 480px) {
+            .dashboard-sidebar {
+                width: min(260px, 85vw);
+            }
+            .dashboard-top-navbar {
+                padding: 10px 14px;
+            }
+            .welcome-text-block h1 {
+                font-size: 14px;
+                max-width: 38vw;
+            }
+            .nav-icon-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 13px;
+            }
+            .top-user-profile img {
+                width: 32px;
+                height: 32px;
+            }
+            .dashboard-content-body {
+                padding: 16px 12px;
+            }
+            .dashboard-footer-bar {
+                padding: 16px;
+                font-size: 11px;
+            }
+            .sidebar-header {
+                padding: 16px;
+            }
+            .sidebar-menu-scroll {
+                padding: 12px;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .welcome-text-block h1 {
+                max-width: 30vw;
+                font-size: 13px;
+            }
+            .top-navbar-right {
+                gap: 6px;
+            }
+            .top-nav-actions {
+                gap: 6px;
+            }
+            .unverified-badge {
+                display: none; /* keep chevron row focused on essentials at the smallest sizes */
             }
         }
     </style>
@@ -641,6 +1049,43 @@
             sidebar.classList.toggle('mobile-open');
             overlay.classList.toggle('active');
         }
+
+        function toggleMobileSearch() {
+            const row = document.getElementById('mobileSearchRow');
+            row.classList.toggle('active');
+            if (row.classList.contains('active')) {
+                const input = row.querySelector('input');
+                if (input) input.focus();
+            }
+        }
+
+        function toggleUserMenu() {
+            const trigger = document.getElementById('userProfileTrigger');
+            const menu = document.getElementById('userProfileMenu');
+            if (!trigger || !menu) return;
+            const isOpen = menu.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        document.addEventListener('click', function (event) {
+            const wrap = document.querySelector('.top-user-profile-wrap');
+            const menu = document.getElementById('userProfileMenu');
+            const trigger = document.getElementById('userProfileTrigger');
+            if (!wrap || !menu || !trigger) return;
+            if (!wrap.contains(event.target)) {
+                menu.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const menu = document.getElementById('userProfileMenu');
+                const trigger = document.getElementById('userProfileTrigger');
+                if (menu) menu.classList.remove('open');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
     </script>
 
     {% block extra_js %}{% endblock %}

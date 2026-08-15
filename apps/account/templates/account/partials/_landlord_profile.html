@@ -1,0 +1,347 @@
+<section aria-labelledby="landlord-profile-heading" class="lp-card">
+    <header class="lp-header">
+        <div class="lp-header__intro">
+            <div class="lp-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l8-4 6 4v14M9 9h2m-2 4h2m4-4h2m-2 4h2"/></svg>
+            </div>
+            <div>
+                <h2 id="landlord-profile-heading" class="lp-header__title">Landlord profile</h2>
+                <p class="lp-header__subtitle">Add business and payout details to help keep your property account organised.</p>
+            </div>
+        </div>
+        <span class="lp-badge">Business details</span>
+    </header>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="lp-form" id="landlord-profile-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="lp-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="lp-layout">
+            <div class="lp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
+                <div class="lp-photo__preview" id="lp-photo-preview">
+                    {% if form.instance.profile_picture %}
+                        <img src="{{ form.instance.profile_picture.url }}" alt="Landlord profile photo" id="lp-photo-img">
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="lp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                        <img src="" alt="Landlord profile photo" id="lp-photo-img" style="display:none;">
+                    {% endif %}
+                </div>
+                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
+                {{ form.profile_picture }}
+                {% if form.profile_picture.errors %}
+                    <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
+                {% else %}
+                    <p class="lp-hint">A clear image helps make your profile recognisable.</p>
+                {% endif %}
+            </div>
+
+            <div class="lp-grid">
+                <div class="lp-field lp-field--full{% if form.company_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.company_name.id_for_label }}">
+                        Company or trading name <span class="lp-optional">(optional)</span>
+                    </label>
+                    {{ form.company_name }}
+                    {% if form.company_name.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.company_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint">Use your registered business name, if you have one.</p>
+                    {% endif %}
+                </div>
+
+                <div class="lp-field{% if form.tax_identification_number.errors %} has-error{% endif %}">
+                    <label for="{{ form.tax_identification_number.id_for_label }}">
+                        Tax identification number{% if form.tax_identification_number.field.required %} <span class="lp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.tax_identification_number }}
+                    {% if form.tax_identification_number.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.tax_identification_number.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint">Enter your TIN exactly as registered.</p>
+                    {% endif %}
+                </div>
+
+                <div class="lp-field{% if form.payout_bank_account.errors %} has-error{% endif %}">
+                    <label for="{{ form.payout_bank_account.id_for_label }}">
+                        Payout account number{% if form.payout_bank_account.field.required %} <span class="lp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.payout_bank_account }}
+                    {% if form.payout_bank_account.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.payout_bank_account.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint"><i class="fa-solid fa-lock lp-hint__icon" aria-hidden="true"></i> Use an account you can access for payouts — kept private and never shown to renters.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer class="lp-footer">
+            <p class="lp-footer__note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Review payout details carefully before saving.</p>
+            <button type="submit" class="lp-btn" id="lp-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="lp-submit-label">Save landlord profile</span>
+            </button>
+        </footer>
+    </form>
+</section>
+
+<style>
+    .lp-card {
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .lp-header {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        background: linear-gradient(to right, #ecfdf5, #ffffff);
+        padding: 24px;
+    }
+    @media (min-width: 640px) {
+        .lp-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 32px;
+        }
+    }
+    .lp-header__intro { display: flex; align-items: flex-start; gap: 16px; }
+    .lp-header__icon {
+        display: flex;
+        height: 44px;
+        width: 44px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #d1fae5;
+        color: #047857;
+    }
+    .lp-header__icon svg { height: 20px; width: 20px; }
+    .lp-header__title { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .lp-header__subtitle { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: #64748b; max-width: 480px; }
+    .lp-badge {
+        width: fit-content;
+        border-radius: 999px;
+        background: #d1fae5;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #065f46;
+        flex-shrink: 0;
+    }
+
+    .lp-form { padding: 24px; }
+    @media (min-width: 640px) { .lp-form { padding: 32px; } }
+
+    .lp-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #b91c1c;
+    }
+
+    .lp-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    @media (min-width: 1024px) {
+        .lp-layout { grid-template-columns: 11rem 1fr; }
+    }
+
+    /* Photo uploader */
+    .lp-photo__preview {
+        margin-bottom: 12px;
+        display: flex;
+        height: 112px;
+        width: 112px;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 2px dashed #a7f3d0;
+        background: #ecfdf5;
+        color: #059669;
+    }
+    .lp-photo__preview img { height: 100%; width: 100%; object-fit: cover; }
+    .lp-photo__preview svg { height: 44px; width: 44px; }
+    .lp-photo label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .lp-form input[type="file"] {
+        display: block;
+        width: 100%;
+        max-width: 220px;
+        font-size: 12.5px;
+        color: #64748b;
+    }
+    .lp-form input[type="file"]::file-selector-button {
+        margin-right: 10px;
+        padding: 7px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #047857;
+        background: #d1fae5;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .lp-form input[type="file"]::file-selector-button:hover { background: #a7f3d0; }
+    .lp-photo.has-error .lp-photo__preview { border-color: #fca5a5; background: #fff8f8; }
+
+    /* Text fields */
+    .lp-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    @media (min-width: 640px) { .lp-grid { grid-template-columns: 1fr 1fr; } }
+    .lp-field--full { grid-column: 1 / -1; }
+
+    .lp-field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .lp-required { color: #ef4444; }
+    .lp-optional { font-weight: 400; color: #94a3b8; }
+
+    .lp-form input[type="text"],
+    .lp-form input[type="tel"],
+    .lp-form input:not([type]) {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .lp-form input[type="text"]:focus,
+    .lp-form input[type="tel"]:focus,
+    .lp-form input:not([type]):focus {
+        outline: none;
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.14);
+    }
+    .lp-field.has-error input[type="text"],
+    .lp-field.has-error input[type="tel"] {
+        border-color: #fca5a5;
+        background: #fff8f8;
+    }
+    .lp-field.has-error input:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .lp-hint { margin: 6px 0 0; font-size: 12.5px; color: #64748b; line-height: 1.4; display: flex; align-items: flex-start; gap: 5px; }
+    .lp-hint__icon { margin-top: 1.5px; color: #94a3b8; font-size: 10.5px; flex-shrink: 0; }
+    .lp-error {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 6px 0 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #dc2626;
+    }
+
+    .lp-footer {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 12px;
+        margin-top: 28px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 20px;
+    }
+    @media (min-width: 640px) {
+        .lp-footer { flex-direction: row; align-items: center; justify-content: space-between; }
+    }
+    .lp-footer__note {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 12.5px;
+        color: #64748b;
+    }
+
+    .lp-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 12px;
+        border: none;
+        background: #059669;
+        padding: 11px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(5, 150, 105, 0.3);
+        transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .lp-btn:hover { background: #047857; }
+    .lp-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.3); }
+    .lp-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+</style>
+
+<script>
+    (function() {
+        const fileInput = document.querySelector('#landlord-profile-form input[type="file"]');
+        const img = document.getElementById('lp-photo-img');
+        const placeholder = document.getElementById('lp-photo-placeholder');
+
+        if (fileInput && img) {
+            fileInput.addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const form = document.getElementById('landlord-profile-form');
+        const btn = document.getElementById('lp-submit-btn');
+        const label = document.getElementById('lp-submit-label');
+        if (form && btn) {
+            form.addEventListener('submit', function() {
+                if (btn.disabled) return;
+                btn.disabled = true;
+                if (label) label.textContent = 'Saving…';
+            });
+        }
+    })();
+</script>

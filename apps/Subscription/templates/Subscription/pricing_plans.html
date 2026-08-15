@@ -1,0 +1,589 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Pricing Plans | HomeFinder Ghana{% endblock %}
+
+{% block content %}
+<div class="pricing-page-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header-flex pricing-page-header">
+        <div>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol>
+                    <li><a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a></li>
+                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
+                    <li class="current">Pricing Plans</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Choose Your Plan</h1>
+            <p class="page-subtitle">Simple, transparent pricing. Pick a plan that fits the size of your portfolio.</p>
+        </div>
+        <div class="pricing-header-actions">
+            {% if request.user.is_authenticated and active_subscription %}
+                <a href="{% url 'landloards:list_landlord_subscription' %}" class="header-pill-action">
+                    <i class="fa-solid fa-receipt"></i> My Subscription
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages-stack">
+        {% for message in messages %}
+        <div class="django-message message-{{ message.tags|default:'info' }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero banner -->
+    <div class="pricing-hero-card">
+        <div class="pricing-hero-content">
+            <span class="hero-eyebrow"><i class="fa-solid fa-bolt"></i> Subscription Plans</span>
+            <h2 class="hero-title">List more properties, reach more tenants.</h2>
+            <p class="hero-subtitle">Every plan includes verified-listing badges, in-app messaging, and 24/7 support. Upgrade or downgrade anytime.</p>
+        </div>
+        <div class="pricing-hero-icon">
+            <i class="fa-solid fa-crown"></i>
+        </div>
+    </div>
+
+    <!-- Billing cycle note -->
+    <div class="pricing-billing-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>All prices are in <strong>Ghana Cedis (GH&#8373;)</strong> and billed per plan duration. Pay securely via Paystack.</span>
+    </div>
+
+    <!-- Plans grid -->
+    {% if plans %}
+        <div class="plans-grid pricing-plans-grid">
+            {% for plan in plans %}
+            <div class="plan-card {% if plan.is_free %}plan-card-free{% endif %} {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
+                {% if plan.is_free %}
+                <div class="plan-free-flag">
+                    <i class="fa-solid fa-gift"></i> Free
+                </div>
+                {% elif active_subscription and active_subscription.plan.id == plan.id %}
+                <div class="plan-current-flag">
+                    <i class="fa-solid fa-check"></i> Current Plan
+                </div>
+                {% endif %}
+
+                <div class="plan-card-body">
+                    <h4 class="plan-card-name">{{ plan.name }}</h4>
+                    <p class="plan-card-desc">{{ plan.description|default:"A great fit for landlords at this level." }}</p>
+
+                    <div class="plan-card-price-row">
+                        {% if plan.is_free %}
+                            <span class="plan-price-amount">Free</span>
+                            <span class="plan-price-period">forever</span>
+                        {% else %}
+                            <span class="plan-price-amount">GH&#8373; {{ plan.price|floatformat:2 }}</span>
+                            <span class="plan-price-period">/ {{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</span>
+                        {% endif %}
+                    </div>
+
+                    <ul class="plan-feature-list">
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Up to <strong>{{ plan.maximum_listings }}</strong> active listing{{ plan.maximum_listings|pluralize }}
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            <strong>{{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</strong> of full access
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Verified-listing badge
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            In-app tenant messaging
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Email &amp; in-app support
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="plan-card-action">
+                    {% if active_subscription and active_subscription.plan.id == plan.id %}
+                        <button disabled class="plan-btn plan-btn-disabled">
+                            <i class="fa-solid fa-check"></i> Current Plan
+                        </button>
+                    {% elif plan.is_free %}
+                        {% if request.user.is_authenticated %}
+                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
+                                Activate Free Plan
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
+                                Sign in to activate
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {% if request.user.is_authenticated %}
+                            <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
+                                {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-primary">
+                                Sign in to subscribe
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="dashboard-card-box plans-empty-state-card">
+            <div class="plans-empty-state">
+                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
+                <p class="plans-empty-title">No subscription plans are currently available.</p>
+                <p class="plans-empty-sub">Please check back later, or contact support if you need help.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Trust / FAQ footer -->
+    <div class="pricing-trust-grid">
+        <div class="trust-tile">
+            <div class="trust-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <h4>Secure payments</h4>
+                <p>All payments are processed securely via Paystack &#8212; we never see your card details.</p>
+            </div>
+        </div>
+        <div class="trust-tile">
+            <div class="trust-icon blue"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <div>
+                <h4>Switch anytime</h4>
+                <p>Upgrade instantly or schedule a downgrade to take effect at the end of your current cycle.</p>
+            </div>
+        </div>
+        <div class="trust-tile">
+            <div class="trust-icon purple"><i class="fa-solid fa-headset"></i></div>
+            <div>
+                <h4>Real support</h4>
+                <p>Email and in-app support is included on every plan &#8212; we answer in hours, not days.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Page Specific Styling (matches dashboard / subscription design system) -->
+<style>
+    .pricing-page-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 4px 0 12px 0;
+    }
+
+    /* Page Header */
+    .pricing-page-header {
+        align-items: flex-end;
+    }
+    .pricing-header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .header-pill-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .header-pill-action:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+    .header-pill-action i { color: var(--primary-green); font-size: 11px; }
+
+    .breadcrumb-nav ol {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 6px 0;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .breadcrumb-nav li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .breadcrumb-nav li a {
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+    .breadcrumb-nav li a:hover { color: var(--primary-green); }
+    .breadcrumb-nav .breadcrumb-sep {
+        font-size: 8px;
+        color: #cbd5e1;
+    }
+    .breadcrumb-nav .current {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+    .page-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+    }
+    .page-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 4px 0 0 0;
+    }
+
+    /* Django messages */
+    .messages-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .django-message {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid;
+    }
+    .message-success { background: #f0fdf4; color: #065f46; border-color: #bbf7d0; }
+    .message-error   { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .message-warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .message-info    { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+
+    /* Hero */
+    .pricing-hero-card {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 16px;
+        padding: 28px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .pricing-hero-content { flex: 1; min-width: 0; }
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        color: var(--primary-green);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 10px;
+    }
+    .hero-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 6px 0;
+        line-height: 1.3;
+    }
+    .hero-subtitle {
+        font-size: 13px;
+        color: #065f46;
+        margin: 0;
+        max-width: 560px;
+        line-height: 1.5;
+    }
+    .pricing-hero-icon {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: white;
+        color: var(--primary-green);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        flex-shrink: 0;
+        box-shadow: 0 8px 18px -8px rgba(5, 150, 105, 0.35);
+    }
+
+    /* Billing note */
+    .pricing-billing-note {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-size: 12.5px;
+    }
+    .pricing-billing-note i { color: #2563eb; font-size: 13px; }
+
+    /* Plans grid */
+    .pricing-plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .plan-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 26px 24px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.25s ease;
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 30px -14px rgba(5, 150, 105, 0.30);
+        border-color: #bbf7d0;
+    }
+    .plan-card-current {
+        border: 2px solid var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08);
+    }
+    .plan-card-free {
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    }
+    .plan-current-flag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-green);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .plan-free-flag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #f59e0b;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .plan-card-body {
+        flex: 1;
+    }
+    .plan-card-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 8px 0;
+    }
+    .plan-card-desc {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin: 0 0 18px 0;
+    }
+    .plan-card-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .plan-price-amount {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+    }
+    .plan-price-period {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .plan-feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 22px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .plan-feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--text-main);
+    }
+    .plan-feature-list strong { font-weight: 700; }
+    .plan-feature-icon {
+        color: var(--primary-green);
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .plan-card-action {
+        margin-top: auto;
+    }
+    .plan-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+        font-family: inherit;
+    }
+    .plan-btn-primary {
+        background: var(--primary-green);
+        color: white;
+    }
+    .plan-btn-primary:hover {
+        background: var(--primary-green-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px -4px rgba(5, 150, 105, 0.4);
+    }
+    .plan-btn-secondary {
+        background: white;
+        color: var(--text-main);
+        border-color: var(--border-color);
+    }
+    .plan-btn-secondary:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+    .plan-btn-disabled {
+        background: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+    .plan-btn-disabled i { color: var(--primary-green); }
+
+    /* Empty state */
+    .plans-empty-state-card { padding: 0; }
+    .plans-empty-state {
+        background: #f8fafc;
+        border: 1px dashed var(--border-color);
+        border-radius: 14px;
+        padding: 60px 20px;
+        text-align: center;
+    }
+    .plans-empty-icon {
+        font-size: 36px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+    .plans-empty-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 4px 0;
+    }
+    .plans-empty-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Trust tiles */
+    .pricing-trust-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    .trust-tile {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+    }
+    .trust-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    .trust-icon.green  { background: #d1fae5; color: var(--primary-green); }
+    .trust-icon.blue   { background: #dbeafe; color: #2563eb; }
+    .trust-icon.purple { background: #f3e8ff; color: #9333ea; }
+    .trust-tile h4 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 4px 0;
+    }
+    .trust-tile p {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+        .pricing-plans-grid { grid-template-columns: repeat(2, 1fr); }
+        .pricing-trust-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+        .pricing-hero-card {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 22px;
+        }
+        .pricing-hero-icon { width: 60px; height: 60px; font-size: 24px; }
+        .pricing-plans-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% include 'account/partials/_personal_information.html' with form=user_form %}
+{% if user.role == 'landlord' %}
+    {% include 'account/partials/_landlord_profile.html' with form=profile_form %}
+{% elif user.role == 'tenant' %}
+    {% include 'account/partials/_tenant_profile.html' with form=profile_form %}
+{% endif %}
+{% include 'account/partials/_change_password.html' with form=password_form %}

@@ -1,0 +1,32 @@
+{% extends 'home_finder/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<section class="login-section">
+    <div class="login-container" style="max-width: 500px; margin: 40px auto; padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03); display: block;">
+
+        <div class="back-link-wrap" style="margin-bottom: 25px;">
+            <a href="{% url 'account:login' %}" class="back-home-link" style="font-size: 13px; color: #64748b; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Login
+            </a>
+        </div>
+
+        <div class="login-header-block" style="text-align: center; margin-bottom: 25px;">
+            <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">
+                Sign In Via <span>Third-Party</span>
+            </h1>
+            <p style="font-size: 14px; color: #64748b; line-height: 1.5;">
+                You are about to sign in using an external provider account. Click proceed below to continue securely.
+            </p>
+        </div>
+
+        <form method="post" style="margin-top: 15px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary login-submit-btn" style="width: 100%; background-color: #059669; color: white; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                Continue <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+    </div>
+</section>
+{% endblock %}

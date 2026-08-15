@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Amenity, LandlordDocument, Property, PropertyMedia
+from .models import Amenity, LandlordDocument, Property, PropertyInterest, PropertyMedia
 
 
 class PropertyMediaInline(admin.TabularInline):
@@ -90,6 +90,14 @@ class PropertyMediaAdmin(admin.ModelAdmin):
     search_fields = ("property__title", "property__reference_number", "caption")
     readonly_fields = ("slug", "created_at", "updated_at")
     autocomplete_fields = ("property",)
+
+
+@admin.register(PropertyInterest)
+class PropertyInterestAdmin(admin.ModelAdmin):
+    list_display = ("tenant", "property", "created_at")
+    search_fields = ("tenant__full_name", "tenant__email", "property__title", "property__reference_number")
+    autocomplete_fields = ("tenant", "property")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(LandlordDocument)

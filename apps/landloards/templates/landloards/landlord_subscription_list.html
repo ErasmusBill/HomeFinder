@@ -4,31 +4,28 @@
 {% block title %}My Subscription & Billing | HomeFinder Ghana{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="subscription-page-wrapper">
+
     <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="page-header-flex">
         <div>
-            <nav class="flex text-sm text-slate-500 mb-1" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">Dashboard</li>
-                    <li>/</li>
-                    <span class="text-slate-900 font-medium">Subscriptions</span>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol>
+                    <li>Dashboard</li>
+                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
+                    <li class="current">Subscriptions</li>
                 </ol>
             </nav>
-            <h1 class="text-2xl font-bold text-slate-900">My Subscription</h1>
-            <p class="text-sm text-slate-600">Manage your subscription plan and billing details.</p>
+            <h1 class="page-title">My Subscription</h1>
+            <p class="page-subtitle">Manage your subscription plan and billing details.</p>
         </div>
     </div>
 
     <!-- Django messages -->
     {% if messages %}
-    <div class="space-y-2">
+    <div class="messages-stack">
         {% for message in messages %}
-        <div class="rounded-lg px-4 py-3 text-sm font-medium
-            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
-            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
-            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
-            {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}">
+        <div class="django-message message-{{ message.tags|default:'info' }}">
             {{ message }}
         </div>
         {% endfor %}
@@ -37,95 +34,98 @@
 
     {% if active_subscription %}
         <!-- Active Subscription Main Card -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-6">
-                        <div>
-                            <div class="flex items-center space-x-2 mb-1">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Current Plan</span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Active</span>
+        <div class="subscription-grid">
+            <div class="subscription-grid-main">
+                <div class="dashboard-card-box subscription-current-card">
+                    <div class="subscription-current-header">
+                        <div class="subscription-plan-info">
+                            <div class="subscription-plan-label-row">
+                                <span class="label-eyebrow">Current Plan</span>
+                                <span class="status-badge published"><span class="dot"></span> Active</span>
                             </div>
-                            <h2 class="text-2xl font-extrabold text-slate-900">{{ active_subscription.plan.name }}</h2>
-                            <div class="text-lg font-bold text-slate-900 mt-1">
-                                GH₵ {{ active_subscription.plan.price }} <span class="text-sm font-normal text-slate-500">/ {{ active_subscription.plan.duration_days }} days</span>
+                            <h2 class="subscription-plan-name">{{ active_subscription.plan.name }}</h2>
+                            <div class="subscription-plan-price">
+                                <span class="price-amount">GH₵ {{ active_subscription.plan.price }}</span>
+                                <span class="price-period">/ {{ active_subscription.plan.duration_days }} days</span>
                             </div>
-                            <p class="text-sm text-slate-500 mt-1">
+                            <p class="subscription-plan-desc">
                                 You have up to {{ active_subscription.plan.maximum_listings }} active property listings.
                             </p>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-left border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-100 w-full sm:w-auto">
-                            <div>
-                                <span class="block text-xs font-medium text-slate-400">Start Date</span>
-                                <span class="text-sm font-semibold text-slate-900">{{ active_subscription.start_date|date:"M d, Y"|default:active_subscription.created_at|date:"M d, Y" }}</span>
+                        <div class="subscription-dates">
+                            <div class="date-meta-box">
+                                <span class="date-meta-label">Start Date</span>
+                                <span class="date-meta-value">{{ active_subscription.start_date|date:"M d, Y"|default:active_subscription.created_at|date:"M d, Y" }}</span>
                             </div>
-                            <div>
-                                <span class="block text-xs font-medium text-slate-400">Next Billing Date</span>
-                                <span class="text-sm font-semibold text-slate-900">{{ active_subscription.end_date|date:"M d, Y"|default:"—" }}</span>
+                            <div class="date-meta-box">
+                                <span class="date-meta-label">Next Billing Date</span>
+                                <span class="date-meta-value">{{ active_subscription.end_date|date:"M d, Y"|default:"—" }}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Plan Usage Bar -->
-                    <div class="pt-6">
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="font-medium text-slate-700">Plan Usage</span>
-                            <span class="font-semibold text-slate-900">{{ active_listings_count|default:"0" }} / {{ active_subscription.plan.maximum_listings }} listings</span>
+                    <div class="subscription-usage-section">
+                        <div class="usage-header-row">
+                            <span class="usage-title">Plan Usage</span>
+                            <span class="usage-count">{{ active_listings_count|default:"0" }} / {{ active_subscription.plan.maximum_listings }} listings</span>
                         </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                            <div class="bg-emerald-600 h-2.5 rounded-full" style="width: {% widthratio active_listings_count|default:0 active_subscription.plan.maximum_listings 100 %}%;"></div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" style="width: {% widthratio active_listings_count|default:0 active_subscription.plan.maximum_listings 100 %}%;"></div>
                         </div>
-                        <div class="flex justify-between items-center mt-4">
-                            <p class="text-xs text-slate-500">You have used {{ active_listings_count|default:"0" }} of {{ active_subscription.plan.maximum_listings }} active listings used.</p>
-                            <a href="{% url 'landloards:property_list' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">Manage Listings →</a>
+                        <div class="usage-footer-row">
+                            <p class="usage-footer-text">You have used {{ active_listings_count|default:"0" }} of {{ active_subscription.plan.maximum_listings }} active listings.</p>
+                            <a href="{% url 'landloards:property_list' %}" class="usage-footer-link">Manage Listings <i class="fa-solid fa-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Billing Information & Quick Actions -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="text-base font-bold text-slate-900 mb-4">Billing Information</h3>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between py-2 border-b border-slate-100">
-                            <span class="text-slate-500">Amount</span>
-                            <span class="font-semibold text-slate-900">GH₵ {{ active_subscription.plan.price }}</span>
+            <div class="subscription-grid-side">
+                <div class="dashboard-card-box">
+                    <h3 class="side-card-title">Billing Information</h3>
+                    <div class="billing-info-list">
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Amount</span>
+                            <span class="billing-info-value">GH₵ {{ active_subscription.plan.price }}</span>
                         </div>
-                        <div class="flex justify-between py-2 border-b border-slate-100">
-                            <span class="text-slate-500">Billing Cycle</span>
-                            <span class="font-medium text-slate-900">Every {{ active_subscription.plan.duration_days }} days</span>
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Billing Cycle</span>
+                            <span class="billing-info-value">Every {{ active_subscription.plan.duration_days }} days</span>
                         </div>
-                        <div class="flex justify-between py-2 border-b border-slate-100">
-                            <span class="text-slate-500">Payment Method</span>
-                            <span class="font-medium text-slate-900">Paystack</span>
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Payment Method</span>
+                            <span class="billing-info-value">Paystack</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 class="text-base font-bold text-slate-900 mb-4">Actions</h3>
-                    <div class="space-y-3">
-                        <a href="#change-plan-section" class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-700 transition">
+                <div class="dashboard-card-box">
+                    <h3 class="side-card-title">Actions</h3>
+                    <div class="actions-list">
+                        <a href="#change-plan-section" class="action-link-row">
                             <span>Change Plan</span>
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <i class="fa-solid fa-chevron-right"></i>
                         </a>
-                        <a href="#billing-history-section" class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm font-medium text-slate-700 transition">
+                        <a href="#billing-history-section" class="action-link-row">
                             <span>Billing History</span>
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <i class="fa-solid fa-chevron-right"></i>
                         </a>
                         {% if active_subscription.cancel_at_period_end %}
                         <form method="post" action="{% url 'subscription:reactivate' %}">
                             {% csrf_token %}
-                            <button type="submit" class="w-full text-left flex items-center justify-between p-3 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-sm font-medium text-emerald-700 transition">
+                            <button type="submit" class="action-link-row action-row-success">
                                 <span>Reactivate Subscription</span>
+                                <i class="fa-solid fa-rotate-left"></i>
                             </button>
                         </form>
                         {% else %}
                         <form method="post" action="{% url 'subscription:cancel' %}" onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
                             {% csrf_token %}
-                            <button type="submit" class="w-full text-left flex items-center justify-between p-3 rounded-lg border border-rose-200 hover:bg-rose-50 text-sm font-medium text-rose-600 transition">
+                            <button type="submit" class="action-link-row action-row-danger">
                                 <span>Cancel Subscription</span>
+                                <i class="fa-solid fa-ban"></i>
                             </button>
                         </form>
                         {% endif %}
@@ -136,109 +136,820 @@
     {% endif %}
 
     <!-- Change Your Plan Section (Fetches and Renders all Plans from DB) -->
-    <div id="change-plan-section" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
-        <div class="mb-6">
-            <h3 class="text-xl font-bold text-slate-900">{% if active_subscription %}Change Your Plan{% else %}Available Subscription Plans{% endif %}</h3>
-            <p class="text-sm text-slate-500">{% if active_subscription %}Choose a new plan. Your new plan will take effect at the end of your current billing cycle.{% else %}Select a subscription plan below to activate your landlord account and start listing properties.{% endif %}</p>
+    <div id="change-plan-section" class="dashboard-card-box plans-section-card">
+        <div class="section-header-block">
+            <h3 class="section-title">{% if active_subscription %}Change Your Plan{% else %}Available Subscription Plans{% endif %}</h3>
+            <p class="section-subtitle">{% if active_subscription %}Choose a new plan. Your new plan will take effect at the end of your current billing cycle.{% else %}Select a subscription plan below to activate your landlord account and start listing properties.{% endif %}</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="plans-grid">
             <!-- Loops through plans fetched from the database with built-in fallbacks -->
             {% for plan in available_plans|default:plans|default:subscription_plans %}
-            <div class="bg-white rounded-2xl shadow-sm border {% if active_subscription and active_subscription.plan.id == plan.id %}border-emerald-500 ring-2 ring-emerald-500/20{% else %}border-slate-200{% endif %} p-6 flex flex-col justify-between transition hover:shadow-md relative">
+            <div class="plan-card {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
                 {% if active_subscription and active_subscription.plan.id == plan.id %}
-                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Current Plan
+                <div class="plan-current-flag">
+                    <i class="fa-solid fa-check"></i> Current Plan
                 </div>
                 {% endif %}
-                <div>
-                    <h4 class="text-xl font-bold text-slate-900 mt-2">{{ plan.name }}</h4>
-                    <p class="text-sm text-slate-500 mt-1">{{ plan.description|default:"Great for landlords who want more visibility and listings." }}</p>
-                    <div class="mt-4 mb-6">
-                        <span class="text-3xl font-extrabold text-slate-900">GH₵ {{ plan.price }}</span>
-                        <span class="text-sm text-slate-500"> / {{ plan.duration_days }} days</span>
+                <div class="plan-card-body">
+                    <h4 class="plan-card-name">{{ plan.name }}</h4>
+                    <p class="plan-card-desc">{{ plan.description|default:"Great for landlords who want more visibility and listings." }}</p>
+                    <div class="plan-card-price-row">
+                        <span class="plan-price-amount">GH₵ {{ plan.price }}</span>
+                        <span class="plan-price-period">/ {{ plan.duration_days }} days</span>
                     </div>
-                    <ul class="space-y-3 text-sm text-slate-600 mb-6">
-                        <li class="flex items-center">
-                            <svg class="w-4 h-4 text-emerald-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Up to {{ plan.maximum_listings }} active listings
+                    <ul class="plan-feature-list">
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Up to <strong>{{ plan.maximum_listings }}</strong> active listings
                         </li>
-                        <li class="flex items-center">
-                            <svg class="w-4 h-4 text-emerald-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            {{ plan.duration_days }} days duration
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            <strong>{{ plan.duration_days }}</strong> days duration
                         </li>
                     </ul>
                 </div>
-                <div>
+                <div class="plan-card-action">
                     {% if active_subscription and active_subscription.plan.id == plan.id %}
-                    <button disabled class="w-full text-center py-2.5 px-4 bg-slate-100 text-slate-400 font-medium rounded-xl cursor-not-allowed">
+                    <button disabled class="plan-btn plan-btn-disabled">
                         Current Plan
                     </button>
                     {% else %}
-                    <a href="{% url 'subscription:initiate_payment' plan.id %}" class="w-full block text-center py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl shadow transition">
+                    <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
                         {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
                     </a>
                     {% endif %}
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-3 bg-white rounded-xl p-8 text-center border border-slate-200">
-                <p class="text-slate-600 font-medium">No subscription plans are currently available in the database.</p>
-                <p class="text-xs text-slate-400 mt-1">Please add subscription plans via the Django admin panel.</p>
+            <div class="plans-empty-state">
+                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
+                <p class="plans-empty-title">No subscription plans are currently available.</p>
+                <p class="plans-empty-sub">Please add subscription plans via the Django admin panel.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <!-- Billing & Subscription History Table -->
-    <div id="billing-history-section" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h3 class="text-lg font-semibold text-slate-900">Subscription & Billing History</h3>
-                <p class="text-sm text-slate-500">Record of all your active, expired, and past subscriptions.</p>
+    <div id="billing-history-section" class="dashboard-card-box billing-history-card">
+        <div class="section-header-block billing-section-header">
+            <div class="section-header-text">
+                <h3 class="section-title">Subscription &amp; Billing History</h3>
+                <p class="section-subtitle">Record of all your active, expired, and past subscriptions.</p>
+            </div>
+            <div class="billing-history-count">
+                <i class="fa-solid fa-receipt"></i>
+                <span>{{ subscriptions|length }} record{{ subscriptions|length|pluralize }}</span>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+        <div class="table-responsive-card billing-table-wrap">
+            <table class="data-table billing-table">
+                <colgroup>
+                    <col class="col-ref">
+                    <col class="col-plan">
+                    <col class="col-amount">
+                    <col class="col-status">
+                    <col class="col-date">
+                    <col class="col-date">
+                </colgroup>
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                        <th class="py-3 px-6">Reference ID</th>
-                        <th class="py-3 px-6">Plan Name</th>
-                        <th class="py-3 px-6">Amount</th>
-                        <th class="py-3 px-6">Status</th>
-                        <th class="py-3 px-6">Start Date</th>
-                        <th class="py-3 px-6">End Date</th>
+                    <tr>
+                        <th>Reference ID</th>
+                        <th>Plan Name</th>
+                        <th class="text-right">Amount</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                <tbody>
                     {% for subscription in subscriptions %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-4 px-6 font-mono text-xs text-slate-500">{{ subscription.payment_reference|default:"—" }}</td>
-                        <td class="py-4 px-6 font-medium text-slate-900">{{ subscription.plan.name }}</td>
-                        <td class="py-4 px-6 font-semibold text-slate-900">GH₵ {{ subscription.plan.price }}</td>
-                        <td class="py-4 px-6">
-                            {% if subscription.status == 'success' or subscription.status == 'active' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Active / Successful</span>
-                            {% elif subscription.status == 'pending' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
-                            {% elif subscription.status == 'expired' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">Expired</span>
+                    <tr>
+                        <td class="ref-cell">
+                            {% if subscription.payment_reference %}
+                                <span class="ref-mono" title="{{ subscription.payment_reference }}">{{ subscription.payment_reference }}</span>
                             {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">{{ subscription.status|title|default:"Failed" }}</span>
+                                <span class="ref-empty">—</span>
                             {% endif %}
                         </td>
-                        <td class="py-4 px-6 text-slate-500">{{ subscription.start_date|date:"M d, Y"|default:subscription.created_at|date:"M d, Y" }}</td>
-                        <td class="py-4 px-6 text-slate-500">{{ subscription.end_date|date:"M d, Y"|default:"—" }}</td>
+                        <td class="plan-name-cell">
+                            <div class="plan-cell-stack">
+                                <span class="plan-cell-icon"><i class="fa-solid fa-crown"></i></span>
+                                <span class="plan-cell-name">{{ subscription.plan.name }}</span>
+                            </div>
+                        </td>
+                        <td class="amount-cell text-right">GH₵ {{ subscription.plan.price }}</td>
+                        <td>
+                            {% if subscription.status == 'success' or subscription.status == 'active' %}
+                                <span class="status-badge-lg published"><span class="dot"></span> Active</span>
+                            {% elif subscription.status == 'pending' %}
+                                <span class="status-badge-lg pending"><span class="dot"></span> Pending</span>
+                            {% elif subscription.status == 'expired' %}
+                                <span class="status-badge-lg draft"><span class="dot"></span> Expired</span>
+                            {% else %}
+                                <span class="status-badge-lg rejected"><span class="dot"></span> {{ subscription.status|title|default:"Failed" }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="date-cell">{{ subscription.start_date|date:"M d, Y"|default:subscription.created_at|date:"M d, Y" }}</td>
+                        <td class="date-cell">{{ subscription.end_date|date:"M d, Y"|default:"—" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="py-8 text-center text-slate-500">No subscription history found.</td>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                <h3>No subscription history found</h3>
+                                <p>Once you subscribe, your billing history will appear here.</p>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
+
+<!-- Page Specific Styling (matches dashboard / properties list design system) -->
+<style>
+    .subscription-page-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 4px 0;
+    }
+
+    /* Page Header */
+    .page-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 4px 4px 0;
+    }
+    .breadcrumb-nav ol {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 6px 0;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .breadcrumb-nav li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .breadcrumb-nav .breadcrumb-sep {
+        font-size: 8px;
+        color: #cbd5e1;
+    }
+    .breadcrumb-nav .current {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+    .page-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+    }
+    .page-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 4px 0 0 0;
+    }
+
+    /* Django messages */
+    .messages-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .django-message {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid;
+    }
+    .message-success { background: #f0fdf4; color: #065f46; border-color: #bbf7d0; }
+    .message-error   { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .message-warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .message-info    { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+
+    /* Subscription main grid */
+    .subscription-grid {
+        display: grid;
+        grid-template-columns: 1.7fr 1fr;
+        gap: 20px;
+    }
+    .subscription-grid-main,
+    .subscription-grid-side {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Current subscription card */
+    .subscription-current-card {
+        padding: 28px 30px;
+    }
+    .subscription-current-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        flex-wrap: wrap;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .subscription-plan-info {
+        flex: 1;
+        min-width: 220px;
+    }
+    .subscription-plan-label-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    .label-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .subscription-plan-name {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 6px 0;
+    }
+    .subscription-plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .price-amount {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+    .price-period {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .subscription-plan-desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .subscription-dates {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    .date-meta-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .date-meta-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .date-meta-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    /* Plan usage bar */
+    .subscription-usage-section {
+        padding-top: 24px;
+    }
+    .usage-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .usage-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .usage-count {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+    .usage-bar-track {
+        width: 100%;
+        height: 10px;
+        background: #f1f5f9;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .usage-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #059669 0%, #10b981 100%);
+        border-radius: 999px;
+        transition: width 0.4s ease;
+    }
+    .usage-footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .usage-footer-text {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .usage-footer-link {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary-green);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .usage-footer-link:hover { text-decoration: underline; }
+
+    /* Side card title */
+    .side-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 16px 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Billing info */
+    .billing-info-list {
+        display: flex;
+        flex-direction: column;
+    }
+    .billing-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .billing-info-row:last-child { border-bottom: none; }
+    .billing-info-label {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .billing-info-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    /* Actions list */
+    .actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .action-link-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-main);
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        font-family: inherit;
+        text-align: left;
+    }
+    .action-link-row i {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    .action-link-row:hover {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+        background: #f0fdf4;
+    }
+    .action-link-row:hover i { color: var(--primary-green); }
+    .action-row-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: var(--primary-green);
+    }
+    .action-row-success:hover {
+        background: #dcfce7;
+        border-color: var(--primary-green);
+    }
+    .action-row-success i { color: var(--primary-green); }
+    .action-row-danger:hover {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+    .action-row-danger:hover i { color: #dc2626; }
+
+    /* Section header (Change plan / Billing history) */
+    .section-header-block {
+        margin-bottom: 20px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 4px 0;
+    }
+    .section-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Plans grid */
+    .plans-section-card {
+        padding: 28px 30px;
+    }
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+    .plan-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 24px 22px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.25s ease;
+    }
+    .plan-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -10px rgba(5, 150, 105, 0.25);
+        border-color: #bbf7d0;
+    }
+    .plan-card-current {
+        border: 2px solid var(--primary-green);
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08);
+    }
+    .plan-current-flag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-green);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .plan-card-body {
+        flex: 1;
+    }
+    .plan-card-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 6px 0;
+    }
+    .plan-card-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin: 0 0 16px 0;
+    }
+    .plan-card-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .plan-price-amount {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+    .plan-price-period {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .plan-feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .plan-feature-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--text-main);
+    }
+    .plan-feature-list strong {
+        font-weight: 700;
+    }
+    .plan-feature-icon {
+        color: var(--primary-green);
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .plan-card-action {
+        margin-top: auto;
+    }
+    .plan-btn {
+        display: block;
+        width: 100%;
+        padding: 11px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+        font-family: inherit;
+    }
+    .plan-btn-primary {
+        background: var(--primary-green);
+        color: white;
+    }
+    .plan-btn-primary:hover {
+        background: var(--primary-green-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px -4px rgba(5, 150, 105, 0.4);
+    }
+    .plan-btn-disabled {
+        background: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    /* Plans empty state */
+    .plans-empty-state {
+        grid-column: 1 / -1;
+        background: #f8fafc;
+        border: 1px dashed var(--border-color);
+        border-radius: 14px;
+        padding: 50px 20px;
+        text-align: center;
+    }
+    .plans-empty-icon {
+        font-size: 36px;
+        color: #cbd5e1;
+        margin-bottom: 12px;
+    }
+    .plans-empty-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 4px 0;
+    }
+    .plans-empty-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Billing history table */
+    .billing-history-card {
+        padding: 0;
+        overflow: hidden;
+    }
+    .billing-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 28px 32px 20px 32px;
+        margin-bottom: 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .billing-section-header .section-header-text {
+        flex: 1;
+        min-width: 0;
+    }
+    .billing-history-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0fdf4;
+        color: var(--primary-green);
+        border: 1px solid #bbf7d0;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .billing-history-count i {
+        font-size: 11px;
+    }
+    .billing-history-card .table-responsive-card {
+        border: none;
+        border-radius: 0;
+    }
+
+    /* Spacious billing table overrides */
+    .billing-table-wrap {
+        padding: 8px 8px 12px 8px;
+    }
+    .billing-table {
+        table-layout: auto;
+        min-width: 880px;
+    }
+    .billing-table colgroup col.col-ref    { width: 26%; min-width: 200px; }
+    .billing-table colgroup col.col-plan   { width: 20%; min-width: 150px; }
+    .billing-table colgroup col.col-amount { width: 13%; min-width: 110px; }
+    .billing-table colgroup col.col-status { width: 13%; min-width: 120px; }
+    .billing-table colgroup col.col-date   { width: 14%; min-width: 120px; }
+
+    .billing-table thead th {
+        padding: 16px 20px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: #f8fafc;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+    .billing-table tbody td {
+        padding: 18px 20px;
+        font-size: 13px;
+        vertical-align: middle;
+        color: var(--text-main);
+        border-bottom: 1px solid #f1f5f9;
+        white-space: nowrap;
+    }
+    .billing-table tbody tr:last-child td { border-bottom: none; }
+    .billing-table tbody tr:nth-child(even) td { background: #fafbfc; }
+    .billing-table tbody tr:hover td { background: #f0fdf4; }
+
+    .text-right { text-align: right; }
+
+    /* Reference ID cell — truncate long UUIDs cleanly */
+    .ref-cell {
+        max-width: 280px;
+    }
+    .ref-mono {
+        display: inline-block;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        font-size: 11.5px;
+        color: #475569;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 4px 8px;
+        letter-spacing: 0.2px;
+    }
+    .ref-empty {
+        color: #cbd5e1;
+        font-size: 14px;
+    }
+
+    /* Plan name cell with leading icon */
+    .plan-cell-stack {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .plan-cell-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: #f0fdf4;
+        color: var(--primary-green);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    .plan-cell-name {
+        font-weight: 700;
+        color: var(--text-main);
+        font-size: 13.5px;
+    }
+
+    .amount-cell {
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 14px;
+    }
+    .date-cell {
+        color: #475569;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* Larger status pills for the billing table */
+    .status-badge-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .status-badge-lg .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+    .status-badge-lg.published { background: #d1fae5; color: #065f46; }
+    .status-badge-lg.published .dot { background: #059669; }
+    .status-badge-lg.draft     { background: #f1f5f9; color: #475569; }
+    .status-badge-lg.draft .dot     { background: #64748b; }
+    .status-badge-lg.pending   { background: #fef3c7; color: #92400e; }
+    .status-badge-lg.pending .dot   { background: #d97706; }
+    .status-badge-lg.rejected  { background: #fee2e2; color: #991b1b; }
+    .status-badge-lg.rejected .dot  { background: #dc2626; }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+        .subscription-grid {
+            grid-template-columns: 1fr;
+        }
+        .plans-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .billing-table {
+            min-width: 760px;
+        }
+    }
+    @media (max-width: 700px) {
+        .subscription-current-card,
+        .plans-section-card {
+            padding: 20px;
+        }
+        .subscription-current-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .plans-grid {
+            grid-template-columns: 1fr;
+        }
+        .billing-section-header {
+            padding: 22px 20px 16px 20px;
+        }
+        .billing-table {
+            min-width: 680px;
+        }
+        .billing-table thead th,
+        .billing-table tbody td {
+            padding: 14px 14px;
+        }
+    }
+</style>
 {% endblock %}

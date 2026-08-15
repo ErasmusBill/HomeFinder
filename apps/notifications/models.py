@@ -8,6 +8,13 @@ from apps.common.models import BaseModel
 
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sent_notifications',
+    )
     title = models.CharField(max_length=120)
     content = models.TextField()
     is_read = models.BooleanField(default=False)

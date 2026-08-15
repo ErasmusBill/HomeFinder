@@ -185,6 +185,35 @@ class PropertyMedia(BaseModel):
     def __str__(self):
         return f"{self.get_media_type_display()} - {self.property.title}"
 
+
+class PropertyInterest(BaseModel):
+    """A tenant's saved expression of interest in a property."""
+
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="interests",
+    )
+    tenant = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="property_interests",
+        limit_choices_to={"role": User.Role.TENANT},
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["property", "tenant"],
+                name="unique_tenant_property_interest",
+            ),
+        ]
+        verbose_name_plural = "Property interests"
+
+    def __str__(self):
+        return f"{self.tenant.full_name} is interested in {self.property.title}"
+
 class LandlordDocument(BaseModel):
 
     class DocumentType(models.TextChoices):

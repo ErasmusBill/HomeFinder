@@ -4,6 +4,8 @@ from apps.account.models import User
 from django.contrib.auth.forms import PasswordResetForm as DjangoPasswordResetForm
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from .models import TenantProfile, LandlordProfile
+from ..home_finder.forms import TailwindModelForm
+
 
 class RegisterUserForm(ModelForm):
     password = forms.CharField(
@@ -134,3 +136,13 @@ class ChangePasswordForm(PasswordChangeForm):
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
                 'placeholder': '••••••••'
             })
+
+class UserProfileForm(TailwindModelForm):
+    class Meta:
+        model = User
+
+        fields = [
+            "full_name",
+            "email",
+            "phone_number",
+        ]

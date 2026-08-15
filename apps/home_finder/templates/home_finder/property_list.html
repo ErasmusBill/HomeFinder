@@ -32,54 +32,52 @@
                         <h4>Location</h4>
                         <div class="form-group-filter">
                             <label>Region</label>
-                            <select name="region" class="filter-select">
+                            <select name="region" id="filter-region" class="filter-select" data-cascade-url="{% url 'home_finder:cascade_locations' %}">
                                 <option value="">Any Region</option>
-                                <option value="greater_accra">Greater Accra Region</option>
-                                <option value="ashanti">Ashanti Region</option>
+                                {% for r in regions %}
+                                    <option value="{{ r.pk }}" {% if filters.region == r.pk|stringformat:"s" or filters.region == r.slug %}selected{% endif %}>{{ r.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group-filter">
                             <label>District</label>
-                            <select name="district" class="filter-select">
+                            <select name="district" id="filter-district" class="filter-select">
                                 <option value="">Any District</option>
-                                <option value="accra_metro">Accra Metropolitan</option>
-                                <option value="tema_metro">Tema Metropolitan</option>
+                                {% for d in districts %}
+                                    <option value="{{ d.pk }}" {% if filters.district == d.pk|stringformat:"s" or filters.district == d.slug %}selected{% endif %}>{{ d.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group-filter">
-                            <label>Area / Town</label>
-                            <select name="area" class="filter-select">
+                            <label>Town</label>
+                            <select name="town" id="filter-town" class="filter-select">
+                                <option value="">Any Town</option>
+                                {% for t in towns %}
+                                    <option value="{{ t.pk }}" {% if filters.town == t.pk|stringformat:"s" or filters.town == t.slug %}selected{% endif %}>{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group-filter">
+                            <label>Area</label>
+                            <select name="area" id="filter-area" class="filter-select">
                                 <option value="">Any Area</option>
-                                <option value="east_legon">East Legon</option>
-                                <option value="spintex">Spintex</option>
-                                <option value="haatso">Haatso</option>
-                                <option value="adjiringanor">Adjiringanor</option>
+                                {% for a in areas %}
+                                    <option value="{{ a.pk }}" {% if filters.area == a.pk|stringformat:"s" or filters.area == a.slug %}selected{% endif %}>{{ a.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
 
-                    <!-- Property Type Group -->
-                    <div class="filter-section">
-                        <h4>Property Type</h4>
-                        <div class="form-group-filter">
-                            <select name="property_type" class="filter-select">
-                                <option value="">Any Type</option>
-                                <option value="apartment">Apartment</option>
-                                <option value="house">House</option>
-                                <option value="chamber_and_hall">Chamber & Hall</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Room Type Checkboxes -->
+                    <!-- Property Type / Room Type -->
                     <div class="filter-section">
                         <h4>Room Type</h4>
-                        <div class="checkbox-group">
-                            <label class="custom-checkbox"><input type="checkbox" name="room_type" value="self_contained"> Self Contained</label>
-                            <label class="custom-checkbox"><input type="checkbox" name="room_type" value="chamber_hall"> Chamber & Hall</label>
-                            <label class="custom-checkbox"><input type="checkbox" name="room_type" value="2_bed"> 2 Bedroom Apartment</label>
-                            <label class="custom-checkbox"><input type="checkbox" name="room_type" value="3_bed"> 3 Bedroom Apartment</label>
-                            <label class="custom-checkbox"><input type="checkbox" name="room_type" value="guest_house"> Guest House</label>
+                        <div class="form-group-filter">
+                            <select name="room_type" class="filter-select">
+                                <option value="">Any Room Type</option>
+                                {% for value, label in room_type_choices %}
+                                    <option value="{{ value }}" {% if filters.room_type == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
@@ -87,8 +85,8 @@
                     <div class="filter-section">
                         <h4>Price Range (GH₵)</h4>
                         <div class="price-inputs-row">
-                            <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}">
-                            <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}">
+                            <input type="number" name="min_price" placeholder="Min" value="{{ filters.min_price }}">
+                            <input type="number" name="max_price" placeholder="Max" value="{{ filters.max_price }}">
                         </div>
                     </div>
 
@@ -98,8 +96,9 @@
                         <div class="form-group-filter">
                             <select name="payment_period" class="filter-select">
                                 <option value="">Any Period</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
+                                {% for value, label in payment_period_choices %}
+                                    <option value="{{ value }}" {% if filters.payment_period == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -108,20 +107,24 @@
                     <div class="filter-section">
                         <h4>Bedrooms</h4>
                         <div class="bedroom-pills">
-                            <button type="button" class="pill-btn active">Any</button>
-                            <button type="button" class="pill-btn">1+</button>
-                            <button type="button" class="pill-btn">2+</button>
-                            <button type="button" class="pill-btn">3+</button>
-                            <button type="button" class="pill-btn">4+</button>
+                            <button type="button" class="pill-btn {% if not filters.bedrooms or filters.bedrooms == 'any' %}active{% endif %}" data-bedrooms="any">Any</button>
+                            {% for n in bedroom_choices %}
+                                <button type="button" class="pill-btn {% if filters.bedrooms == n|stringformat:'s' %}active{% endif %}" data-bedrooms="{{ n }}">{{ n }}+</button>
+                            {% endfor %}
                         </div>
+                        <input type="hidden" name="bedrooms" id="filter-bedrooms" value="{{ filters.bedrooms }}">
                     </div>
 
                     <!-- Furnished Status -->
                     <div class="filter-section">
                         <h4>Furnished</h4>
                         <div class="checkbox-group">
-                            <label class="custom-checkbox"><input type="checkbox" name="furnished" value="1"> Furnished</label>
-                            <label class="custom-checkbox"><input type="checkbox" name="unfurnished" value="1"> Unfurnished</label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="furnished" value="1" {% if filters.furnished == '1' %}checked{% endif %}> Furnished
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="unfurnished" value="1" {% if filters.unfurnished == '1' %}checked{% endif %}> Unfurnished
+                            </label>
                         </div>
                     </div>
 
@@ -133,6 +136,76 @@
 
                 </form>
             </aside>
+
+            <script>
+            (function () {
+                const bedroomsHidden = document.getElementById('filter-bedrooms');
+                document.querySelectorAll('.bedroom-pills .pill-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.bedroom-pills .pill-btn').forEach(function (b) {
+                            b.classList.remove('active');
+                        });
+                        btn.classList.add('active');
+                        bedroomsHidden.value = btn.dataset.bedrooms;
+                    });
+                });
+
+                const cascadeUrl = "{% url 'home_finder:cascade_locations' %}";
+                const regionSel = document.getElementById('filter-region');
+                const districtSel = document.getElementById('filter-district');
+                const townSel = document.getElementById('filter-town');
+                const areaSel = document.getElementById('filter-area');
+
+                function populate(select, items, placeholder) {
+                    const current = select.value;
+                    select.innerHTML = '';
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = placeholder;
+                    select.appendChild(opt);
+                    items.forEach(function (it) {
+                        const o = document.createElement('option');
+                        o.value = it.id;
+                        o.textContent = it.name;
+                        if (it.id === current) o.selected = true;
+                        select.appendChild(o);
+                    });
+                }
+
+                function fetchChildren(kind, parentId) {
+                    if (!parentId) {
+                        if (kind === 'towns') townSel.value = '';
+                        if (kind === 'areas') areaSel.value = '';
+                        return;
+                    }
+                    const url = cascadeUrl + '?type=' + kind + '&parent=' + encodeURIComponent(parentId);
+                    fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin'
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (kind === 'districts') populate(districtSel, data.results, 'Any District');
+                        if (kind === 'towns') populate(townSel, data.results, 'Any Town');
+                        if (kind === 'areas') populate(areaSel, data.results, 'Any Area');
+                    })
+                    .catch(function () {});
+                }
+
+                regionSel.addEventListener('change', function () {
+                    fetchChildren('districts', regionSel.value);
+                    fetchChildren('towns', '');
+                    fetchChildren('areas', '');
+                });
+                districtSel.addEventListener('change', function () {
+                    fetchChildren('towns', districtSel.value);
+                    fetchChildren('areas', '');
+                });
+                townSel.addEventListener('change', function () {
+                    fetchChildren('areas', townSel.value);
+                });
+            })();
+            </script>
 
             <!-- RIGHT COLUMN: Search Header & Property Grid -->
             <main class="listing-main-content">
@@ -172,7 +245,8 @@
                 <div class="properties-grid-results">
 
                     {% for property in page_obj %}
-                        <div class="property-card-item">
+                        <!-- Wrapped entire card inside an anchor tag linking to property_detail -->
+                        <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-item">
                             <div class="card-img-wrapper">
                                 {% if property.cover_image %}
                                     <img src="{{ property.cover_image.url }}" alt="{{ property.title }}">
@@ -181,10 +255,10 @@
                                 {% endif %}
                                 <span class="card-badge verified"><i class="fa-solid fa-check"></i> VERIFIED</span>
                                 <span class="photo-count-pill"><i class="fa-solid fa-camera"></i> {{ property.media.count }} Photo{{ property.media.count|pluralize }}</span>
-                                <button class="card-fav-btn"><i class="fa-regular fa-heart"></i></button>
+                                <button type="button" class="card-fav-btn" onclick="event.preventDefault();"><i class="fa-regular fa-heart"></i></button>
                             </div>
                             <div class="card-body-content">
-                                <h3><a href="{% url 'home_finder:property_detail' slug=property.slug %}">{{ property.title }}</a></h3>
+                                <h3>{{ property.title }}</h3>
                                 <p class="card-location"><i class="fa-solid fa-location-dot"></i> {{ property.area.name }}, {{ property.town.name }}</p>
                                 <div class="card-price">GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span></div>
                                 <div class="card-features-row">
@@ -214,7 +288,7 @@
                                     <span><i class="fa-solid fa-user-shield"></i> Verified Landlord</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     {% empty %}
                         <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">
                             No properties match your filters. Try adjusting your search criteria.
@@ -546,6 +620,8 @@
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
+    text-decoration: none; /* remove default anchor underline */
+    color: inherit;
 }
 .property-card-item:hover {
     transform: translateY(-3px);
@@ -602,6 +678,7 @@
     cursor: pointer;
     color: var(--text-dark);
     transition: background 0.2s;
+    z-index: 2; /* ensures heart button can be clicked without triggering parent link */
 }
 .card-fav-btn:hover {
     background: white;
@@ -618,12 +695,9 @@
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 5px;
-}
-.card-body-content h3 a {
     color: var(--text-dark);
-    text-decoration: none;
 }
-.card-body-content h3 a:hover {
+.card-body-content h3:hover {
     color: var(--primary);
 }
 .card-location {

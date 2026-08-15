@@ -19,10 +19,126 @@ class User(BaseModel, AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.TENANT)
 
+    # --- Free-trial window for landlords -----------------------------------
+    # We store the trial window on the User (rather than on a separate
+    # LandlordTrial table) because every landlord gets exactly one trial
+    # and the columns are tiny. The dates are NULL for non-landlords and
+    # for landlords whose trial has not been started yet; the
+    # ``trial_started`` boolean is the single source of truth for
+    # "has this landlord ever been granted a trial?" — guards and the
+    # context processor should consult that rather than inferring it
+    # from the date columns (so we can distinguish "never seeded" from
+    # "trial finished" without ambiguity).
+    trial_started = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "True once this landlord has been granted a free trial. "
+            "Stays True forever — even after the trial ends — so the "
+            "guard, dashboard and emails can distinguish 'never had a "
+            "trial' from 'trial ran out'."
+        ),
+    )
+    trial_start_date = models.DateTimeField(null=True, blank=True)
+    trial_end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        # Indexed because the daily Celery beat task filters on
+        # ``trial_end_date__lte=now`` for every landlord in the
+        # system. Without this index the query is a sequential scan
+        # that grows linearly with the user table.
+        db_index=True,
+    )
+    # Timestamp recorded the first time the daily beat task sends the
+    # "your free trial has ended" email to a given landlord. Used to
+    # make the notification genuinely one-time per landlord — without
+    # this we'd re-email every day until the landlord subscribes,
+    # which is spammy and erodes trust in the notification.
+    notified_trial_ended_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Set by the daily beat task the first time the "
+            "'your trial has ended' email is dispatched. NULL means "
+            "no such email has been sent yet."
+        ),
+    )
+
+    @property
+    def is_trial_active(self):
+        """
+        True iff the user is a landlord whose trial window is currently
+        running (trial_started=True, trial_end_date is in the future).
+        Reads the columns directly so a freshly-fetched user object is
+        enough — no extra DB hit.
+        """
+        from django.utils import timezone
+        if self.role != self.Role.LANDLORD:
+            return False
+        if not self.trial_started or not self.trial_end_date:
+            return False
+        return self.trial_end_date > timezone.now()
+
+    @property
+    def is_trial_expired(self):
+        """
+        True iff the user is a landlord whose trial was started but has
+        already ended. Used to distinguish "never had a trial" from
+        "trial ran out" — they get the same UX for blocked actions, but
+        a different dashboard message.
+        """
+        from django.utils import timezone
+        if self.role != self.Role.LANDLORD:
+            return False
+        if not self.trial_started or not self.trial_end_date:
+            return False
+        return self.trial_end_date <= timezone.now()
+
+    @property
+    def was_ever_granted_trial(self):
+        """
+        True iff this user is a landlord who has ever been granted a
+        free trial (regardless of whether it's still running or has
+        expired). Used by templates to render a non-misleading
+        banner for landlords who never had a trial.
+        """
+        return self.role == self.Role.LANDLORD and bool(self.trial_started)
+
+    @property
+    def trial_days_remaining(self):
+        """
+        Whole days (rounded up) left in the free trial, or 0 if not
+        active. ``timedelta.days`` rounds down, which on the final day
+        reports 0 even when there are hours left — so we use
+        ``math.ceil`` on the total seconds for an honest "1 day left"
+        on the last day, "2 days left" with 24-48h remaining, etc.
+        """
+        import math
+        from django.utils import timezone
+        if not self.is_trial_active:
+            return 0
+        delta = self.trial_end_date - timezone.now()
+        # Ceil(total_seconds / 86400) gives the number of full days
+        # remaining, never less than 1 while the trial is still active.
+        return max(1, math.ceil(delta.total_seconds() / 86400))
+
     objects = UserManager()
 
     REQUIRED_FIELDS = ['full_name', 'phone_number']
     USERNAME_FIELD = 'email'
+
+    def save(self, *args, **kwargs):
+        """
+        Enforce a single rule: any user with role='admin' is automatically
+        a Django superuser and has staff access. This keeps the data layer
+        consistent so admins can never exist without admin-backend privileges
+        and so background tasks that look at is_superuser / is_staff don't
+        miss a "role=admin but not superuser" row.
+        """
+        if self.role == self.Role.ADMIN:
+            self.is_staff = True
+            self.is_superuser = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.full_name} - {self.email}"

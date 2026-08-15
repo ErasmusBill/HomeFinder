@@ -25,7 +25,7 @@
 
             <ul class="nav-links">
                 <li><a href="{% url 'home_finder:home' %}" class="active">Home</a></li>
-                <li><a href="#">Properties</a></li>
+                <li><a href="{% url 'home_finder:list_properties'%}">Properties</a></li>
                 <li><a href="#">How It Works</a></li>
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Blog</a></li>
@@ -137,11 +137,20 @@
         letter-spacing: 0.03em;
     }
 
-    /* ---------- Nav drawer (inline on desktop, slide-in on screens <= 1024px) ---------- */
-    .nav-drawer-head,
-    .nav-drawer-close { display: none; }
+    /* ---------- Nav drawer (inline on desktop, slide-in on screens <= 1024px) ----------
+       IMPORTANT: every selector below is prefixed with `.site-header` so the
+       navbar's own rules always outrank same-named rules (`.btn`, `.btn-outline`,
+       `.btn-primary`, `.btn-desktop`, `.nav-links`, `.nav-actions`, `.icon-btn`,
+       `.menu-toggle`) declared later in a content page's <style> block. Without
+       this prefix, a later `.btn { display: inline-flex }` from a page such as
+       property_detail.html ties specificity with `.btn-desktop { display: none }`
+       and wins by source order — which is exactly the bug that made the Login
+       and Sign Up buttons stay visible on mobile and push the navbar outside
+       the viewport. */
+    .site-header .nav-drawer-head,
+    .site-header .nav-drawer-close { display: none; }
 
-    .nav-drawer {
+    .site-header .nav-drawer {
         display: flex;
         align-items: center;
         flex: 1;
@@ -149,7 +158,7 @@
         min-width: 0;
     }
 
-    .nav-links {
+    .site-header .nav-links {
         display: flex;
         align-items: center;
         gap: clamp(14px, 1.8vw, 26px);
@@ -159,7 +168,7 @@
         flex-wrap: nowrap;
     }
 
-    .nav-links a {
+    .site-header .nav-links a {
         display: inline-block;
         text-decoration: none;
         color: var(--color-text-muted);
@@ -171,17 +180,17 @@
         transition: color 0.15s ease;
     }
 
-    .nav-links a:hover,
-    .nav-links a:focus-visible {
+    .site-header .nav-links a:hover,
+    .site-header .nav-links a:focus-visible {
         color: var(--color-navy);
     }
 
-    .nav-links a.active {
+    .site-header .nav-links a.active {
         color: var(--color-navy);
         font-weight: 700;
     }
 
-    .nav-links a.active::after {
+    .site-header .nav-links a.active::after {
         content: "";
         position: absolute;
         left: 0;
@@ -192,17 +201,17 @@
         border-radius: 2px;
     }
 
-    .nav-drawer-actions { display: none; }
+    .site-header .nav-drawer-actions { display: none; }
 
     /* ---------- Right side actions ---------- */
-    .nav-actions {
+    .site-header .nav-actions {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-shrink: 0;
     }
 
-    .icon-btn {
+    .site-header .icon-btn {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -217,9 +226,9 @@
         transition: background 0.15s ease, border-color 0.15s ease;
     }
 
-    .icon-btn:hover { background: #f5f6f8; border-color: #d8dbe2; }
+    .site-header .icon-btn:hover { background: #f5f6f8; border-color: #d8dbe2; }
 
-    .btn {
+    .site-header .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -234,32 +243,32 @@
         transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .btn-outline {
+    .site-header .btn-outline {
         color: var(--color-navy);
         border-color: var(--color-border);
         background: transparent;
     }
-    .btn-outline:hover { border-color: var(--color-navy); }
+    .site-header .btn-outline:hover { border-color: var(--color-navy); }
 
-    .btn-primary {
+    .site-header .btn-primary {
         background: var(--color-gold);
         color: var(--color-navy);
     }
-    .btn-primary:hover {
+    .site-header .btn-primary:hover {
         background: var(--color-gold-dark);
         box-shadow: 0 4px 14px rgba(232, 163, 61, 0.35);
     }
 
-    .btn:active { transform: translateY(1px); }
+    .site-header .btn:active { transform: translateY(1px); }
 
     /* ---------- Hamburger ---------- */
-    .menu-toggle {
+    .site-header .menu-toggle {
         display: none;
         flex-direction: column;
         gap: 4px;
     }
 
-    .menu-bar {
+    .site-header .menu-bar {
         width: 20px;
         height: 2px;
         background: var(--color-navy);
@@ -283,9 +292,9 @@
        earlier to completely avoid link crowding.
        ========================================================= */
     @media (max-width: 1024px) {
-        .header-inner { height: var(--header-h-tablet); }
+        .site-header .header-inner { height: var(--header-h-tablet); }
 
-        .nav-drawer {
+        .site-header .nav-drawer {
             position: fixed;
             top: 0;
             right: 0;
@@ -303,9 +312,9 @@
             padding-bottom: 24px;
         }
 
-        .nav-drawer.open { transform: translateX(0); }
+        .site-header .nav-drawer.open { transform: translateX(0); }
 
-        .nav-drawer-head {
+        .site-header .nav-drawer-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -313,19 +322,19 @@
             border-bottom: 1px solid var(--color-border);
         }
 
-        .nav-drawer-title {
+        .site-header .nav-drawer-title {
             font-weight: 700;
             color: var(--color-navy);
         }
 
-        .nav-drawer-close {
+        .site-header .nav-drawer-close {
             display: flex;
             width: 34px;
             height: 34px;
             min-width: 34px;
         }
 
-        .nav-links {
+        .site-header .nav-links {
             flex-direction: column;
             align-items: flex-start;
             gap: 0;
@@ -333,9 +342,9 @@
             padding: 8px 20px;
         }
 
-        .nav-links li { width: 100%; }
+        .site-header .nav-links li { width: 100%; }
 
-        .nav-links a {
+        .site-header .nav-links a {
             display: block;
             width: 100%;
             padding: 13px 2px;
@@ -343,52 +352,56 @@
             border-bottom: 1px solid var(--color-border);
         }
 
-        .nav-links a.active::after { display: none; }
+        .site-header .nav-links a.active::after { display: none; }
 
-        .nav-drawer-actions {
+        .site-header .nav-drawer-actions {
             display: flex;
             flex-direction: column;
             gap: 10px;
             padding: 20px;
         }
 
-        .nav-drawer-actions .btn { width: 100%; padding: 12px; font-size: 0.95rem; }
+        .site-header .nav-drawer-actions .btn { width: 100%; padding: 12px; font-size: 0.95rem; }
 
-        .btn-desktop { display: none; }
-        .menu-toggle { display: flex; }
+        /* Higher specificity (`.site-header .btn-desktop` = 0,2,0) guarantees
+           this rule wins over any later `.btn-desktop { display: none }` and,
+           more importantly, over any later `.btn { display: inline-flex }`
+           from a page's <style> block. */
+        .site-header .btn-desktop { display: none; }
+        .site-header .menu-toggle { display: flex; }
     }
 
     /* =========================================================
        ≤560px — Phones: trim padding, scale down elements
        ========================================================= */
     @media (max-width: 560px) {
-        .header-inner { height: var(--header-h-mobile); padding: 0 14px; gap: 8px; }
-        .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; }
-        .logo-text { max-width: 44vw; }
+        .site-header .header-inner { height: var(--header-h-mobile); padding: 0 14px; gap: 8px; }
+        .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; }
+        .site-header .logo-text { max-width: 44vw; }
     }
 
     /* =========================================================
        ≤380px — Tiny screens: hide wishlist icon to preserve space
        ========================================================= */
     @media (max-width: 380px) {
-        .wishlist-icon { display: none; }
-        .icon-btn { width: 36px; height: 36px; min-width: 36px; }
+        .site-header .wishlist-icon { display: none; }
+        .site-header .icon-btn { width: 36px; height: 36px; min-width: 36px; }
     }
 
     /* ---------- Accessibility & Motion ---------- */
-    .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-    .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) { opacity: 0; }
-    .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) { opacity: 0; }
+    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-    .icon-btn:focus-visible,
-    .btn:focus-visible,
-    .nav-links a:focus-visible {
+    .site-header .icon-btn:focus-visible,
+    .site-header .btn:focus-visible,
+    .site-header .nav-links a:focus-visible {
         outline: 2px solid var(--color-gold);
         outline-offset: 2px;
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .nav-drawer, .menu-bar, .nav-overlay, .btn { transition: none; }
+        .site-header .nav-drawer, .site-header .menu-bar, .nav-overlay, .site-header .btn { transition: none; }
     }
 </style>
 

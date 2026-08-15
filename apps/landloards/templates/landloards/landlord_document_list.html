@@ -4,112 +4,226 @@
 {% block title %}Landlord Documents & Verification | HomeFinder Ghana{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="docs-page">
+
     <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <nav class="flex text-sm text-slate-500 mb-1" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">Dashboard</li>
-                    <li>/</li>
-                    <span class="text-slate-900 font-medium">Documents</span>
-                </ol>
+    <div class="docs-card docs-header">
+        <div class="docs-header__text">
+            <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
+                <span class="docs-breadcrumb__sep">/</span>
+                <span class="docs-breadcrumb__current">Documents</span>
             </nav>
-            <h1 class="text-2xl font-bold text-slate-900">Verification Documents</h1>
-            <p class="text-sm text-slate-600">Manage and track your verification compliance documents.</p>
+            <div class="docs-header__title-row">
+                <span class="docs-header__icon">
+                    <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <h1 class="docs-header__title">Verification documents</h1>
+                    <p class="docs-header__subtitle">Upload the documents below so we can verify your account. Verified landlords publish listings faster and show a trust badge to renters.</p>
+                </div>
+            </div>
         </div>
-        <div>
-            <a href="{% url 'landloards:create_landlord_document' %}" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl shadow transition text-sm">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Upload Document
-            </a>
-        </div>
+        <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary docs-header__cta">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Upload document
+        </a>
     </div>
 
     <!-- Django messages -->
     {% if messages %}
-    <div class="space-y-2">
+    <div class="docs-messages">
         {% for message in messages %}
-        <div class="rounded-lg px-4 py-3 text-sm font-medium
-            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
-            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
-            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
-            {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}">
-            {{ message }}
+        <div class="docs-message docs-message--{{ message.tags|default:'info' }}">
+            <i class="fa-solid
+                {% if message.tags == 'success' %}fa-circle-check
+                {% elif message.tags == 'error' %}fa-circle-xmark
+                {% elif message.tags == 'warning' %}fa-triangle-exclamation
+                {% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Documents Table / Card Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Getting-started checklist: only matters before anything has been uploaded -->
+    <div class="docs-card docs-checklist" id="getting-started-checklist">
+        <div class="docs-checklist__icon">
+            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+        </div>
+        <div class="docs-checklist__body">
+            <p class="docs-checklist__title">What you'll need to get verified</p>
+            <p class="docs-checklist__subtitle">Most landlords are verified within 1–2 business days after all three are submitted.</p>
+            <ul class="docs-checklist__list">
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A government-issued ID (Ghana Card, passport, or driver's licence)</li>
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> Proof of property ownership or a signed management agreement</li>
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A business registration certificate, if you manage as a company</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Status summary strip -->
+    <div class="docs-stats" id="status-summary">
+        <div class="docs-stat">
+            <p class="docs-stat__label">Total</p>
+            <p class="docs-stat__value" data-count="all">0</p>
+        </div>
+        <div class="docs-stat docs-stat--verified">
+            <p class="docs-stat__label">Verified</p>
+            <p class="docs-stat__value" data-count="verified">0</p>
+        </div>
+        <div class="docs-stat docs-stat--pending">
+            <p class="docs-stat__label">Pending</p>
+            <p class="docs-stat__value" data-count="pending">0</p>
+        </div>
+        <div class="docs-stat docs-stat--rejected">
+            <p class="docs-stat__label">Needs attention</p>
+            <p class="docs-stat__value" data-count="rejected">0</p>
+        </div>
+    </div>
+
+    <!-- Documents Section -->
+    <div class="docs-card docs-table-card">
+        <div class="docs-table-card__header">
             <div>
-                <h3 class="text-lg font-semibold text-slate-900">Uploaded Documents Record</h3>
-                <p class="text-sm text-slate-500">Review status of your submitted IDs, ownership certificates, and licenses.</p>
+                <h3 class="docs-section-title">Your uploaded documents</h3>
+                <p class="docs-section-subtitle">Tap a filter to narrow the list by review status.</p>
+            </div>
+
+            <div class="filter-tab-group" role="tablist" aria-label="Filter documents by status">
+                <button type="button" class="filter-tab active" data-filter="all" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                    <span>All</span>
+                    <span class="filter-tab-count" data-count-badge="all">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="verified" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    <span>Verified</span>
+                    <span class="filter-tab-count" data-count-badge="verified">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="pending" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                    <span>Pending</span>
+                    <span class="filter-tab-count" data-count-badge="pending">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="rejected" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                    <span>Rejected</span>
+                    <span class="filter-tab-count" data-count-badge="rejected">0</span>
+                </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+        <!-- explains what each status means, once, above the list -->
+        <div class="docs-status-key">
+            <span><span class="status-dot status-dot--verified"></span> Verified — visible to renters</span>
+            <span><span class="status-dot status-dot--pending"></span> Pending — awaiting our review</span>
+            <span><span class="status-dot status-dot--rejected"></span> Rejected — hover for the reason, then re-upload</span>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="docs-table-wrap">
+            <table class="docs-table">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <tr>
                         {% if request.user.role == 'admin' or request.user.is_superuser %}
-                        <th class="py-3 px-6">Landlord</th>
+                        <th>Landlord</th>
                         {% endif %}
-                        <th class="py-3 px-6">Document Type</th>
-                        <th class="py-3 px-6">Associated Property</th>
-                        <th class="py-3 px-6">Status</th>
-                        <th class="py-3 px-6">Uploaded Date</th>
-                        <th class="py-3 px-6 text-right">Actions</th>
+                        <th>Document type</th>
+                        <th>Associated property</th>
+                        <th>Status</th>
+                        <th>Uploaded</th>
+                        <th class="docs-table__actions-head">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                <tbody>
                     {% for doc in documents %}
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="document-row" data-status="{{ doc.verification_status }}">
                         {% if request.user.role == 'admin' or request.user.is_superuser %}
-                        <td class="py-4 px-6 font-medium text-slate-900">
-                            {{ doc.landlord.full_name|default:doc.landlord.email }}
+                        <td data-label="Landlord">
+                            <div class="docs-person">
+                                <span class="docs-avatar">{{ doc.landlord.full_name|default:doc.landlord.email|slice:":1"|upper }}</span>
+                                <span class="docs-truncate">{{ doc.landlord.full_name|default:doc.landlord.email }}</span>
+                            </div>
                         </td>
                         {% endif %}
-                        <td class="py-4 px-6 font-medium text-slate-900">
-                            {{ doc.get_document_type_display }}
+                        <td data-label="Document type">
+                            <div class="docs-doctype">
+                                <span class="docs-doctype__icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span>
+                                <span>{{ doc.get_document_type_display }}</span>
+                            </div>
                         </td>
-                        <td class="py-4 px-6 text-slate-600">
-                            {{ doc.property.title|default:"— General Profile Document —" }}
-                        </td>
-                        <td class="py-4 px-6">
-                            {% if doc.verification_status == 'verified' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Verified</span>
-                            {% elif doc.verification_status == 'pending' %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending Review</span>
+                        <td data-label="Associated property">
+                            {% if doc.property %}
+                                <span class="docs-property">
+                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                    <span class="docs-truncate">{{ doc.property.title }}</span>
+                                </span>
                             {% else %}
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800" title="{{ doc.rejection_reason }}">Rejected</span>
+                                <span class="docs-property docs-property--muted">
+                                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                                    General profile document
+                                </span>
                             {% endif %}
                         </td>
-                        <td class="py-4 px-6 text-slate-500">
-                            {{ doc.created_at|date:"M d, Y" }}
+                        <td data-label="Status">
+                            {% if doc.verification_status == 'verified' %}
+                                <span class="status-pill status-pill--verified">
+                                    <span class="status-dot status-dot--verified"></span>Verified
+                                </span>
+                            {% elif doc.verification_status == 'pending' %}
+                                <span class="status-pill status-pill--pending">
+                                    <span class="status-dot status-dot--pending"></span>Pending review
+                                </span>
+                            {% else %}
+                                <span class="status-pill status-pill--rejected" title="{{ doc.rejection_reason }}">
+                                    <span class="status-dot status-dot--rejected"></span>Rejected
+                                </span>
+                                {% if doc.rejection_reason %}
+                                <p class="docs-rejection-reason">{{ doc.rejection_reason }}</p>
+                                {% endif %}
+                            {% endif %}
                         </td>
-                        <td class="py-4 px-6 text-right space-x-2">
+                        <td data-label="Uploaded">
+                            <div class="docs-date">
+                                <span class="docs-date__day">{{ doc.created_at|date:"M d, Y" }}</span>
+                                <span class="docs-date__time">{{ doc.created_at|date:"g:i A" }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Actions" class="docs-table__actions">
                             {% if doc.file %}
-                            <a href="{{ doc.file.url }}" target="_blank" class="inline-flex items-center px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">
-                                View File
+                            <a href="{{ doc.file.url }}" target="_blank" class="doc-btn doc-btn--ghost" title="View document">
+                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                                <span>View</span>
+                            </a>
+                            {% endif %}
+                            {% if doc.verification_status == 'rejected' %}
+                            <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary-soft" title="Re-upload this document">
+                                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                                <span>Re-upload</span>
                             </a>
                             {% endif %}
                             {% if request.user.role == 'admin' or request.user.is_superuser %}
-                            <a href="{% url 'landlords:document_review' doc.id %}" class="inline-flex items-center px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium transition">
-                                Review
+                            <a href="{% url 'landlords:document_review' doc.id %}" class="doc-btn doc-btn--primary" title="Review document">
+                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                                <span>Review</span>
                             </a>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-500">
-                            <div class="flex flex-col items-center justify-center space-y-3">
-                                <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <p class="text-base font-medium text-slate-600">No documents found.</p>
-                                <p class="text-xs text-slate-400">Upload your compliance documents to expedite property verifications.</p>
+                    <tr class="docs-empty-row">
+                        <td colspan="6">
+                            <div class="docs-empty">
+                                <div class="docs-empty__icon">
+                                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                                </div>
+                                <p class="docs-empty__title">No documents yet</p>
+                                <p class="docs-empty__subtitle">Start with the checklist above — once your ID and ownership proof are in, most reviews finish within a couple of days.</p>
+                                <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary">
+                                    <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                                    Upload your first document
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -118,22 +232,474 @@
             </table>
         </div>
 
+        <!-- No results after filtering -->
+        <div id="no-filter-results" class="docs-empty docs-empty--filter" style="display:none;">
+            <div class="docs-empty__icon"><i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i></div>
+            <p class="docs-empty__title">Nothing matches this filter</p>
+            <p class="docs-empty__subtitle">Try a different status tab, or select "All" to see everything.</p>
+        </div>
+
         <!-- Pagination Controls -->
         {% if documents.has_other_pages %}
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-            <div class="text-sm text-slate-500">
-                Showing page <span class="font-semibold text-slate-700">{{ documents.number }}</span> of <span class="font-semibold text-slate-700">{{ documents.paginator.num_pages }}</span>
+        <div class="docs-pagination">
+            <div class="docs-pagination__summary">
+                Page <strong>{{ documents.number }}</strong> of <strong>{{ documents.paginator.num_pages }}</strong>
             </div>
-            <div class="inline-flex space-x-2">
+            <div class="docs-pagination__controls">
                 {% if documents.has_previous %}
-                    <a href="?page={{ documents.previous_page_number }}" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50">Previous</a>
+                    <a href="?page={{ documents.previous_page_number }}" class="doc-btn doc-btn--ghost">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
+                    </a>
+                {% else %}
+                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
+                    </span>
                 {% endif %}
                 {% if documents.has_next %}
-                    <a href="?page={{ documents.next_page_number }}" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50">Next</a>
+                    <a href="?page={{ documents.next_page_number }}" class="doc-btn doc-btn--ghost">
+                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                {% else %}
+                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
+                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </span>
                 {% endif %}
             </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Self-contained styles: intentionally does not rely on Tailwind utility classes,
+     so this page renders correctly even if the Tailwind build is stale. -->
+<style>
+    .docs-page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        font-family: inherit;
+    }
+
+    .docs-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    /* Header */
+    .docs-header {
+        padding: 24px 28px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    .docs-breadcrumb {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .docs-breadcrumb a { color: #64748b; text-decoration: none; }
+    .docs-breadcrumb a:hover { color: #059669; }
+    .docs-breadcrumb__sep { color: #cbd5e1; }
+    .docs-breadcrumb__current { color: #0f172a; font-weight: 600; }
+    .docs-header__title-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+    }
+    .docs-header__icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: #059669;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .docs-header__title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+    .docs-header__subtitle {
+        font-size: 14px;
+        color: #475569;
+        margin: 6px 0 0;
+        max-width: 640px;
+        line-height: 1.5;
+    }
+
+    /* Buttons */
+    .doc-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        white-space: nowrap;
+    }
+    .doc-btn--primary {
+        background: #059669;
+        color: #ffffff;
+        box-shadow: 0 1px 2px rgba(5, 150, 105, 0.3);
+    }
+    .doc-btn--primary:hover { background: #047857; }
+    .doc-btn--primary-soft {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+    }
+    .doc-btn--primary-soft:hover { background: #d1fae5; }
+    .doc-btn--ghost {
+        background: #f1f5f9;
+        color: #334155;
+    }
+    .doc-btn--ghost:hover { background: #e2e8f0; }
+    .doc-btn--disabled {
+        color: #94a3b8;
+        cursor: not-allowed;
+        background: #f8fafc;
+    }
+
+    /* Messages */
+    .docs-messages { display: flex; flex-direction: column; gap: 8px; }
+    .docs-message {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid transparent;
+    }
+    .docs-message--success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .docs-message--error { background: #fff1f2; color: #9f1239; border-color: #fecdd3; }
+    .docs-message--warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+    .docs-message--info { background: #f0f9ff; color: #075985; border-color: #bae6fd; }
+
+    /* Getting started checklist */
+    .docs-checklist {
+        padding: 20px 24px;
+        display: flex;
+        gap: 16px;
+        background: #f0fdf9;
+        border-color: #a7f3d0;
+    }
+    .docs-checklist__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #059669;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 15px;
+    }
+    .docs-checklist__title { font-size: 15px; font-weight: 700; color: #065f46; margin: 2px 0 2px; }
+    .docs-checklist__subtitle { font-size: 13px; color: #0f766e; margin: 0 0 10px; }
+    .docs-checklist__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .docs-checklist__list li { font-size: 13.5px; color: #065f46; display: flex; align-items: center; gap: 8px; }
+    .docs-checklist__list i { color: #10b981; font-size: 12px; }
+
+    /* Stats */
+    .docs-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    @media (min-width: 640px) {
+        .docs-stats { grid-template-columns: repeat(4, 1fr); }
+    }
+    .docs-stat {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+    .docs-stat__label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        margin: 0;
+    }
+    .docs-stat--verified .docs-stat__label { color: #10b981; }
+    .docs-stat--pending .docs-stat__label { color: #f59e0b; }
+    .docs-stat--rejected .docs-stat__label { color: #f43f5e; }
+    .docs-stat__value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 2px 0 0;
+    }
+
+    /* Table card header */
+    .docs-table-card__header {
+        padding: 20px 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .docs-section-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0; }
+    .docs-section-subtitle { font-size: 13px; color: #64748b; margin: 4px 0 0; }
+
+    .filter-tab-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .filter-tab:hover { background: #e2e8f0; color: #0f172a; }
+    .filter-tab.active {
+        background: #059669;
+        color: #ffffff;
+        border-color: #059669;
+        box-shadow: 0 1px 2px rgba(5, 150, 105, 0.25);
+    }
+    .filter-tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 700;
+        background: rgba(15, 23, 42, 0.08);
+        color: inherit;
+    }
+    .filter-tab.active .filter-tab-count { background: rgba(255, 255, 255, 0.22); }
+
+    /* Status key */
+    .docs-status-key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 12px 24px;
+        background: #f8fafc;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 12.5px;
+        color: #475569;
+    }
+    .docs-status-key span { display: inline-flex; align-items: center; gap: 6px; }
+
+    .status-dot { width: 7px; height: 7px; border-radius: 9999px; flex-shrink: 0; display: inline-block; }
+    .status-dot--verified { background: #10b981; }
+    .status-dot--pending { background: #f59e0b; }
+    .status-dot--rejected { background: #f43f5e; }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 11px 5px 9px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+    }
+    .status-pill--verified { background: #d1fae5; color: #065f46; }
+    .status-pill--pending { background: #fef3c7; color: #92400e; }
+    .status-pill--rejected { background: #ffe4e6; color: #9f1239; }
+    .docs-rejection-reason {
+        font-size: 11.5px;
+        color: #9f1239;
+        margin: 5px 0 0;
+        max-width: 220px;
+        line-height: 1.4;
+    }
+
+    /* Table */
+    .docs-table-wrap { overflow-x: auto; }
+    .docs-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .docs-table thead tr {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .docs-table th {
+        text-align: left;
+        padding: 13px 24px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        white-space: nowrap;
+    }
+    .docs-table__actions-head { text-align: right; }
+    .docs-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease; }
+    .docs-table tbody tr:hover { background: #f0fdf9; }
+    .docs-table td { padding: 14px 24px; color: #334155; vertical-align: top; }
+    .docs-table__actions { text-align: right; white-space: nowrap; }
+    .docs-table__actions .doc-btn { margin-left: 8px; padding: 7px 12px; }
+    .docs-table__actions .doc-btn:first-child { margin-left: 0; }
+
+    .docs-truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+    .docs-person { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0f172a; }
+    .docs-avatar {
+        width: 28px; height: 28px; border-radius: 9999px; background: #059669; color: #fff;
+        display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .docs-doctype { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #0f172a; }
+    .docs-doctype__icon {
+        width: 28px; height: 28px; border-radius: 8px; background: #f1f5f9; color: #64748b;
+        display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
+    }
+    .docs-property { display: inline-flex; align-items: center; gap: 6px; color: #475569; }
+    .docs-property i { color: #94a3b8; font-size: 10px; }
+    .docs-property--muted { color: #94a3b8; font-style: italic; }
+    .docs-date { display: flex; flex-direction: column; }
+    .docs-date__day { font-weight: 600; color: #334155; }
+    .docs-date__time { font-size: 11.5px; color: #94a3b8; }
+
+    /* Empty states */
+    .docs-empty { padding: 64px 24px; text-align: center; }
+    .docs-empty--filter { padding: 48px 24px; }
+    .docs-empty__icon {
+        width: 64px; height: 64px; border-radius: 16px; background: #ecfdf5; color: #10b981;
+        display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 16px;
+    }
+    .docs-empty--filter .docs-empty__icon { background: #f1f5f9; color: #94a3b8; }
+    .docs-empty__title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 6px; }
+    .docs-empty__subtitle { font-size: 13.5px; color: #64748b; max-width: 380px; margin: 0 auto 18px; line-height: 1.5; }
+
+    /* Pagination */
+    .docs-pagination {
+        padding: 16px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .docs-pagination__summary { font-size: 13px; color: #64748b; }
+    .docs-pagination__controls { display: flex; gap: 8px; }
+
+    /* Mobile: turn table rows into stacked cards */
+    @media (max-width: 720px) {
+        .docs-table thead { display: none; }
+        .docs-table, .docs-table tbody, .docs-table tr, .docs-table td { display: block; width: 100%; }
+        .docs-table tbody tr {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin: 12px;
+            padding: 4px 0;
+        }
+        .docs-table td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            border-bottom: 1px dashed #f1f5f9;
+            text-align: right;
+        }
+        .docs-table td:last-child { border-bottom: none; }
+        .docs-table td::before {
+            content: attr(data-label);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            text-align: left;
+            flex-shrink: 0;
+        }
+        .docs-table__actions { justify-content: flex-end; }
+        .docs-table__actions::before { display: none; }
+    }
+
+    @media (max-width: 560px) {
+        .docs-header { padding: 20px; }
+        .docs-header__cta { width: 100%; justify-content: center; }
+    }
+</style>
+
+<script>
+    (function() {
+        const tabs = document.querySelectorAll('.filter-tab');
+        const rows = document.querySelectorAll('.document-row');
+        const noResults = document.getElementById('no-filter-results');
+        const checklist = document.getElementById('getting-started-checklist');
+
+        const counts = { all: rows.length, verified: 0, pending: 0, rejected: 0 };
+        rows.forEach(row => {
+            const status = row.dataset.status;
+            if (status in counts) counts[status] += 1;
+        });
+
+        Object.keys(counts).forEach(key => {
+            document.querySelectorAll(`[data-count="${key}"], [data-count-badge="${key}"]`).forEach(el => {
+                el.textContent = counts[key];
+            });
+        });
+
+        // Hide the "getting started" checklist once at least one document exists.
+        if (checklist && counts.all > 0) {
+            checklist.style.display = 'none';
+        }
+
+        function applyFilter(filter) {
+            let visible = 0;
+            rows.forEach(row => {
+                const matches = filter === 'all' || row.dataset.status === filter;
+                row.style.display = matches ? '' : 'none';
+                if (matches) visible += 1;
+            });
+            if (noResults) {
+                noResults.style.display = (rows.length === 0 || visible > 0) ? 'none' : 'block';
+            }
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
+                });
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+                applyFilter(this.dataset.filter);
+            });
+        });
+    })();
+</script>
 {% endblock %}

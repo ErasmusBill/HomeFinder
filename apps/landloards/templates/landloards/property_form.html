@@ -349,7 +349,7 @@
                 </div>
 
                 <!-- SECTION 7: Availability & Status -->
-                <div class="form-section-block form-section-block-last">
+                <div class="form-section-block">
                     <div class="section-badge-title">
                         <span class="step-num">7</span>
                         <h3>Availability & Status</h3>
@@ -380,6 +380,55 @@
                     </div>
                 </div>
 
+                <!-- SECTION 8: Publication Status -->
+                <div class="form-section-block form-section-block-last">
+                    <div class="section-badge-title">
+                        <span class="step-num">8</span>
+                        <h3>Publication Status</h3>
+                    </div>
+                    <p class="section-subtitle">Control whether this listing is visible to tenants</p>
+
+                    <div class="section-body">
+                        <div class="form-grid-2col">
+                            <!-- Publication Status -->
+                            <div class="form-group">
+                                <label for="{{ form.publication_status.id_for_label }}">Publication Status <span class="required-star">*</span></label>
+                                {{ form.publication_status }}
+                                {% if form.publication_status.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.publication_status.errors.0 }}</span>
+                                {% endif %}
+                                <small class="help-text-hint">
+                                    <strong>Draft</strong> keeps the listing hidden while you finish it,
+                                    <strong>Published</strong> makes it visible to tenants (subject to review),
+                                    and <strong>Archived</strong> removes it from public search without deleting it.
+                                </small>
+                            </div>
+
+                            <!-- Current status badge (read-only helper, update mode only) -->
+                            {% if is_update %}
+                            <div class="form-group">
+                                <label>Current Status</label>
+                                <div class="status-badge-display" id="current-status-badge">
+                                    <span class="status-pill status-pill-{{ object.publication_status|default:'draft' }}" id="status-pill-el">
+                                        {{ object.get_publication_status_display|default:"Draft" }}
+                                    </span>
+                                    {% if object.verification_status %}
+                                        <span class="status-pill status-pill-verification-{{ object.verification_status }}">
+                                            Verification: {{ object.get_verification_status_display }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="publication-notice-box mt-3">
+                            <i class="fa-solid fa-circle-info text-green"></i>
+                            <span>Published listings still go through our verification review before appearing in tenant search results.</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Form Action Buttons Footer -->
                 <div class="form-actions-footer">
                     <a href="{% url 'landloards:property_list' %}" class="btn-cancel">Cancel</a>
@@ -403,6 +452,7 @@
                     <li><i class="fa-solid fa-check text-green"></i> <span>Use a high-quality cover image.</span></li>
                     <li><i class="fa-solid fa-check text-green"></i> <span>Upload multiple gallery photos to showcase your space.</span></li>
                     <li><i class="fa-solid fa-check text-green"></i> <span>Select the correct location.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Set Publication Status to "Published" when you're ready to go live.</span></li>
                     <li><i class="fa-solid fa-check text-green"></i> <span>Review all details before saving.</span></li>
                 </ul>
             </div>
@@ -451,6 +501,36 @@
                 </div>
             </div>
 
+            <!-- Publication Status Reference Card -->
+            <div class="dashboard-card-box sidebar-card mb-5">
+                <div class="sidebar-box-header">
+                    <h3>Publication Status</h3>
+                </div>
+                <div class="room-types-guide-list">
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-pen-to-square text-green"></i></div>
+                        <div>
+                            <strong>Draft</strong>
+                            <p>Hidden while you finish editing</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-circle-check text-green"></i></div>
+                        <div>
+                            <strong>Published</strong>
+                            <p>Visible to tenants after review</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-box-archive text-green"></i></div>
+                        <div>
+                            <strong>Archived</strong>
+                            <p>Hidden from search, kept on record</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Preview Summary Card -->
             <div class="dashboard-card-box sidebar-card preview-summary-card sticky-sidebar-card">
                 <div class="sidebar-box-header">
@@ -488,6 +568,10 @@
                     <span class="summary-label">Amenities</span>
                     <span class="summary-val" id="prev-amenities">0 selected</span>
                 </div>
+                <div class="summary-item">
+                    <span class="summary-label">Publication Status</span>
+                    <span class="summary-val" id="prev-publication">Draft</span>
+                </div>
 
                 <div class="review-warning-banner mt-4">
                     <i class="fa-solid fa-triangle-exclamation text-amber"></i>
@@ -509,6 +593,10 @@
     --text-muted: #64748b;
     --border-color: #e2e8f0;
     --border-color-soft: #f1f5f9;
+    --amber: #f59e0b;
+    --amber-light: #fffbeb;
+    --red: #ef4444;
+    --blue: #3b82f6;
     --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 10px;
@@ -604,6 +692,19 @@
     .property-form-card {
         padding: 20px;
     }
+}
+
+.form-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
 }
 
 /* Each numbered section is its own soft, rounded, bordered panel */
@@ -714,22 +815,10 @@
     font-size: 14px;
     font-family: inherit;
     color: var(--text-main);
-    background-color: #ffffff;
+    background: #ffffff;
     border: 1.5px solid var(--border-color);
     border-radius: var(--radius-sm);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
-
-.form-group textarea {
-    min-height: 130px;
-    resize: vertical;
-    line-height: 1.6;
-}
-
-.form-group input:hover,
-.form-group textarea:hover,
-.form-group select:hover {
-    border-color: #cbd5e1;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-group input:focus,
@@ -737,29 +826,36 @@
 .form-group select:focus {
     outline: none;
     border-color: var(--primary-green);
-    background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
-/* Checkbox / radio styling */
-.form-group input[type="checkbox"],
-.form-group input[type="radio"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-green);
+.form-group select {
     cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
 }
 
-.checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 10px 14px;
-    background: #ffffff;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-sm);
+.form-group select[multiple] {
+    appearance: auto;
+    background-image: none;
+    padding-right: 14px;
+    min-height: 140px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.help-text-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
 }
 
 .error-msg {
@@ -768,50 +864,146 @@
     gap: 6px;
     font-size: 12.5px;
     color: #ef4444;
+    margin-top: 6px;
     font-weight: 500;
-    margin-top: 8px;
 }
 
-.help-text-hint {
-    font-size: 12px;
+.text-green { color: var(--primary-green); }
+.text-amber { color: var(--amber); }
+
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 18px; }
+
+.input-with-prefix {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.input-with-prefix .prefix-tag {
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    background: var(--primary-green-light);
+    color: var(--primary-green-dark);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.input-with-prefix input {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.input-with-icon-right {
+    position: relative;
+}
+
+.input-with-icon-right input {
+    padding-right: 38px;
+}
+
+.input-trailing-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--text-muted);
-    margin-top: 7px;
-    line-height: 1.5;
+    font-size: 14px;
+    pointer-events: none;
 }
 
-.form-error-banner {
+.location-notice-box,
+.availability-notice-box,
+.publication-notice-box {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fef2f2;
-    border: 1.5px solid #fecaca;
-    color: #dc2626;
-    padding: 14px 18px;
+    background: var(--primary-green-light);
+    border: 1px solid #d1fae5;
     border-radius: var(--radius-sm);
-    font-size: 13px;
-    margin-bottom: 20px;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: var(--text-main);
 }
 
-/* ---------- Media / gallery rows ---------- */
-
-.media-formset-container {
+.checkbox-label {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
 }
+
+.flex-row-center {
+    justify-content: center;
+}
+
+.pt-4 { padding-top: 18px; }
+.align-items-center { align-items: center; }
+
+/* ---------- Status badge / pill ---------- */
+
+.status-badge-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: capitalize;
+    width: fit-content;
+}
+
+.status-pill-draft {
+    background: #f1f5f9;
+    color: var(--text-muted);
+}
+
+.status-pill-published {
+    background: var(--primary-green-light);
+    color: var(--primary-green-dark);
+}
+
+.status-pill-archived {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.status-pill-verification-pending {
+    background: var(--amber-light);
+    color: #b45309;
+}
+
+.status-pill-verification-verified {
+    background: var(--primary-green-light);
+    color: var(--primary-green-dark);
+}
+
+.status-pill-verification-rejected {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* ---------- Media formset rows ---------- */
 
 .media-form-row {
     background: #ffffff;
-    border-radius: var(--radius-md);
     border: 1.5px solid var(--border-color);
-    padding: 20px;
-    position: relative;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.media-form-row:hover {
-    border-color: var(--primary-green);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    margin-bottom: 16px;
 }
 
 .media-row-header {
@@ -821,121 +1013,237 @@
 .media-row-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: var(--primary-green-light);
     color: var(--primary-green-dark);
     font-size: 12px;
     font-weight: 700;
-    padding: 5px 12px;
+    padding: 6px 12px;
     border-radius: 999px;
 }
 
 .media-row-footer-actions {
-    margin-top: 16px;
+    margin-top: 14px;
     padding-top: 14px;
     border-top: 1px dashed var(--border-color);
-    display: flex;
-    justify-content: flex-end;
 }
 
 .delete-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
     font-weight: 600;
     color: #ef4444;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid #fecaca;
-    background: #fef2f2;
-    transition: background-color 0.15s ease;
-}
-
-.delete-checkbox-label:hover {
-    background: #fee2e2;
-}
-
-.delete-checkbox-label input {
-    accent-color: #ef4444;
 }
 
 .btn-sub-action {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 18px;
-    background: var(--primary-green-light);
-    color: var(--primary-green);
+    padding: 10px 18px;
+    background: #ffffff;
     border: 1.5px dashed var(--primary-green);
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
+    color: var(--primary-green-dark);
+    font-size: 13px;
     font-weight: 600;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease;
 }
 
 .btn-sub-action:hover {
-    background: #d1fae5;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    background: var(--primary-green-light);
+}
+
+/* ---------- Footer actions ---------- */
+
+.form-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1.5px solid var(--border-color-soft);
+}
+
+.btn-cancel {
+    padding: 12px 22px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 13.5px;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease;
+}
+
+.btn-cancel:hover {
+    background: var(--border-color-soft);
+    text-decoration: none;
+}
+
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 26px;
+    background: var(--primary-green);
+    color: #ffffff;
+    border: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-primary-action:hover {
+    background: var(--primary-green-dark);
     transform: translateY(-1px);
 }
 
-/* ---------- Price prefix / icon inputs ---------- */
+/* ---------- Sidebar ---------- */
 
-.input-with-prefix {
+.property-sidebar-col {
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
 }
 
-.prefix-tag {
-    background: #f8fafc;
+.sidebar-card {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 22px;
     border: 1.5px solid var(--border-color);
-    border-right: none;
-    padding: 0 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.mb-5 { margin-bottom: 22px; }
+
+.sidebar-box-header {
     display: flex;
     align-items: center;
-    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-    font-size: 13px;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.sidebar-box-header h3 {
+    font-size: 15px;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--text-main);
+    margin: 0;
 }
 
-.input-with-prefix input {
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+.tips-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.input-with-icon-right {
-    position: relative;
+.tips-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.room-types-guide-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.room-guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.room-guide-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--primary-green-light);
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.input-with-icon-right input {
-    padding-right: 38px !important;
+.room-guide-item strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text-main);
+    margin-bottom: 2px;
 }
 
-.input-trailing-icon {
-    position: absolute;
-    right: 14px;
-    color: #94a3b8;
-    pointer-events: none;
-    font-size: 14px;
+.room-guide-item p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
 }
 
-/* ---------- File upload dropzone ---------- */
+.preview-summary-card.sticky-sidebar-card {
+    position: sticky;
+    top: 20px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color-soft);
+}
+
+.summary-item:last-of-type {
+    border-bottom: none;
+}
+
+.summary-label {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.summary-val {
+    font-size: 13px;
+    color: var(--text-main);
+    font-weight: 700;
+    text-align: right;
+}
+
+.review-warning-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--amber-light);
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #92400e;
+    line-height: 1.5;
+}
+
+/* ---------- File dropzone ---------- */
 
 .file-upload-dropzone {
-    border: 2px dashed #cbd5e1;
-    border-radius: var(--radius-sm);
-    padding: 26px 20px;
-    text-align: center;
-    background: #f8fafc;
     position: relative;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 22px 14px;
+    text-align: center;
+    background: #fbfcfd;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .file-upload-dropzone:hover {
@@ -958,325 +1266,125 @@
     align-items: center;
     gap: 6px;
     pointer-events: none;
-    color: var(--text-muted);
-    font-size: 13px;
 }
 
 .dropzone-mock-content i {
-    font-size: 22px;
+    font-size: 24px;
     margin-bottom: 4px;
 }
 
-/* ---------- Notice boxes ---------- */
-
-.location-notice-box,
-.availability-notice-box {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: var(--primary-green-light);
-    border: 1.5px solid #bbf7d0;
-    border-radius: var(--radius-sm);
-    padding: 13px 16px;
-    font-size: 12.5px;
-    color: #166534;
-    line-height: 1.5;
-}
-
-/* ---------- Sidebar ---------- */
-
-.sidebar-card {
-    background: #ffffff;
-    border-radius: var(--radius-md);
-    padding: 22px;
-    border: 1.5px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-}
-
-.sticky-sidebar-card {
-    position: sticky;
-    top: 20px;
-}
-
-.sidebar-box-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.sidebar-box-header h3 {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 0;
-}
-
-.tips-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.tips-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
+.dropzone-mock-content span {
     font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.5;
-}
-
-.room-types-guide-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.room-guide-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.room-guide-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-sm);
-    background: var(--primary-green-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 14px;
-}
-
-.room-guide-item strong {
-    font-size: 13.5px;
-    color: var(--text-main);
-}
-
-.room-guide-item p {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin: 2px 0 0 0;
-}
-
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border-color-soft);
-    font-size: 13px;
-    gap: 10px;
-}
-
-.summary-item:last-of-type {
-    border-bottom: none;
-}
-
-.summary-label { color: var(--text-muted); }
-.summary-val {
     font-weight: 600;
     color: var(--text-main);
-    text-align: right;
 }
 
-.review-warning-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: #fffbeb;
-    border: 1.5px solid #fde68a;
-    border-radius: var(--radius-sm);
-    padding: 13px 16px;
-    font-size: 12px;
-    color: #92400e;
-    line-height: 1.5;
-}
-
-/* ---------- Footer buttons ---------- */
-
-.form-actions-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 14px;
-    border-top: 1.5px solid var(--border-color);
-    padding-top: 24px;
-    margin-top: 28px;
-}
-
-@media (max-width: 480px) {
-    .form-actions-footer {
-        flex-direction: column-reverse;
-        align-items: stretch;
-    }
-    .form-actions-footer a,
-    .form-actions-footer button {
-        text-align: center;
-        justify-content: center;
-    }
-}
-
-.btn-cancel {
-    padding: 12px 22px;
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    font-weight: 600;
+.dropzone-mock-content small {
+    font-size: 11.5px;
     color: var(--text-muted);
-    background: #f1f5f9;
-    text-decoration: none;
-    border: 1.5px solid transparent;
-    transition: all 0.15s ease;
 }
-
-.btn-cancel:hover {
-    background: #e2e8f0;
-    text-decoration: none;
-}
-
-.btn-primary-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 26px;
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #ffffff;
-    background: var(--primary-green);
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-    transition: all 0.15s ease;
-}
-
-.btn-primary-action:hover {
-    background: var(--primary-green-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.32);
-}
-
-.text-green { color: var(--primary-green); }
-.text-amber { color: #f59e0b; }
-.text-danger { color: #ef4444; }
-.mt-3 { margin-top: 0.75rem; }
-.mt-4 { margin-top: 1rem; }
-.mb-5 { margin-bottom: 1.25rem; }
 </style>
 
-<!-- Live Preview & Dynamic Formset Script -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Dynamic Formset Row Addition
-    const addMediaBtn = document.getElementById('add-more-media-btn');
-    const mediaWrapper = document.getElementById('media-formset-wrapper');
-    const totalFormsInput = document.getElementById('id_media_set-TOTAL_FORMS');
-    const emptyFormTemplate = document.getElementById('empty-form-template');
+document.addEventListener('DOMContentLoaded', function () {
+    // ----- Live Preview Summary -----
+    var titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    var priceInput = document.getElementById('{{ form.price.id_for_label }}');
+    var paymentSelect = document.getElementById('{{ form.payment_period.id_for_label }}');
+    var roomSelect = document.getElementById('{{ form.room_type.id_for_label }}');
+    var bedsInput = document.getElementById('{{ form.bedrooms.id_for_label }}');
+    var bathsInput = document.getElementById('{{ form.bathrooms.id_for_label }}');
+    var amenitiesSelect = document.getElementById('{{ form.amenities.id_for_label }}');
+    var regionSelect = document.getElementById('{{ form.region.id_for_label }}');
+    var townSelect = document.getElementById('{{ form.town.id_for_label }}');
+    var publicationSelect = document.getElementById('{{ form.publication_status.id_for_label }}');
 
-    if (addMediaBtn && mediaWrapper && totalFormsInput && emptyFormTemplate) {
-        addMediaBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let formCount = parseInt(totalFormsInput.value);
-
-            // Clone template HTML and replace prefix '__prefix__' with the exact form index
-            let newRowHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, formCount);
-
-            // Append new row
-            mediaWrapper.insertAdjacentHTML('beforeend', newRowHtml);
-
-            // Increment TOTAL_FORMS count for Django formset validation
-            totalFormsInput.value = formCount + 1;
-
-            // Smoothly scroll the newly added row into view
-            const newRow = mediaWrapper.lastElementChild;
-            if (newRow) {
-                newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        });
+    function textOrDash(val) {
+        return (val && val.trim().length) ? val : '-';
     }
 
-    // Live Preview Script Logic
-    const titleInput = document.querySelector('input[name="title"]');
-    const priceInput = document.querySelector('input[name="price"]');
-    const paymentSelect = document.querySelector('select[name="payment_period"]');
-    const roomSelect = document.querySelector('select[name="room_type"]');
-    const bedsInput = document.querySelector('input[name="bedrooms"]');
-    const bathsInput = document.querySelector('input[name="bathrooms"]');
-
-    const townInput = document.querySelector('input[name="town"]') || document.querySelector('select[name="town"]');
-    const areaInput = document.querySelector('input[name="area"]') || document.querySelector('select[name="area"]');
-    const amenitiesSelect = document.querySelectorAll('input[name="amenities"], select[name="amenities"]');
-
-    const prevTitle = document.getElementById('prev-title');
-    const prevLocation = document.getElementById('prev-location');
-    const prevPrice = document.getElementById('prev-price');
-    const prevPayment = document.getElementById('prev-payment');
-    const prevRoom = document.getElementById('prev-room');
-    const prevBeds = document.getElementById('prev-beds');
-    const prevBaths = document.getElementById('prev-baths');
-    const prevAmenities = document.getElementById('prev-amenities');
+    function selectedLabel(selectEl) {
+        if (!selectEl || selectEl.selectedIndex < 0) return '-';
+        var opt = selectEl.options[selectEl.selectedIndex];
+        return opt ? opt.text : '-';
+    }
 
     function updatePreview() {
-        if (titleInput && prevTitle) prevTitle.textContent = titleInput.value || '-';
-        if (priceInput && prevPrice) prevPrice.textContent = priceInput.value ? 'GHS ' + priceInput.value : '-';
+        var prevTitle = document.getElementById('prev-title');
+        var prevLocation = document.getElementById('prev-location');
+        var prevPrice = document.getElementById('prev-price');
+        var prevPayment = document.getElementById('prev-payment');
+        var prevRoom = document.getElementById('prev-room');
+        var prevBeds = document.getElementById('prev-beds');
+        var prevBaths = document.getElementById('prev-baths');
+        var prevAmenities = document.getElementById('prev-amenities');
+        var prevPublication = document.getElementById('prev-publication');
 
-        if (paymentSelect && prevPayment) {
-            const opt = paymentSelect.options[paymentSelect.selectedIndex];
-            prevPayment.textContent = (opt && opt.value) ? opt.text : '-';
-        }
-
-        if (roomSelect && prevRoom) {
-            const opt = roomSelect.options[roomSelect.selectedIndex];
-            prevRoom.textContent = (opt && opt.value) ? opt.text : '-';
-        }
-
-        if (bedsInput && prevBeds) prevBeds.textContent = bedsInput.value || '-';
-        if (bathsInput && prevBaths) prevBaths.textContent = bathsInput.value || '-';
+        if (prevTitle && titleInput) prevTitle.textContent = textOrDash(titleInput.value);
 
         if (prevLocation) {
-            let townVal = townInput ? (townInput.value || '') : '';
-            if (townInput && townInput.tagName === 'SELECT' && townInput.selectedIndex >= 0) {
-                const opt = townInput.options[townInput.selectedIndex];
-                townVal = opt && opt.value ? opt.text : '';
-            }
-            let areaVal = areaInput ? (areaInput.value || '') : '';
-            if (areaInput && areaInput.tagName === 'SELECT' && areaInput.selectedIndex >= 0) {
-                const opt = areaInput.options[areaInput.selectedIndex];
-                areaVal = opt && opt.value ? opt.text : '';
-            }
-
-            let locParts = [];
-            if (areaVal) locParts.push(areaVal);
-            if (townVal) locParts.push(townVal);
-            prevLocation.textContent = locParts.length > 0 ? locParts.join(', ') : '-';
+            var town = townSelect ? selectedLabel(townSelect) : '';
+            var region = regionSelect ? selectedLabel(regionSelect) : '';
+            var parts = [town, region].filter(function (p) { return p && p !== '-'; });
+            prevLocation.textContent = parts.length ? parts.join(', ') : '-';
         }
 
-        if (prevAmenities && amenitiesSelect.length > 0) {
-            let count = 0;
-            amenitiesSelect.forEach(el => {
-                if (el.type === 'checkbox' && el.checked) {
-                    count++;
-                } else if (el.tagName === 'SELECT') {
-                    count = Array.from(el.selectedOptions).filter(o => o.value).length;
-                }
-            });
-            prevAmenities.textContent = count === 1 ? '1 selected' : `${count} selected`;
+        if (prevPrice && priceInput) {
+            prevPrice.textContent = priceInput.value ? ('GHS ' + priceInput.value) : '-';
+        }
+
+        if (prevPayment) prevPayment.textContent = selectedLabel(paymentSelect);
+        if (prevRoom) prevRoom.textContent = selectedLabel(roomSelect);
+        if (prevBeds && bedsInput) prevBeds.textContent = bedsInput.value || '-';
+        if (prevBaths && bathsInput) prevBaths.textContent = bathsInput.value || '-';
+
+        if (prevAmenities && amenitiesSelect) {
+            var count = amenitiesSelect.selectedOptions ? amenitiesSelect.selectedOptions.length : 0;
+            prevAmenities.textContent = count + (count === 1 ? ' selected' : ' selected');
+        }
+
+        if (prevPublication && publicationSelect) {
+            prevPublication.textContent = selectedLabel(publicationSelect);
         }
     }
 
-    const allInputs = document.querySelectorAll('.property-creation-form input, .property-creation-form select, .property-creation-form textarea');
-    allInputs.forEach(input => {
-        input.addEventListener('input', updatePreview);
-        input.addEventListener('change', updatePreview);
+    [titleInput, priceInput, paymentSelect, roomSelect, bedsInput, bathsInput,
+     amenitiesSelect, regionSelect, townSelect, publicationSelect].forEach(function (el) {
+        if (el) {
+            el.addEventListener('input', updatePreview);
+            el.addEventListener('change', updatePreview);
+        }
     });
 
     updatePreview();
+
+    // ----- Publication status badge live update (edit mode) -----
+    var statusPill = document.getElementById('status-pill-el');
+    if (statusPill && publicationSelect) {
+        publicationSelect.addEventListener('change', function () {
+            var label = selectedLabel(publicationSelect);
+            var value = publicationSelect.value;
+            statusPill.textContent = label;
+            statusPill.className = 'status-pill status-pill-' + value;
+        });
+    }
+
+    // ----- Dynamic media formset row cloning -----
+    var addMoreBtn = document.getElementById('add-more-media-btn');
+    var formsetWrapper = document.getElementById('media-formset-wrapper');
+    var emptyFormTemplate = document.getElementById('empty-form-template');
+    var totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+    if (addMoreBtn && formsetWrapper && emptyFormTemplate && totalFormsInput) {
+        addMoreBtn.addEventListener('click', function () {
+            var formCount = parseInt(totalFormsInput.value, 10);
+            var newRowHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, formCount);
+            var wrapperDiv = document.createElement('div');
+            wrapperDiv.innerHTML = newRowHtml;
+            formsetWrapper.appendChild(wrapperDiv.firstElementChild);
+            totalFormsInput.value = formCount + 1;
+        });
+    }
 });
 </script>
 {% endblock %}

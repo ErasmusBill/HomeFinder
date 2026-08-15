@@ -4,7 +4,7 @@
 {% block title %}Dashboard - HomeFinder Ghana{% endblock %}
 
 {% block content %}
-<div class="landlord-dashboard-wrapper">
+<div class="landlord-dashboard-wrapper" {% if landlord_access.is_suspended %}data-suspended="true"{% endif %}>
 
     <!-- 1. Let's Get You Started Onboarding Banner -->
     <div class="onboarding-banner-card">
@@ -35,7 +35,11 @@
                 </div>
                 <h3>Add Amenities</h3>
                 <p>Add amenities available in your property.</p>
-                <a href="{% url 'landloards:create_amenity' %}" class="btn-step-action outlined">Add Amenities</a>
+                {% if landlord_access.is_suspended %}
+                    <a href="{% url 'subscription:plans' %}" class="btn-step-action outlined btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                {% else %}
+                    <a href="{% url 'landloards:create_amenity' %}" class="btn-step-action outlined">Add Amenities</a>
+                {% endif %}
             </div>
 
             <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
@@ -48,7 +52,11 @@
                 </div>
                 <h3>Add Your Property</h3>
                 <p>Create your property with details, photos etc.</p>
-                <a href="{% url 'landloards:create_property' %}" class="btn-step-action">Add Property</a>
+                {% if landlord_access.is_suspended %}
+                    <a href="{% url 'subscription:plans' %}" class="btn-step-action btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                {% else %}
+                    <a href="{% url 'landloards:create_property' %}" class="btn-step-action">Add Property</a>
+                {% endif %}
             </div>
 
             <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
@@ -166,7 +174,11 @@
             <div class="dashboard-card-box">
                 <div class="card-header-flex">
                     <h3>Amenities Summary</h3>
-                    <a href="{% url 'landloards:create_amenity' %}" class="header-action-link">Manage Amenities</a>
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}" class="header-action-link"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}" class="header-action-link">Manage Amenities</a>
+                    {% endif %}
                 </div>
 
                 <div class="amenities-overview-grid">
@@ -193,7 +205,11 @@
                 </div>
 
                 <div class="card-footer-action">
-                    <a href="{% url 'landloards:create_amenity' %}">View All Amenities <i class="fa-solid fa-arrow-right"></i></a>
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}"><i class="fa-solid fa-lock" aria-hidden="true"></i> Subscribe to manage amenities <i class="fa-solid fa-arrow-right"></i></a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}">View All Amenities <i class="fa-solid fa-arrow-right"></i></a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -204,15 +220,27 @@
 
             <!-- Verification Status Card -->
             <div class="dashboard-card-box verification-card">
-                <h3>Verification Status</h3>
+                <div class="verification-card-header">
+                    <h3>Verification Status</h3>
+                    <span class="verification-status-pill">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        Verified
+                    </span>
+                </div>
+
                 <div class="verification-status-box">
                     <div class="verify-icon-badge"><i class="fa-solid fa-shield-check"></i></div>
-                    <div>
+                    <div class="verification-status-text">
                         <h4>Verified Landlord</h4>
-                        <p>Your account is verified. You can publish properties.</p>
+                        <p>Your account is verified. You can publish properties and manage your portfolio.</p>
                     </div>
                 </div>
-                <a href="#" class="btn-outline-action">View Documents</a>
+
+                <a href="{% url 'landloards:landlord_document_list' %}" class="btn-outline-action verification-card-cta">
+                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                    View Documents
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
 
             <!-- Setup Reminders Card -->
@@ -239,17 +267,30 @@
                         <div><strong>Add New Location</strong><span>Add region, district, town or area</span></div>
                         <i class="fa-solid fa-chevron-right"></i>
                     </a>
-                    <a href="{% url 'landloards:create_amenity' %}" class="quick-action-row">
-                        <div class="action-icon orange"><i class="fa-solid fa-layer-group"></i></div>
-                        <div><strong>Add New Amenity</strong><span>Add amenity available in properties</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <a href="{% url 'landloards:create_property' %}" class="quick-action-row">
-                        <div class="action-icon blue"><i class="fa-solid fa-building"></i></div>
-                        <div><strong>Add New Property</strong><span>List a new property for rent</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                    <a href="#" class="quick-action-row">
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
+                            <div class="action-icon orange"><i class="fa-solid fa-lock"></i></div>
+                            <div><strong>Add New Amenity</strong><span>Subscribe to unlock</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
+                            <div class="action-icon blue"><i class="fa-solid fa-lock"></i></div>
+                            <div><strong>Add New Property</strong><span>Subscribe to unlock</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}" class="quick-action-row">
+                            <div class="action-icon orange"><i class="fa-solid fa-layer-group"></i></div>
+                            <div><strong>Add New Amenity</strong><span>Add amenity available in properties</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'landloards:create_property' %}" class="quick-action-row">
+                            <div class="action-icon blue"><i class="fa-solid fa-building"></i></div>
+                            <div><strong>Add New Property</strong><span>List a new property for rent</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'landloards:list_landlord_subscription' %}" class="quick-action-row">
                         <div class="action-icon purple"><i class="fa-solid fa-id-card"></i></div>
                         <div><strong>Manage Subscription</strong><span>View or upgrade your plan</span></div>
                         <i class="fa-solid fa-chevron-right"></i>
@@ -623,54 +664,107 @@
 }
 
 /* Right Sidebar Modules */
+.verification-card {
+    padding: 24px 24px 22px;
+}
+.verification-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.verification-card-header h3 {
+    margin: 0;
+}
+.verification-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+}
+.verification-status-pill i {
+    font-size: 11px;
+}
 .verification-status-box {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: flex-start;
-    background: #f0fdf4;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
     border: 1px solid #bbf7d0;
-    border-radius: 12px;
-    padding: 15px;
-    margin: 15px 0;
+    border-radius: 14px;
+    padding: 18px 18px;
+    margin: 4px 0 18px;
 }
 .verify-icon-badge {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     background: #d1fae5;
     color: var(--primary-green);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 18px;
     flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(16, 185, 129, 0.15);
+}
+.verification-status-text {
+    flex: 1;
+    min-width: 0;
 }
 .verification-status-box h4 {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-main);
-    margin-bottom: 2px;
+    margin: 2px 0 6px;
+    line-height: 1.3;
 }
 .verification-status-box p {
-    font-size: 11px;
+    font-size: 12.5px;
     color: var(--text-muted);
-    line-height: 1.4;
+    line-height: 1.55;
+    margin: 0;
 }
 .btn-outline-action {
-    display: block;
-    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background: white;
     border: 1px solid var(--border-color);
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-main);
     text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 .btn-outline-action:hover {
     border-color: var(--primary-green);
     color: var(--primary-green);
+    background: #f0fdf4;
+}
+.verification-card-cta {
+    display: flex;
+    width: 100%;
+    padding: 12px 14px;
+}
+.verification-card-cta i:last-child {
+    margin-left: auto;
+    font-size: 11px;
+    transition: transform 0.15s ease;
+}
+.verification-card-cta:hover i:last-child {
+    transform: translateX(2px);
 }
 
 .setup-reminders-box .reminder-header {
@@ -792,6 +886,39 @@
     font-size: 32px;
     color: var(--primary-green);
     opacity: 0.3;
+}
+
+/* === Suspended (trial expired, no active sub) state === */
+/* The banner above already explains the situation; the rules below
+   visually "lock" the action buttons so the landlord can't help but
+   notice. Action buttons are still real <a> tags pointing at the
+   pricing page so the click takes them somewhere useful. */
+.btn-locked {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border: 1px dashed #cbd5e1 !important;
+    cursor: not-allowed;
+    pointer-events: auto; /* still clickable — routes to plans */
+}
+.btn-locked:hover {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+}
+.quick-action-locked {
+    background: #fafbfc;
+    border-style: dashed;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+.quick-action-locked:hover {
+    border-color: var(--primary-green);
+}
+.quick-action-locked strong {
+    color: #64748b !important;
+}
+.quick-action-locked .action-icon {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
 }
 
 /* Responsive Rules */

@@ -53,10 +53,12 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
     'apps.home_finder',
+    'theme',
     'apps.locations',
     'apps.landloards',
     'apps.Subscription',
     'apps.notifications',
+    'apps.tenant',
     'apps.account.apps.AccountConfig',
 
     'allauth',
@@ -89,6 +91,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.common.context_processors.landlord_subscription_status',
             ],
         },
     },
@@ -159,6 +162,18 @@ CACHES = {
     }
 }
 
+# ---------------------------------------------------------------------------
+# Tailwind CSS (django-tailwind)
+# ---------------------------------------------------------------------------
+# The standalone top-level "theme" Python package is the Tailwind
+# theme app. Its source CSS lives in theme/static_src/src/styles.css
+# and the compiled output is written to theme/static/css/dist/styles.css
+# (the path django-tailwind hardcodes in its {% tailwind_css %} tag) and
+# collected into STATIC_ROOT at deploy time.
+TAILWIND_APP_NAME = 'theme'
+# `npm` binary used by `python manage.py tailwind build|install|start`.
+NPM_BIN_PATH = env('NPM_BIN_PATH', default='npm')
+
 AUTH_USER_MODEL = 'user_account.User'
 
 AUTHENTICATION_BACKENDS = [
@@ -169,10 +184,14 @@ AUTHENTICATION_BACKENDS = [
 
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
+# Login & Signup methods
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
-
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 
 CELERY_BROKER_URL = env(
     "CELERY_BROKER_URL",
@@ -195,18 +214,56 @@ CELERY_TIMEZONE = TIME_ZONE
 # }
 
 
+# ---------------------------------------------------------------------------
+# Periodic (beat) schedule
+# ---------------------------------------------------------------------------
+# All times are in CELERY_TIMEZONE. Add or remove entries here to control
+# which background jobs run on a schedule. Tasks themselves remain no-ops
+# when there's nothing to do.
+CELERY_BEAT_SCHEDULE = {
+    # Mark ended subscriptions inactive; apply scheduled downgrades;
+    # email landlords whose plans expired with no renewal.
+    'subscription-expire-and-apply-scheduled-changes': {
+        'task': 'Subscription.tasks.expire_and_apply_scheduled_changes',
+        # Run once a day at 02:00 server time.
+        'schedule': 24 * 60 * 60,
+    },
+    # Email landlords N days before their subscription ends (see
+    # RENEWAL_REMINDER_DAYS_AHEAD in apps/Subscription/tasks.py).
+    'subscription-renewal-reminders': {
+        'task': 'Subscription.tasks.send_subscription_renewal_reminders',
+        'schedule': 24 * 60 * 60,
+    },
+    # Notify landlords whose 1-month free trial has ended so they know
+    # to subscribe.
+    'landlord-trial-expired-notifications': {
+        'task': 'Subscription.tasks.expire_landlord_free_trials',
+        'schedule': 24 * 60 * 60,
+    },
+    # Email landlords N days before their free trial ends (see
+    # TRIAL_REMINDER_DAYS_AHEAD in apps/Subscription/tasks.py). The
+    # critical conversion moment — landlords who get a "your trial
+    # ends in 3 days" reminder convert at a much higher rate than
+    # those who only see the "trial has ended" email.
+    'landlord-trial-ending-reminders': {
+        'task': 'Subscription.tasks.send_trial_ending_reminders',
+        'schedule': 24 * 60 * 60,
+    },
+}
+
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            "client_id": "YOUR_GOOGLE_CLIENT_ID",
-            "secret": "YOUR_GOOGLE_CLIENT_SECRET",
-            "key": "",
+            'client_id': env('GOOGLE_CLIENT_ID'),
+            'secret': env('GOOGLE_CLIENT_SECRET'),
+            'key': ''
         }
     },
     "facebook": {
         "APP": {
-            "client_id": "YOUR_FACEBOOK_APP_ID",
-            "secret": "YOUR_FACEBOOK_APP_SECRET",
+            "client_id": env("FACEBOOK_CLIENT_ID"),
+            "secret": env("FACEBOOK_CLIENT_SECRET"),
             "key": "",
         }
     },
@@ -220,3 +277,9 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@homefinder.com")
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+
+
+PAYSTACK_SECRET_KEY=env("PAYSTACK_SECRET_KEY")
+PAYSTACK_PUBLIC_KEY=env("PAYSTACK_PUBLIC_KEY")
+
+FRONTEND_URL = env("FRONTEND_URL")

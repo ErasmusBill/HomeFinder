@@ -74,6 +74,30 @@ class Paystack:
 # Plan change logic
 # ---------------------------------------------------------------------------
 
+def get_default_paid_plan():
+    """
+    Return the cheapest active, non-free subscription plan, or None if
+    no paid plan exists. Used by the first-time landlord login flow to
+    auto-kick-off Paystack without forcing the user to pick a plan
+    manually from the pricing page.
+
+    Cheapest first matches the natural mental model ("show me the entry
+    point") and lines up with Meta.ordering = ["price"]. Free plans
+    (is_free=True) are excluded because charging GHS 0.00 to Paystack is
+    pointless — if the only plan on the system is free, callers should
+    fall back to a "skip Paystack, just grant access" path (not
+    implemented here; we return None so the caller can decide).
+    """
+    from .models import SubscriptionPlan
+
+    return (
+        SubscriptionPlan.objects
+        .filter(is_active=True, is_free=False)
+        .order_by("price")
+        .first()
+    )
+
+
 def _get_active_subscription(landlord):
     """
     Local import to avoid a circular import between services.py and models.py

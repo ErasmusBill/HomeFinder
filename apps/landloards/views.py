@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Count, Sum, F
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from apps.account.models import User
 from apps.home_finder.forms import (
@@ -15,12 +16,19 @@ from apps.home_finder.forms import (
     PropertyUpdateForm,
     PropertyVerificationForm,
     LandlordDocumentForm,
+    LandlordDocumentReviewForm,
 )
 from apps.home_finder.models import Amenity, Property, PropertyMedia, LandlordDocument
 from apps.home_finder.tasks import process_property_cover, process_property_media
 from apps.landloards.forms import PropertyMediaFormSet
+from apps.landloards.tasks import (
+    notify_admins_property_created_task,
+    notify_landlord_document_reviewed_task,
+    notify_landlord_property_verified_task,
+)
 from apps.locations.models import Region, District, Town, Area
 from apps.Subscription.models import LandlordSubscription, SubscriptionPlan
+from apps.Subscription.guards import subscription_required
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', 300)
 
@@ -82,6 +90,7 @@ def list_amenities(request):
 
 
 @login_required
+@subscription_required
 def create_amenity(request):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can create amenities.")
@@ -102,6 +111,7 @@ def create_amenity(request):
 
 
 @login_required
+@subscription_required
 def update_amenity(request, amenity_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can update amenities.")
@@ -123,6 +133,7 @@ def update_amenity(request, amenity_id: str):
 
 
 @login_required
+@subscription_required
 def delete_amenity(request, amenity_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can delete amenities.")
@@ -138,6 +149,7 @@ def delete_amenity(request, amenity_id: str):
 
 
 @login_required
+@subscription_required
 def list_landlord_documents(request):
     user = request.user
 
@@ -177,6 +189,7 @@ def list_landlord_documents(request):
 
 
 @login_required
+@subscription_required
 def create_landlord_document(request):
     """
     Landlord-only. Admins review documents rather than uploading on a
@@ -210,6 +223,7 @@ def create_landlord_document(request):
 
 
 @login_required
+@subscription_required
 def update_landlord_document(request, document_id: str):
     user = request.user
 
@@ -260,6 +274,7 @@ def update_landlord_document(request, document_id: str):
 
 
 @login_required
+@subscription_required
 def delete_landlord_document(request, document_id: str):
     user = request.user
 
@@ -279,6 +294,59 @@ def delete_landlord_document(request, document_id: str):
     _invalidate_document_cache(landlord_id, document_id)
     messages.success(request, 'Document deleted successfully.')
     return redirect('landloards:landlord_document_list')
+
+
+@login_required
+def review_landlord_document(request, document_id: str):
+    """
+    Admin-only view to approve or reject an uploaded LandlordDocument.
+    Updates verification_status, stamps reviewed_by / reviewed_at, and
+    fires off an email task to the landlord.
+    """
+    if not _is_admin(request.user):
+        messages.error(request, "Unauthorized action. Only admins can review documents.")
+        return redirect('landloards:landlord_document_list')
+
+    document = get_object_or_404(
+        LandlordDocument.objects.select_related("landlord", "property"),
+        id=document_id,
+    )
+
+    previous_status = document.verification_status
+
+    if request.method == 'POST':
+        form = LandlordDocumentReviewForm(request.POST, instance=document)
+        if form.is_valid():
+            reviewed = form.save(commit=False)
+            # Only stamp the reviewer when the status actually moves out of
+            # pending — leaves a "pending" doc with no reviewer attribution.
+            if reviewed.verification_status != LandlordDocument.VerificationStatus.PENDING:
+                reviewed.reviewed_by = request.user
+                reviewed.reviewed_at = timezone.now()
+                # If admin approved without writing a reason, clear any stale one.
+                if reviewed.verification_status == LandlordDocument.VerificationStatus.VERIFIED:
+                    reviewed.rejection_reason = ""
+            reviewed.save()
+
+            _invalidate_document_cache(document.landlord_id, document_id)
+
+            # Notify the landlord only if the status actually changed.
+            if reviewed.verification_status != previous_status:
+                notify_landlord_document_reviewed_task.delay(
+                    str(reviewed.id), previous_status=previous_status,
+                )
+
+            messages.success(request, 'Document review updated and landlord notified.')
+            return redirect('landloards:landlord_document_list')
+        else:
+            messages.error(request, 'Error updating document review.')
+    else:
+        form = LandlordDocumentReviewForm(instance=document)
+
+    return render(request, 'landloards/landlord_document_review.html', {
+        'form': form,
+        'document': document,
+    })
 
 
 @login_required
@@ -341,7 +409,7 @@ def confirm_plan_change_view(request, plan_id):
 
     if active_subscription.plan_id == new_plan.id:
         messages.info(request, f"You already have an active {new_plan.name} subscription.")
-        return redirect('subscription:list')
+        return redirect('landloards:list_landlord_subscription')
 
     is_upgrade = new_plan.price > active_subscription.plan.price
 
@@ -354,6 +422,7 @@ def confirm_plan_change_view(request, plan_id):
 
 
 @login_required
+@subscription_required
 def landlords_dashboard(request):
     user = request.user
 
@@ -403,6 +472,7 @@ def landlords_dashboard(request):
 
 
 @login_required
+@subscription_required
 def property_detail(request, slug):
     user = request.user
 
@@ -433,6 +503,7 @@ def property_detail(request, slug):
 
 
 @login_required
+@subscription_required
 def list_properties_related_landlords(request):
     user = request.user
 
@@ -471,6 +542,7 @@ def list_properties_related_landlords(request):
 
 
 @login_required
+@subscription_required
 def list_properties(request):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied. Only landlords and administrators can view this page.")
@@ -499,6 +571,7 @@ def list_properties(request):
 
 
 @login_required
+@subscription_required
 def create_property(request):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Only registered landlords and administrators can create properties.")
@@ -531,6 +604,9 @@ def create_property(request):
             if property_obj.cover_image:
                 process_property_cover.delay(str(property_obj.id))
 
+            # Notify admins / superusers that a new property needs verification
+            notify_admins_property_created_task.delay(str(property_obj.id))
+
             _invalidate_property_cache(request.user.id)
             messages.success(request, 'Property created successfully.')
             return redirect('landloards:property_list')
@@ -548,6 +624,7 @@ def create_property(request):
 
 
 @login_required
+@subscription_required
 def update_property(request, property_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
@@ -592,6 +669,7 @@ def update_property(request, property_id: str):
 
 
 @login_required
+@subscription_required
 def delete_property(request, property_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
@@ -616,11 +694,20 @@ def verify_property(request, property_id: str):
         return redirect('landloards:landloards_dashboard')
 
     property_obj = get_object_or_404(Property, id=property_id)
+    # Capture the pre-save status so the email task only fires on a real change.
+    previous_status = property_obj.verification_status
     if request.method == 'POST':
         form = PropertyVerificationForm(request.POST, instance=property_obj)
         if form.is_valid():
             form.save()
             _invalidate_property_cache(property_obj.landlord_id, property_id)
+
+            # Notify the landlord only if the status actually changed.
+            if property_obj.verification_status != previous_status:
+                notify_landlord_property_verified_task.delay(
+                    str(property_obj.id), previous_status=previous_status,
+                )
+
             messages.success(request, 'Property verification status updated.')
             return redirect('landloards:property_list')
         else:
@@ -631,6 +718,7 @@ def verify_property(request, property_id: str):
 
 
 @login_required
+@subscription_required
 def add_property_media(request, property_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")
@@ -661,6 +749,7 @@ def add_property_media(request, property_id: str):
 
 
 @login_required
+@subscription_required
 def delete_property_media(request, media_id: str):
     if not _is_landlord_or_admin(request.user):
         messages.error(request, "Access denied.")

@@ -1,0 +1,317 @@
+<section aria-labelledby="personal-information-heading" class="pi-card">
+    <header class="pi-header">
+        <div class="pi-header__intro">
+            <div class="pi-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.12a7.5 7.5 0 0115 0"/></svg>
+            </div>
+            <div>
+                <h2 id="personal-information-heading" class="pi-header__title">Personal information</h2>
+                <p class="pi-header__subtitle">Keep your contact details up to date so we can reach you about your account.</p>
+            </div>
+        </div>
+        <span class="pi-badge">Account details</span>
+    </header>
+
+    <form method="post" action="{% url 'account:update_personal_information' %}" class="pi-form" id="personal-info-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="pi-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="pi-grid">
+            <div class="pi-field{% if form.full_name.errors %} has-error{% endif %}">
+                <label for="{{ form.full_name.id_for_label }}">
+                    Full name{% if form.full_name.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.full_name.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">Use the name you want displayed on your account.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field{% if form.email.errors %} has-error{% endif %}">
+                <label for="{{ form.email.id_for_label }}">
+                    Email address{% if form.email.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.email.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">We use this for important account updates.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field{% if form.phone_number.errors %} has-error{% endif %}">
+                <label for="{{ form.phone_number.id_for_label }}">
+                    Phone number{% if form.phone_number.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.phone_number.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">Include your country code, e.g. +233 24 123 4567.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field">
+                <span class="pi-field__label-static">Account role</span>
+                <div class="pi-readonly">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <span>{{ user.get_role_display }}</span>
+                </div>
+                <p class="pi-hint">Your role is managed by HomeFinder and can't be changed here.</p>
+            </div>
+        </div>
+
+        <footer class="pi-footer">
+            <p class="pi-footer__note"><i class="fa-regular fa-clock" aria-hidden="true"></i> Changes are saved to your account immediately.</p>
+            <button type="submit" class="pi-btn" id="pi-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="pi-submit-label">Save personal details</span>
+            </button>
+        </footer>
+    </form>
+</section>
+
+<style>
+    .pi-card {
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .pi-header {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        background: linear-gradient(to right, #f8fafc, #ffffff);
+        padding: 24px;
+    }
+    @media (min-width: 640px) {
+        .pi-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 32px;
+        }
+    }
+    .pi-header__intro {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .pi-header__icon {
+        display: flex;
+        height: 44px;
+        width: 44px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #d1fae5;
+        color: #047857;
+    }
+    .pi-header__icon svg { height: 20px; width: 20px; }
+    .pi-header__title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .pi-header__subtitle {
+        margin: 4px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #64748b;
+        max-width: 480px;
+    }
+    .pi-badge {
+        width: fit-content;
+        border-radius: 999px;
+        background: #ecfdf5;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #047857;
+        flex-shrink: 0;
+    }
+
+    .pi-form { padding: 24px; }
+    @media (min-width: 640px) {
+        .pi-form { padding: 32px; }
+    }
+
+    .pi-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #b91c1c;
+    }
+
+    .pi-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    @media (min-width: 640px) {
+        .pi-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .pi-field label,
+    .pi-field__label-static {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .pi-required { color: #ef4444; }
+
+    /* Style the actual Django-rendered inputs by element type, so this
+       works regardless of the CSS classes the form widgets carry. */
+    .pi-form input[type="text"],
+    .pi-form input[type="email"],
+    .pi-form input[type="tel"],
+    .pi-form input:not([type]) {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .pi-form input[type="text"]:focus,
+    .pi-form input[type="email"]:focus,
+    .pi-form input[type="tel"]:focus,
+    .pi-form input:not([type]):focus {
+        outline: none;
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.14);
+    }
+    .pi-form input:disabled {
+        background: #f8fafc;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+    .pi-field.has-error input {
+        border-color: #fca5a5;
+        background: #fff8f8;
+    }
+    .pi-field.has-error input:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .pi-readonly {
+        display: flex;
+        min-height: 40px;
+        align-items: center;
+        gap: 8px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        padding: 0 14px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #475569;
+    }
+    .pi-readonly i { color: #94a3b8; font-size: 12px; }
+
+    .pi-hint {
+        margin: 6px 0 0;
+        font-size: 12.5px;
+        color: #64748b;
+        line-height: 1.4;
+    }
+    .pi-error {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 6px 0 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #dc2626;
+    }
+
+    .pi-footer {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 12px;
+        margin-top: 28px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 20px;
+    }
+    @media (min-width: 640px) {
+        .pi-footer {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+    .pi-footer__note {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 12.5px;
+        color: #64748b;
+    }
+
+    .pi-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 12px;
+        border: none;
+        background: #2563eb;
+        padding: 11px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
+        transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .pi-btn:hover { background: #1d4ed8; }
+    .pi-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+    }
+    .pi-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    (function() {
+        const form = document.getElementById('personal-info-form');
+        const btn = document.getElementById('pi-submit-btn');
+        const label = document.getElementById('pi-submit-label');
+        if (!form || !btn) return;
+        form.addEventListener('submit', function() {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            if (label) label.textContent = 'Saving…';
+        });
+    })();
+</script>

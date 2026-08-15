@@ -254,60 +254,77 @@
             <p>HomeFinder Ghana connects you with verified landlords and quality properties across Ghana. No scams. No stress. Just the right place for you.</p>
         </div>
 
-        <!-- Search Box -->
-        <div class="search-box">
+        <!-- Search Box — submits to the listing page with the filter values -->
+        <form method="GET" action="{% url 'home_finder:list_properties' %}" class="search-box">
             <div class="search-field">
-                <label>Location</label>
+                <label for="hero-q">Location</label>
                 <div class="search-input-group">
                     <i class="fa-solid fa-location-dot"></i>
-                    <input type="text" placeholder="e.g. East Legon, Accra" value="e.g. East Legon, Accra">
+                    <input
+                        id="hero-q"
+                        type="text"
+                        name="q"
+                        placeholder="e.g. East Legon, Accra"
+                        value="{{ filters.q }}"
+                    >
                 </div>
             </div>
             <div class="search-field">
-                <label>Property Type</label>
+                <label for="hero-region">Region</label>
                 <div class="search-input-group">
-                    <select>
-                        <option>Any Type</option>
-                        <option>Apartment</option>
-                        <option>Self Contained</option>
-                        <option>Chamber & Hall</option>
+                    <select id="hero-region" name="region">
+                        <option value="">Any Region</option>
+                        {% for r in regions %}
+                            <option value="{{ r.pk }}" {% if filters.region == r.pk|stringformat:"s" or filters.region == r.slug %}selected{% endif %}>{{ r.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
             <div class="search-field">
-                <label>Min Price</label>
+                <label for="hero-room-type">Property Type</label>
                 <div class="search-input-group">
-                    <select>
-                        <option>Min Price</option>
-                        <option>GH₵ 500</option>
-                        <option>GH₵ 1,000</option>
-                        <option>GH₵ 2,500</option>
+                    <select id="hero-room-type" name="room_type">
+                        <option value="">Any Type</option>
+                        {% for value, label in room_type_choices %}
+                            <option value="{{ value }}" {% if filters.room_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
             <div class="search-field">
-                <label>Max Price</label>
+                <label for="hero-min-price">Min Price</label>
                 <div class="search-input-group">
-                    <select>
-                        <option>Max Price</option>
-                        <option>GH₵ 5,000</option>
-                        <option>GH₵ 10,000</option>
-                        <option>GH₵ 20,000+</option>
+                    <select id="hero-min-price" name="min_price">
+                        <option value="">Min Price</option>
+                        {% for p in price_choices %}
+                            <option value="{{ p }}" {% if filters.min_price == p|stringformat:"s" %}selected{% endif %}>GH₵ {{ p }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
-            <button class="search-btn">
+            <div class="search-field">
+                <label for="hero-max-price">Max Price</label>
+                <div class="search-input-group">
+                    <select id="hero-max-price" name="max_price">
+                        <option value="">Max Price</option>
+                        {% for p in price_choices %}
+                            <option value="{{ p }}" {% if filters.max_price == p|stringformat:"s" %}selected{% endif %}>GH₵ {{ p }}{% if p == price_choices|last %}+{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="search-btn">
                 <i class="fa-solid fa-magnifying-glass"></i> Search
             </button>
-        </div>
+        </form>
 
         <div class="popular-searches">
             <span>Popular Searches:</span>
-            <a href="#" class="tag">East Legon</a>
-            <a href="#" class="tag">Adjiringanor</a>
-            <a href="#" class="tag">Haatso</a>
-            <a href="#" class="tag">Madina</a>
-            <a href="#" class="tag">Kumasi</a>
+            {% for r in popular_regions %}
+                <a href="{% url 'home_finder:list_properties' %}?region={{ r.pk }}" class="tag">{{ r.name }}</a>
+            {% empty %}
+                <span style="font-size: 12px; color: var(--text-muted);">Add regions in the admin to see them here.</span>
+            {% endfor %}
         </div>
     </section>
 

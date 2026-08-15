@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #0f172a; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #dc2626;">Your free trial has ended</h2>
+    <p>Hi {{ full_name }},</p>
+    <p>
+        Your 30-day free trial of the Vacant Hommie landlord dashboard
+        has ended. Adding properties, amenities, media and documents is
+        paused until you activate a plan.
+    </p>
+    <p>
+        Your existing listings remain live for tenants, but you'll need
+        a subscription to make changes or add new ones.
+    </p>
+    <p style="margin: 24px 0;">
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'subscription:plans' %}"
+           style="display: inline-block; background: #059669; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            View subscription plans
+        </a>
+    </p>
+    <p>
+        Thanks for trying Vacant Hommie &mdash; we'd love to have you
+        back.
+    </p>
+</body>
+</html>

@@ -487,7 +487,16 @@
         margin-bottom: 18px;
     }
 
-    .btn {
+    /* NOTE: the selectors below are scoped to this page's own button
+       containers (`.agent-card-sticky` and `.detail-action-area`) instead
+       of the global `.btn`/`.btn-outline`/`.btn-primary`/`.btn-block`/`.btn-whatsapp`
+       class names. Scoping prevents these rules from leaking up the cascade
+       and overriding the navbar's `.btn` / `.btn-desktop` rules on
+       `.site-header` — which is the exact bug that previously kept the
+       Login and Sign Up buttons visible on mobile and pushed the navbar
+       out of the viewport on this page. */
+    .agent-card-sticky .btn,
+    .detail-action-area .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -502,33 +511,40 @@
         box-sizing: border-box;
     }
 
-    .btn-outline {
+    .agent-card-sticky .btn-outline,
+    .detail-action-area .btn-outline {
         background: transparent;
         border-color: var(--border-color, #e9ebef);
         color: var(--text-dark, #14213d);
     }
-    .btn-outline:hover {
+    .agent-card-sticky .btn-outline:hover,
+    .detail-action-area .btn-outline:hover {
         background: var(--bg-light, #f7f8fa);
     }
 
-    .btn-primary {
+    .agent-card-sticky .btn-primary,
+    .detail-action-area .btn-primary {
         background: var(--primary, #1f8a4c);
         color: white;
     }
-    .btn-primary:hover {
+    .agent-card-sticky .btn-primary:hover,
+    .detail-action-area .btn-primary:hover {
         background: #176e3d;
     }
 
-    .btn-block {
+    .agent-card-sticky .btn-block,
+    .detail-action-area .btn-block {
         width: 100%;
     }
 
-    .btn-whatsapp {
+    .agent-card-sticky .btn-whatsapp,
+    .detail-action-area .btn-whatsapp {
         background: #25d366;
         color: white;
         border: none;
     }
-    .btn-whatsapp:hover {
+    .agent-card-sticky .btn-whatsapp:hover,
+    .detail-action-area .btn-whatsapp:hover {
         background: #1ebe5d;
     }
 
@@ -861,6 +877,15 @@
                         <a href="https://wa.me/233201234567" target="_blank" class="btn btn-whatsapp btn-block" rel="noopener noreferrer">
                             <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
                         </a>
+                        {% if request.user.is_authenticated and request.user.role == 'tenant' %}
+                            <form method="post" action="{% url 'home_finder:express_property_interest' property.slug %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block" {% if has_expressed_interest %}disabled{% endif %}>
+                                    <i class="fa-solid {% if has_expressed_interest %}fa-circle-check{% else %}fa-heart{% endif %}"></i>
+                                    {% if has_expressed_interest %}Interest registered{% else %}I'm interested{% endif %}
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
 
                     <hr class="sidebar-divider">

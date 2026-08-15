@@ -77,6 +77,7 @@ class PropertyCreateForm(TailwindModelForm):
             "is_furnished",
             "is_available",
             "available_from",
+            "publication_status"
         ]
         widgets = {
             "description": forms.Textarea(
@@ -110,6 +111,7 @@ class PropertyUpdateForm(TailwindModelForm):
             "is_furnished",
             "is_available",
             "available_from",
+            "publication_status"
         ]
         widgets = {
             "description": forms.Textarea(

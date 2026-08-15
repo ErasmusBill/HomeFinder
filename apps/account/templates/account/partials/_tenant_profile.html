@@ -1,0 +1,346 @@
+<section aria-labelledby="tenant-profile-heading" class="tp-card">
+    <header class="tp-header">
+        <div class="tp-header__intro">
+            <div class="tp-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <div>
+                <h2 id="tenant-profile-heading" class="tp-header__title">Tenant profile</h2>
+                <p class="tp-header__subtitle">These optional details help us support you if we ever need to get in touch.</p>
+            </div>
+        </div>
+        <span class="tp-badge">Tenancy details</span>
+    </header>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="tp-form" id="tenant-profile-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="tp-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="tp-layout">
+            <div class="tp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
+                <div class="tp-photo__preview" id="tp-photo-preview">
+                    {% if form.instance.profile_picture %}
+                        <img src="{{ form.instance.profile_picture.url }}" alt="Tenant profile photo" id="tp-photo-img">
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="tp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <img src="" alt="Tenant profile photo" id="tp-photo-img" style="display:none;">
+                    {% endif %}
+                </div>
+                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
+                {{ form.profile_picture }}
+                {% if form.profile_picture.errors %}
+                    <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
+                {% else %}
+                    <p class="tp-hint">A photo is optional and only used on your account.</p>
+                {% endif %}
+            </div>
+
+            <div class="tp-grid">
+                <div class="tp-field{% if form.emergency_contact_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}">
+                        Emergency contact name{% if form.emergency_contact_name.field.required %} <span class="tp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">Someone we can contact if there is an urgent issue.</p>
+                    {% endif %}
+                </div>
+
+                <div class="tp-field{% if form.emergency_contact_phone.errors %} has-error{% endif %}">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}">
+                        Emergency contact phone{% if form.emergency_contact_phone.field.required %} <span class="tp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_phone.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">Include a number that is currently active.</p>
+                    {% endif %}
+                </div>
+
+                <div class="tp-field tp-field--full{% if form.employer_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.employer_name.id_for_label }}">
+                        Employer or company name <span class="tp-optional">(optional)</span>
+                    </label>
+                    {{ form.employer_name }}
+                    {% if form.employer_name.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.employer_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">This is optional and can be updated at any time.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer class="tp-footer">
+            <p class="tp-footer__note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Your emergency contact details are kept with your account.</p>
+            <button type="submit" class="tp-btn" id="tp-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="tp-submit-label">Save tenant profile</span>
+            </button>
+        </footer>
+    </form>
+</section>
+
+<style>
+    .tp-card {
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .tp-header {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        background: linear-gradient(to right, #f5f3ff, #ffffff);
+        padding: 24px;
+    }
+    @media (min-width: 640px) {
+        .tp-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 32px;
+        }
+    }
+    .tp-header__intro { display: flex; align-items: flex-start; gap: 16px; }
+    .tp-header__icon {
+        display: flex;
+        height: 44px;
+        width: 44px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+    .tp-header__icon svg { height: 20px; width: 20px; }
+    .tp-header__title { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .tp-header__subtitle { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: #64748b; max-width: 480px; }
+    .tp-badge {
+        width: fit-content;
+        border-radius: 999px;
+        background: #ede9fe;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6d28d9;
+        flex-shrink: 0;
+    }
+
+    .tp-form { padding: 24px; }
+    @media (min-width: 640px) { .tp-form { padding: 32px; } }
+
+    .tp-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #b91c1c;
+    }
+
+    .tp-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    @media (min-width: 1024px) {
+        .tp-layout { grid-template-columns: 11rem 1fr; }
+    }
+
+    /* Photo uploader */
+    .tp-photo__preview {
+        margin-bottom: 12px;
+        display: flex;
+        height: 112px;
+        width: 112px;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 2px dashed #ddd6fe;
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+    .tp-photo__preview img { height: 100%; width: 100%; object-fit: cover; }
+    .tp-photo__preview svg { height: 44px; width: 44px; }
+    .tp-photo label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .tp-form input[type="file"] {
+        display: block;
+        width: 100%;
+        max-width: 220px;
+        font-size: 12.5px;
+        color: #64748b;
+    }
+    .tp-form input[type="file"]::file-selector-button {
+        margin-right: 10px;
+        padding: 7px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #6d28d9;
+        background: #ede9fe;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .tp-form input[type="file"]::file-selector-button:hover { background: #ddd6fe; }
+    .tp-photo.has-error .tp-photo__preview { border-color: #fca5a5; background: #fff8f8; }
+
+    /* Text fields */
+    .tp-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    @media (min-width: 640px) { .tp-grid { grid-template-columns: 1fr 1fr; } }
+    .tp-field--full { grid-column: 1 / -1; }
+
+    .tp-field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .tp-required { color: #ef4444; }
+    .tp-optional { font-weight: 400; color: #94a3b8; }
+
+    .tp-form input[type="text"],
+    .tp-form input[type="tel"],
+    .tp-form input:not([type]) {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .tp-form input[type="text"]:focus,
+    .tp-form input[type="tel"]:focus,
+    .tp-form input:not([type]):focus {
+        outline: none;
+        border-color: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+    }
+    .tp-field.has-error input[type="text"],
+    .tp-field.has-error input[type="tel"] {
+        border-color: #fca5a5;
+        background: #fff8f8;
+    }
+    .tp-field.has-error input:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .tp-hint { margin: 6px 0 0; font-size: 12.5px; color: #64748b; line-height: 1.4; }
+    .tp-error {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 6px 0 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #dc2626;
+    }
+
+    .tp-footer {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 12px;
+        margin-top: 28px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 20px;
+    }
+    @media (min-width: 640px) {
+        .tp-footer { flex-direction: row; align-items: center; justify-content: space-between; }
+    }
+    .tp-footer__note {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 12.5px;
+        color: #64748b;
+    }
+
+    .tp-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 12px;
+        border: none;
+        background: #7c3aed;
+        padding: 11px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(124, 58, 237, 0.3);
+        transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .tp-btn:hover { background: #6d28d9; }
+    .tp-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); }
+    .tp-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+</style>
+
+<script>
+    (function() {
+        const fileInput = document.querySelector('#tenant-profile-form input[type="file"]');
+        const img = document.getElementById('tp-photo-img');
+        const placeholder = document.getElementById('tp-photo-placeholder');
+
+        if (fileInput && img) {
+            fileInput.addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const form = document.getElementById('tenant-profile-form');
+        const btn = document.getElementById('tp-submit-btn');
+        const label = document.getElementById('tp-submit-label');
+        if (form && btn) {
+            form.addEventListener('submit', function() {
+                if (btn.disabled) return;
+                btn.disabled = true;
+                if (label) label.textContent = 'Saving…';
+            });
+        }
+    })();
+</script>

@@ -50,4 +50,11 @@ def invalidate_locations_cache():
     cache.delete("properties:locations")
 
 def invalidate_subscription_plans_cache():
-    cache.delete("active_subscription_plans_cache")
+    # Cache invalidation must never prevent a subscription plan from being
+    # created or updated when Redis is temporarily unavailable. The plan
+    # remains correct in the database; at worst a cached plan list lives
+    # until its normal expiry.
+    try:
+        cache.delete("active_subscription_plans_cache")
+    except Exception as exc:
+        logger.warning("Unable to invalidate the subscription plans cache: %s", exc)

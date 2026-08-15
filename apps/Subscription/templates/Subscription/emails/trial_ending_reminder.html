@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #0f172a; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #d97706;">Your free trial ends in {{ days_remaining }} day{{ days_remaining|pluralize }}</h2>
+    <p>Hi {{ full_name }},</p>
+    <p>
+        Your 30-day free trial of the Vacant Hommie landlord dashboard
+        ends on
+        <strong>{{ trial_end_date|date:"F j, Y" }}</strong>
+        &mdash; that's in just {{ days_remaining }} day{{ days_remaining|pluralize }}.
+    </p>
+    <p>
+        To keep your listings visible and your dashboard access active,
+        choose a subscription plan before your trial ends. We have
+        options to fit any portfolio size.
+    </p>
+    <p style="margin: 24px 0;">
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'subscription:plans' %}"
+           style="display: inline-block; background: #059669; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            View subscription plans
+        </a>
+    </p>
+    <p>
+        If you have any questions, just reply to this email &mdash; we
+        read every message.
+    </p>
+    <p>Thanks for trying Vacant Hommie!</p>
+</body>
+</html>

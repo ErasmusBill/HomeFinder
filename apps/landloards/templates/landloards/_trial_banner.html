@@ -1,0 +1,89 @@
+{# Reusable trial / subscription banner. Renders nothing for non-landlords. #}
+{% if landlord_access and landlord_access.is_landlord %}
+    <div class="trial-banner-wrap" style="margin-bottom: 1.25rem;">
+        {% if landlord_access.is_suspended and landlord_access.was_ever_granted_trial %}
+            <div class="alert alert-danger" role="alert" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.2rem; border-radius:10px; background:#fde2e2; color:#842029; border:1px solid #f5b5b5;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <i class="fa-solid fa-lock" aria-hidden="true" style="font-size:1.25rem;"></i>
+                    <div>
+                        <strong>Account suspended — your free trial has ended.</strong>
+                        <div style="font-size:0.875rem; margin-top:2px;">
+                            Adding properties, amenities, media and documents is paused until you activate a plan.
+                            {% if landlord_access.trial_end_date %}
+                                Trial ended on <strong>{{ landlord_access.trial_end_date|date:"M j, Y" }}</strong>.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'subscription:plans' %}" class="btn btn-sm btn-primary" style="white-space:nowrap;">Subscribe to reactivate</a>
+            </div>
+        {% elif landlord_access.trial_active %}
+            <div class="alert alert-info" role="alert" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.85rem 1.1rem; border-radius:8px; background:#e7f1ff; color:#084298; border:1px solid #b6d4fe;">
+                <div>
+                    <strong>Free trial active.</strong>
+                    You have
+                    <strong id="trial-days-remaining"
+                            data-trial-end="{{ landlord_access.trial_end_date|date:'c' }}"
+                            aria-live="polite">{{ landlord_access.days_remaining }} day{{ landlord_access.days_remaining|pluralize }}</strong>
+                    left to explore the dashboard.
+                    {% if landlord_access.trial_end_date %}
+                        Your trial ends on
+                        <strong>{{ landlord_access.trial_end_date|date:"M j, Y" }}</strong>.
+                    {% endif %}
+                </div>
+                <a href="{% url 'subscription:plans' %}" class="btn btn-sm btn-primary" style="white-space:nowrap;">Subscribe now</a>
+            </div>
+        {% elif landlord_access.is_suspended and not landlord_access.was_ever_granted_trial %}
+            {# Landlord with no access AND no trial history at all. Show a neutral,
+               non-alarmist "choose a plan" banner — saying "your trial has ended"
+               to a landlord who never had a trial would be misleading. #}
+            <div class="alert alert-warning" role="alert" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.85rem 1.1rem; border-radius:8px; background:#fff3cd; color:#664d03; border:1px solid #ffe69c;">
+                <div>
+                    <strong>Subscription required.</strong>
+                    Choose a plan to start using landlord features like
+                    adding properties, amenities, and documents.
+                </div>
+                <a href="{% url 'subscription:plans' %}" class="btn btn-sm btn-primary" style="white-space:nowrap;">View plans</a>
+            </div>
+        {% elif not landlord_access.active_subscription %}
+            {# Has access (likely an active trial) but no paid plan yet — keep
+               the "trial active" branch above as the primary CTA. This branch
+               is the safety net for any future "landlord has access but no
+               trial and no subscription" state. #}
+            <div class="alert alert-warning" role="alert" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.85rem 1.1rem; border-radius:8px; background:#fff3cd; color:#664d03; border:1px solid #ffe69c;">
+                <div>
+                    <strong>Subscription required.</strong>
+                    Choose a plan to continue using landlord features.
+                </div>
+                <a href="{% url 'subscription:plans' %}" class="btn btn-sm btn-primary" style="white-space:nowrap;">View plans</a>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if landlord_access and landlord_access.is_landlord and landlord_access.trial_active and landlord_access.trial_end_date %}
+    <script>
+        (function () {
+            const daysRemaining = document.getElementById('trial-days-remaining');
+            if (!daysRemaining || !daysRemaining.dataset.trialEnd) return;
+
+            const trialEnd = new Date(daysRemaining.dataset.trialEnd);
+            if (Number.isNaN(trialEnd.getTime())) return;
+
+            function updateTrialCountdown() {
+                const millisecondsLeft = trialEnd.getTime() - Date.now();
+                const daysLeft = Math.max(0, Math.ceil(millisecondsLeft / 86400000));
+                daysRemaining.textContent = `${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+
+                // Once the exact end time is reached, reload so the server
+                // applies the subscription gate and renders the expiry banner.
+                if (millisecondsLeft <= 0) {
+                    window.location.reload();
+                }
+            }
+
+            updateTrialCountdown();
+            window.setInterval(updateTrialCountdown, 60000);
+        }());
+    </script>
+{% endif %}

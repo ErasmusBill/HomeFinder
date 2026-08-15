@@ -30,4 +30,6 @@ urlpatterns = [
     path('account/', include('apps.account.urls')),
     path('accounts/', include('allauth.urls')),
     path('subscription/', include('apps.Subscription.urls')),
+    path('notifications/', include('apps.notifications.urls')),
+    path('tenants/', include('apps.tenant.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

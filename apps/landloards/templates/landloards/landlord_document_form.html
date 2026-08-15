@@ -4,13 +4,37 @@
 {% block title %}{% if is_update %}Update Document{% else %}Upload New Document{% endif %} | HomeFinder Ghana{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white shadow rounded-lg p-6">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">
-                {% if is_update %}Update Document{% else %}Upload New Document{% endif %}
-            </h1>
-            <p class="text-sm text-gray-600 mt-1">
+<div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
+    <!-- Breadcrumb -->
+    <nav class="flex text-sm text-slate-500 mb-3" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'landloards:landloards_dashboard' %}" class="hover:text-slate-700 transition">Dashboard</a>
+            </li>
+            <li>/</li>
+            <li class="inline-flex items-center">
+                <a href="{% url 'landloards:landlord_document_list' %}" class="hover:text-slate-700 transition">Documents</a>
+            </li>
+            <li>/</li>
+            <span class="text-slate-900 font-medium">{% if is_update %}Update{% else %}Upload{% endif %}</span>
+        </ol>
+    </nav>
+
+    <!-- Page Card -->
+    <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-6 sm:px-8 py-6 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <i class="fa-solid fa-file-circle-plus text-lg" aria-hidden="true"></i>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                    {% if is_update %}Update Document{% else %}Upload New Document{% endif %}
+                </h1>
+            </div>
+            <p class="text-sm text-slate-600 sm:pl-[52px]">
                 {% if is_update %}
                     Update your property or verification document details below.
                 {% else %}
@@ -19,45 +43,111 @@
             </p>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="px-6 sm:px-8 py-7 space-y-6">
             {% csrf_token %}
 
             {% if form.non_field_errors %}
-                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-                    <div class="text-sm text-red-700">
-                        {{ form.non_field_errors }}
+                <div class="bg-rose-50 border-l-4 border-rose-400 rounded-r-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 mt-0.5" aria-hidden="true"></i>
+                        <div class="text-sm text-rose-800">
+                            {{ form.non_field_errors }}
+                        </div>
                     </div>
                 </div>
             {% endif %}
 
             {% for field in form %}
-                <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                <div class="space-y-1.5">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-slate-800">
                         {{ field.label }}
-                        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        {% if field.field.required %}<span class="text-rose-500" aria-label="required">*</span>{% endif %}
                     </label>
 
-                    {{ field }}
+                    <div class="document-form-field">
+                        {{ field }}
+                    </div>
 
                     {% if field.help_text %}
-                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                        <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">{{ field.help_text }}</p>
                     {% endif %}
 
                     {% for error in field.errors %}
-                        <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                        <p class="text-xs text-rose-600 mt-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-exclamation text-[10px]" aria-hidden="true"></i>
+                            {{ error }}
+                        </p>
                     {% endfor %}
                 </div>
             {% endfor %}
 
-            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
-                <a href="{% url 'landloards:landlord_document_list' %}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <!-- Actions -->
+            <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                <a href="{% url 'landloards:landlord_document_list' %}" class="inline-flex items-center justify-center px-5 py-2.5 border border-slate-300 rounded-xl shadow-sm text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
                     Cancel
                 </a>
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button type="submit" class="inline-flex items-center justify-center gap-2 py-2.5 px-6 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                    <i class="fa-solid fa-cloud-arrow-up text-[13px]" aria-hidden="true"></i>
                     {% if is_update %}Save Changes{% else %}Upload Document{% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    /* Style the Django-rendered inputs consistently with the rest of the dashboard.
+       Scoped to the document form to avoid bleeding into other forms. */
+    .document-form-field input[type="text"],
+    .document-form-field input[type="email"],
+    .document-form-field input[type="url"],
+    .document-form-field input[type="number"],
+    .document-form-field input[type="date"],
+    .document-form-field input[type="file"],
+    .document-form-field select,
+    .document-form-field textarea {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #0f172a;
+        background-color: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .document-form-field input[type="file"] {
+        padding: 9px 12px;
+        cursor: pointer;
+    }
+    .document-form-field input[type="file"]::file-selector-button {
+        margin-right: 12px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #047857;
+        background-color: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .document-form-field input[type="file"]::file-selector-button:hover {
+        background-color: #d1fae5;
+    }
+    .document-form-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .document-form-field input:focus,
+    .document-form-field select:focus,
+    .document-form-field textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+</style>
 {% endblock %}
