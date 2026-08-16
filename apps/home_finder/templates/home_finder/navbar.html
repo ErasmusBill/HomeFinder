@@ -1,18 +1,18 @@
 <!-- ============================================
-     HomeFinder Ghana — Responsive Header (v3)
+     VacantHommie — Responsive Header (v3)
      Enhanced with an earlier drawer breakpoint (1024px)
      to completely eliminate nav link crowding on tablets
      and medium screens.
      ============================================ -->
 
+{% load static %}
+
 <header class="site-header">
     <div class="header-inner">
 
         <a href="{% url 'home_finder:home' %}" class="logo">
-            <span class="logo-icon">
-                <i class="fa-solid fa-house"></i>
-            </span>
-            <span class="logo-text">HomeFinder <span class="logo-accent">GHANA</span></span>
+            <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="logo-icon">
+            <span class="logo-text">VacantHommie <span class="logo-accent">GHANA</span></span>
         </a>
 
         <nav class="nav-drawer" id="navDrawer">
@@ -124,6 +124,7 @@
         background: var(--color-navy);
         color: var(--color-gold);
         font-size: 1rem;
+        object-fit: contain;
     }
 
     .logo-text {
@@ -376,7 +377,7 @@
        ========================================================= */
     @media (max-width: 560px) {
         .site-header .header-inner { height: var(--header-h-mobile); padding: 0 14px; gap: 8px; }
-        .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; }
+        .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; object-fit: contain; }
         .site-header .logo-text { max-width: 44vw; }
     }
 

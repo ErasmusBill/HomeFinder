@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VacantHommie{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased">
+
+    <div class="flex min-h-screen">
+
+        <!-- Mobile Overlay (shown behind sidebar when open on small screens) -->
+        <div id="sidebar-overlay"
+             class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"
+             onclick="toggleSidebar(false)"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar"
+               class="w-64 sm:w-72 lg:w-64 bg-white border-r border-gray-200 flex flex-col justify-between fixed inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div>
+                <!-- Logo + Mobile Close Button -->
+                    {% load static %}
+                <div class="flex items-center justify-between gap-2 px-5 sm:px-6 py-5 sm:py-6 border-b border-gray-100">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain bg-emerald-600 shrink-0">
+                        <span class="text-lg sm:text-xl font-bold tracking-tight text-gray-900 truncate">VacantHommie</span>
+                    </div>
+                    <button onclick="toggleSidebar(false)" class="lg:hidden text-gray-400 hover:text-gray-600 p-2 -mr-2 shrink-0">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="px-3 sm:px-4 py-6 space-y-1.5">
+                    <a href="{% url 'tenant:dashboard' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-emerald-50 text-emerald-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Dashboard</span>
+                        </div>
+                    </a>
+
+                    <a href="#" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-magnifying-glass w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Find a Home</span>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'tenant:saved_properties_list' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors {% if request.resolver_match.url_name == 'saved_properties_list' %}bg-emerald-50 text-emerald-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-heart w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Saved Properties</span>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full">{{ saved_count|default:12 }}</span>
+                    </a>
+
+                    <a href="{% url 'tenant:property_views' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-clock w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Recently Viewed</span>
+                        </div>
+                        <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2 py-0.5 rounded-full">{{ views_count|default:24 }}</span>
+                    </a>
+
+                    <a href="{% url 'tenant:property_alerts' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors {% if request.resolver_match.url_name == 'property_alerts' %}bg-emerald-50 text-emerald-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-bell w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Property Alerts</span>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full">{{ alerts_count|default:3 }}</span>
+                    </a>
+
+                    <a href="{% url 'tenant:viewing_requests' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium transition-colors {% if request.resolver_match.url_name == 'viewing_requests' %}bg-emerald-50 text-emerald-700{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-calendar-days w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Viewing Requests</span>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full">{{ requests_count|default:2 }}</span>
+                    </a>
+
+                    <a href="{% url 'tenant:my-notifications' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-envelope w-5 text-center"></i>
+                            <span class="text-sm sm:text-base">Notifications</span>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full">3</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Footer Sidebar Links -->
+            <div class="px-3 sm:px-4 py-6 border-t border-gray-100 space-y-1">
+                <a href="{% url 'account:settings' %}" class="flex items-center justify-between px-3 sm:px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-gear w-5 text-center"></i>
+                        <span class="text-sm sm:text-base">Account Settings</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                </a>
+                <a href="{% url 'account:logout' %}" class="flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
+                    <span class="text-sm sm:text-base">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="flex-1 lg:ml-64 flex flex-col min-w-0">
+            <!-- Top Navigation Header -->
+            <header class="h-16 sm:h-20 bg-white border-b border-gray-200 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-30">
+                <div class="flex items-center gap-2 sm:gap-4 lg:gap-6 w-full min-w-0">
+                    <button onclick="toggleSidebar(true)" class="lg:hidden text-gray-500 hover:text-gray-700 text-lg p-2 -ml-2 shrink-0">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="relative w-full max-w-xl min-w-0">
+                        <span class="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass text-sm sm:text-base"></i>
+                        </span>
+                        <input type="text"
+                               placeholder="Search properties, locations..."
+                               class="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+                    </div>
+
+                    <!-- Welcome text (mirrors landlord base.html) -->
+                    <div class="hidden lg:block min-w-0">
+                        {% if request.user.is_authenticated %}
+                            <h1 class="text-base sm:text-lg font-bold text-gray-900 truncate">Welcome back, {{ request.user.full_name }}!</h1>
+                            <p class="text-xs text-gray-500">Here's what's happening with your property search.</p>
+                        {% else %}
+                            <h1 class="text-base sm:text-lg font-bold text-gray-900">Welcome, Guest!</h1>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4 lg:gap-5 shrink-0">
+                    <!-- Notification Bell -->
+                    <a href="{% url 'tenant:my-notifications' %}" class="relative text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fa-regular fa-bell text-lg sm:text-xl"></i>
+                        <span class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-red-500 text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
+                    </a>
+
+                    <!-- User Profile Dropdown -->
+                    {% if request.user.is_authenticated %}
+                    <div class="relative shrink-0">
+                        <button type="button"
+                                id="userProfileTrigger"
+                                onclick="toggleUserMenu()"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-controls="userProfileMenu"
+                                class="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-gray-200 cursor-pointer">
+                            {% if request.user.role == 'landlord' and request.user.landlord_profile.profile_picture %}
+                                <img src="{{ request.user.landlord_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                            {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
+                                <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{{ request.user.full_name|default:request.user.email }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                            {% endif %}
+                            <div class="hidden md:block text-left min-w-0">
+                                <h4 class="text-sm font-semibold text-gray-900 leading-tight truncate max-w-[140px]">{{ request.user.full_name|default:request.user.email }}</h4>
+                                <span class="text-xs text-gray-500">{{ request.user.get_role_display }}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-xs text-gray-400 ml-1 hidden md:inline transition-transform" id="userProfileChevron"></i>
+                        </button>
+
+                        <div id="userProfileMenu" class="user-profile-menu">
+                            <div class="user-profile-menu-header">
+                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
+                                <span>{{ request.user.email }}</span>
+                            </div>
+                            <a href="{% url 'account:settings' %}" class="user-profile-menu-item">
+                                <i class="fa-solid fa-gear"></i> Account Settings
+                            </a>
+                            <div class="user-profile-menu-divider"></div>
+                            <form method="POST" action="{% url 'account:logout' %}" class="user-profile-menu-item logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="user-profile-menu-item logout-item w-full text-left">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'account:login' %}" class="text-emerald-600 text-sm font-bold no-underline px-3 py-2 border border-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-colors">Log In</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50 min-w-0">
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <style>
+        /* User profile dropdown menu (mirrors landlord base.html) */
+        .user-profile-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 220px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+            padding: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: all 0.15s ease;
+            z-index: 200;
+        }
+        .user-profile-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .user-profile-menu-header {
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px 10px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-profile-menu-header strong {
+            font-size: 13px;
+            color: #0f172a;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-header span {
+            font-size: 11px;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+        }
+        .user-profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .user-profile-menu-item:hover {
+            background: #f0fdf4;
+            color: #059669;
+        }
+        .user-profile-menu-item:hover i {
+            color: #059669;
+        }
+        .logout-form {
+            padding: 0;
+            margin: 0;
+        }
+        .logout-item {
+            color: #ef4444;
+        }
+        .logout-item i {
+            color: #ef4444;
+        }
+        .logout-item:hover {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .logout-item:hover i {
+            color: #ef4444;
+        }
+        .user-profile-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 6px 4px;
+        }
+    </style>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar(open) {
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+            }
+        }
+
+        // Close sidebar automatically when resizing up to desktop width
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+            }
+        });
+
+        // User profile dropdown (mirrors landlord base.html)
+        function toggleUserMenu() {
+            const trigger = document.getElementById('userProfileTrigger');
+            const menu = document.getElementById('userProfileMenu');
+            const chevron = document.getElementById('userProfileChevron');
+            if (!trigger || !menu) return;
+            const isOpen = menu.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (chevron) chevron.style.transform = isOpen ? 'rotate(180deg)' : '';
+        }
+
+        document.addEventListener('click', function (event) {
+            const wrap = document.getElementById('userProfileTrigger');
+            const menu = document.getElementById('userProfileMenu');
+            if (!wrap || !menu) return;
+            const wrapEl = wrap.closest('.relative');
+            if (wrapEl && !wrapEl.contains(event.target)) {
+                menu.classList.remove('open');
+                wrap.setAttribute('aria-expanded', 'false');
+                const chevron = document.getElementById('userProfileChevron');
+                if (chevron) chevron.style.transform = '';
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const menu = document.getElementById('userProfileMenu');
+                const trigger = document.getElementById('userProfileTrigger');
+                const chevron = document.getElementById('userProfileChevron');
+                if (menu) menu.classList.remove('open');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                if (chevron) chevron.style.transform = '';
+            }
+        });
+    </script>
+
+</body>
+</html>

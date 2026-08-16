@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Landlord Dashboard - HomeFinder Ghana{% endblock %}</title>
+    <title>{% block title %}Landlord Dashboard - VacantHommie{% endblock %}</title>
     {% load static tailwind_tags %}
     {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,7 +20,8 @@
         <aside class="dashboard-sidebar" id="dashboardSidebar">
             <div class="sidebar-header">
                 <a href="{% url 'home_finder:home' %}" class="sidebar-logo">
-                    <span>HomeFinder</span>
+                    <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="sidebar-logo-img">
+                    <span>VacantHommie</span>
                 </a>
                 <button class="mobile-close-btn" onclick="toggleSidebar()" aria-label="Close navigation menu">
                     <i class="fa-solid fa-xmark"></i>
@@ -238,7 +239,7 @@
 
             <!-- Dashboard Footer -->
             <footer class="dashboard-footer-bar">
-                <p>&copy; 2026 HomeFinder Ghana. All rights reserved.</p>
+                <p>&copy; 2026 VacantHommie. All rights reserved.</p>
                 <div class="footer-links-inline">
                     <a href="#">Terms of Service</a>
                     <a href="#">Privacy Policy</a>
@@ -327,6 +328,12 @@
         }
         .sidebar-logo img {
             height: 28px;
+        }
+        .sidebar-logo-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 6px;
         }
         .sidebar-logo span {
             overflow: hidden;

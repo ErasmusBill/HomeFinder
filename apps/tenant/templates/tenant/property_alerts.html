@@ -1,0 +1,281 @@
+{% extends 'tenant/base.html' %}
+{% load tenant_tags %}
+
+{% block title %}Property Alerts - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-xs">
+                <i class="fa-regular fa-bell"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900">Property Alerts</h1>
+                <p class="text-sm text-gray-500">Get notified when properties match your preferences.</p>
+            </div>
+        </div>
+        <div>
+            <a href="#create-alert-form" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs">
+                <i class="fa-solid fa-plus"></i> Create New Alert
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-regular fa-bell"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Active Alerts</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">{{ alerts_count|default:3 }}</span>
+                </div>
+                <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Receiving notifications</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-pause"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Paused Alerts</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">1</span>
+                </div>
+                <p class="text-[11px] text-blue-600 font-medium mt-0.5">Temporarily paused</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Total Alerts</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">4</span>
+                </div>
+                <p class="text-[11px] text-purple-600 font-medium mt-0.5">All time alerts</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid: Alerts List & Create Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <!-- Left 2 Columns: Alerts List -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
+                <h2 class="text-sm font-bold text-gray-900">Your Property Alerts</h2>
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl text-xs">
+                    <span class="text-gray-500 font-medium">Sort by:</span>
+                    <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                        <option>Most Recent</option>
+                        <option>Oldest</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                {% for alert in alerts %}
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl {% if alert.is_active %}bg-emerald-50 text-emerald-600{% else %}bg-amber-50 text-amber-600{% endif %} flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-regular fa-bell text-sm"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-gray-900 text-sm">
+                                    {% if alert.room_type %}{{ alert.room_type|title }}{% else %}Property{% endif %}
+                                    {% if alert.area %}in {{ alert.area.name }}{% elif alert.district %}in {{ alert.district.name }}{% elif alert.region %}in {{ alert.region.name }}{% endif %}
+                                </h3>
+                                {% if alert.is_active %}
+                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full">Active</span>
+                                {% else %}
+                                    <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-semibold rounded-full">Paused</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i> {{ alert.area.name|default:alert.region.name|default:"Any location" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-gray-900">
+                                {% if alert.min_price %}GH₵ {{ alert.min_price|floatformat:0 }}{% else %}GH₵ 0{% endif %} -
+                                {% if alert.max_price %}GH₵ {{ alert.max_price|floatformat:0 }}{% else %}Any{% endif %}
+                            </p>
+                            <p class="text-[11px] text-gray-500">Created: {{ alert.created_at|date:"M j, Y" }}</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-1">
+                            <a href="{% url 'tenant:update_property_alert' alert.id %}" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors">
+                                <i class="fa-regular fa-pen-to-square text-xs"></i>
+                            </a>
+                            <form method="POST" action="{% url 'tenant:toggle_property_alert' alert.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors cursor-pointer border-0" title="Toggle Pause/Active">
+                                    <i class="fa-solid fa-power-off text-xs"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'tenant:delete_property_alert' alert.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border-0" title="Delete">
+                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Static Fallback Mock Items -->
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-regular fa-bell text-sm"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-gray-900 text-sm">2 Bedroom in East Legon</h3>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full">Active</span>
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i> East Legon, Accra
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-gray-900">GHS 1,500 - GHS 3,000</p>
+                            <p class="text-[11px] text-gray-500">Created: Today, 9:15 AM</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <a href="#" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-pen-to-square text-xs"></i></a>
+                            <a href="#" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-trash-can text-xs"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Column: Form bound to PropertyAlertForm -->
+        <div id="create-alert-form" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs space-y-5 lg:sticky lg:top-6">
+            <div>
+                <h3 class="text-base font-bold text-gray-900">Create New Alert</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Set your preferences and we'll notify you when matching properties are listed.</p>
+            </div>
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Region Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.region.label }}</label>
+                    <div class="relative">
+                        {{ form.region }}
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.region.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.region.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- District Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.district.label }} <span class="text-gray-400 font-normal">(Optional)</span></label>
+                    <div class="relative">
+                        {{ form.district }}
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.district.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.district.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Area Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.area.label }} <span class="text-gray-400 font-normal">(Optional)</span></label>
+                    <div class="relative">
+                        {{ form.area }}
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.area.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.area.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Min / Max Price Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-gray-700">{{ form.min_price.label }}</label>
+                        {{ form.min_price }}
+                        {% if form.min_price.errors %}
+                            <p class="text-[11px] text-red-500">{{ form.min_price.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-gray-700">{{ form.max_price.label }}</label>
+                        {{ form.max_price }}
+                        {% if form.max_price.errors %}
+                            <p class="text-[11px] text-red-500">{{ form.max_price.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Room Type Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.room_type.label }}</label>
+                    <div class="relative">
+                        {{ form.room_type }}
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.room_type.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.room_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-xs cursor-pointer">
+                    Create Alert
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Bottom Banner -->
+    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-regular fa-lightbulb"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-900 text-base">How Property Alerts Work</h4>
+                <p class="text-xs text-gray-500 mt-0.5">We'll notify you via email and in-app notification when new properties match your alert criteria. Make sure your notification preferences are enabled in your account settings.</p>
+            </div>
+        </div>
+        <div>
+            <a href="#" class="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0">
+                <i class="fa-solid fa-gear text-emerald-600"></i> Notification Settings
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

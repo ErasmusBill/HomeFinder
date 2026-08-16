@@ -1,9 +1,7 @@
 from django import forms
-from django.db.models import Q
 from django.forms import ModelForm
 
 from apps.account.models import User
-from apps.home_finder.models import PropertyInterest
 from apps.notifications.models import Notification
 
 
@@ -22,14 +20,13 @@ class NotificationsForm(ModelForm):
     hand-editing the POST body — read state is owned by the
     mark-read / mark-unread endpoints.
 
-    The recipient choices are scoped in ``__init__``. Administrators can
-    choose any user; landlords can choose administrators and only tenants
-    who have expressed interest in one of their own properties.
+    The recipient choices are scoped to fetch all users in the system.
     """
 
     user = RecipientChoiceField(
         queryset=None,
-        required=False,
+        required=True,
+        empty_label="Choose a recipient",
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
         }),
@@ -52,25 +49,12 @@ class NotificationsForm(ModelForm):
 
     def __init__(self, *args, request_user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        is_admin = request_user is not None and (
-            getattr(request_user, 'role', None) == User.Role.ADMIN
-            or getattr(request_user, 'is_staff', False)
-            or getattr(request_user, 'is_superuser', False)
-        )
-        if is_admin:
-            self.fields['user'].queryset = User.objects.order_by('email')
-        else:
-            # A landlord may notify platform administrators and tenants who
-            # explicitly registered interest in one of that landlord's own
-            # properties — never arbitrary tenant accounts.
-            interested_tenant_ids = PropertyInterest.objects.filter(
-                property__landlord=request_user,
-            ).values_list('tenant_id', flat=True)
-            self.fields['user'].queryset = User.objects.filter(
-                Q(role=User.Role.ADMIN)
-                | Q(is_staff=True)
-                | Q(is_superuser=True)
-                | Q(id__in=interested_tenant_ids)
-            ).exclude(pk=request_user.pk).distinct().order_by('role', 'full_name', 'email')
-        self.fields['user'].required = True
-        self.fields['user'].empty_label = "Choose a recipient"
+
+        # Fetch all users in the system, optionally excluding the current user if needed,
+        # ordered cleanly by role, full name, and email.
+        queryset = User.objects.all().order_by('role', 'full_name', 'email')
+
+        if request_user and request_user.pk:
+            queryset = queryset.exclude(pk=request_user.pk)
+
+        self.fields['user'].queryset = queryset

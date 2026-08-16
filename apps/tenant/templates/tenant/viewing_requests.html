@@ -1,0 +1,302 @@
+{% extends 'tenant/base.html' %}
+{% load tenant_tags %}
+
+{% block title %}Viewing Requests - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-xs">
+                <i class="fa-regular fa-calendar-days"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900">Viewing Requests</h1>
+                <p class="text-sm text-gray-500">Manage and schedule property viewings with landlords.</p>
+            </div>
+        </div>
+        <div>
+            <a href="#create-viewing-form" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs">
+                <i class="fa-solid fa-plus"></i> New Viewing Request
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-regular fa-calendar-check"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Confirmed</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">{{ confirmed_count|default:2 }}</span>
+                </div>
+                <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Ready for visit</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Pending</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">{{ pending_count|default:1 }}</span>
+                </div>
+                <p class="text-[11px] text-amber-600 font-medium mt-0.5">Awaiting response</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Completed</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">{{ completed_count|default:3 }}</span>
+                </div>
+                <p class="text-[11px] text-blue-600 font-medium mt-0.5">Visited properties</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Total Requests</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-gray-900">6</span>
+                </div>
+                <p class="text-[11px] text-purple-600 font-medium mt-0.5">All time requests</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid: Viewing Requests List & Booking Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <!-- Left 2 Columns: Viewing Requests List -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
+                <h2 class="text-sm font-bold text-gray-900">Your Viewing Schedule</h2>
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl text-xs">
+                    <span class="text-gray-500 font-medium">Filter by status:</span>
+                    <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                        <option>All Requests</option>
+                        <option>Pending</option>
+                        <option>Confirmed</option>
+                        <option>Completed</option>
+                        <option>Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                {% for request in viewing_requests %}
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl
+                            {% if request.status == 'confirmed' %}bg-emerald-50 text-emerald-600
+                            {% elif request.status == 'pending' %}bg-amber-50 text-amber-600
+                            {% elif request.status == 'completed' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-400{% endif %}
+                            flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-regular fa-calendar text-sm"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="font-semibold text-gray-900 text-sm">{{ request.property.title }}</h3>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full
+                                    {% if request.status == 'confirmed' %}bg-emerald-50 text-emerald-700
+                                    {% elif request.status == 'pending' %}bg-amber-50 text-amber-700
+                                    {% elif request.status == 'completed' %}bg-blue-50 text-blue-700
+                                    {% else %}bg-red-50 text-red-700{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i> {{ request.property.location|default:request.property.area.name }}
+                            </p>
+                            {% if request.notes %}
+                            <p class="text-xs text-gray-400 italic mt-1">"{{ request.notes }}"</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-gray-900">{{ request.preferred_date|date:"M j, Y" }}</p>
+                            <p class="text-[11px] text-gray-500"><i class="fa-regular fa-clock text-gray-400"></i> {{ request.preferred_time|time:"g:i A" }}</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-1">
+                            <a href="{% url 'tenant:update_viewing_request' request.id %}" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors" title="Edit Request">
+                                <i class="fa-regular fa-pen-to-square text-xs"></i>
+                            </a>
+                            <form method="POST" action="{% url 'tenant:cancel_viewing_request' request.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border-0" title="Cancel Request">
+                                    <i class="fa-regular fa-circle-xmark text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Static Mock Fallbacks -->
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-regular fa-calendar text-sm"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-gray-900 text-sm">Modern 2BR Apartment in East Legon</h3>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full">Confirmed</span>
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i> East Legon, Accra
+                            </p>
+                            <p class="text-xs text-gray-400 italic mt-1">"Please call me when you arrive at the gate."</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-gray-900">Aug 20, 2026</p>
+                            <p class="text-[11px] text-gray-500">2:00 PM</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <a href="#" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-pen-to-square text-xs"></i></a>
+                            <a href="#" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-circle-xmark text-xs"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-regular fa-clock text-sm"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-gray-900 text-sm">Spacious 1BR Studio in Osu</h3>
+                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-semibold rounded-full">Pending</span>
+                            </div>
+                            <p class="text-xs text-gray-500 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i> Osu, Accra
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-gray-900">Aug 22, 2026</p>
+                            <p class="text-[11px] text-gray-500">10:30 AM</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <a href="#" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-pen-to-square text-xs"></i></a>
+                            <a href="#" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-circle-xmark text-xs"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Column: Viewing Request Form Including Property Field -->
+        <div id="create-viewing-form" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs space-y-5 lg:sticky lg:top-6">
+            <div>
+                <h3 class="text-base font-bold text-gray-900">Schedule Viewing</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Select a property and your preferred date and time to visit.</p>
+            </div>
+
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Property Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-750">{{ form.property.label }}</label>
+                    <div class="relative">
+                        {{ form.property }}
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.property.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.property.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Preferred Date Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.preferred_date.label }}</label>
+                    <div class="relative">
+                        {{ form.preferred_date }}
+                        <i class="fa-regular fa-calendar absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.preferred_date.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.preferred_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Preferred Time Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.preferred_time.label }}</label>
+                    <div class="relative">
+                        {{ form.preferred_time }}
+                        <i class="fa-regular fa-clock absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none"></i>
+                    </div>
+                    {% if form.preferred_time.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.preferred_time.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Notes Field -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-gray-700">{{ form.notes.label }} <span class="text-gray-400 font-normal">(Optional)</span></label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="text-[11px] text-red-500">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-xs cursor-pointer">
+                    Submit Viewing Request
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Bottom Banner -->
+    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-regular fa-lightbulb"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-900 text-base">Viewing Guidelines</h4>
+                <p class="text-xs text-gray-500 mt-0.5">Landlords typically confirm or reschedule requests within 24 hours. You will receive an email and in-app notification once your viewing appointment is updated.</p>
+            </div>
+        </div>
+        <div>
+            <a href="#" class="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0">
+                <i class="fa-solid fa-headset text-emerald-600"></i> Contact Support
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -124,7 +124,7 @@ def login_view(request):
                 # Strict role-based redirection
                 role_val = getattr(user, 'role', None)
                 if role_val == User.Role.TENANT or role_val == 'tenant':
-                    return redirect('tenant-dashboard')
+                    return redirect('tenant:dashboard')
                 elif role_val == User.Role.LANDLORD or role_val == 'landlord':
                     return redirect('landloards:landloards_dashboard')
                 elif role_val == User.Role.ADMIN or role_val == 'admin' or user.is_staff or user.is_superuser:
@@ -284,7 +284,7 @@ def account_settings_view(request):
     elif user.role == User.Role.TENANT:
         # Tenant settings have not yet got a dedicated page.  Keep the
         # endpoint safe and render the generic template in the meantime.
-        template = "account/settings.html"
+        template = "tenant/account/settings.html"
     else:
         messages.error(request, "Admins manage their account settings in the admin site.")
         return redirect("/admin/")
