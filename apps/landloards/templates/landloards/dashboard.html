@@ -61,16 +61,38 @@
 
             <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
 
-            <!-- Step 4 -->
-            <div class="onboarding-step-card">
-                <div class="step-number-badge">4</div>
-                <div class="step-icon-circle">
-                    <i class="fa-solid fa-shield-halved"></i>
+            <!-- Step 4: Verification -->
+            {% if identity_verified %}
+                <div class="onboarding-step-card completed">
+                    <div class="step-number-badge"><i class="fa-solid fa-check"></i></div>
+                    <div class="step-icon-circle green">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>Identity Verified</h3>
+                    <p>Ghana Card verified. Your listings are expedited.</p>
+                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Documents</a>
                 </div>
-                <h3>Get Verified</h3>
-                <p>Our team will verify and publish your property.</p>
-                <a href="#" class="btn-step-action muted">Learn More</a>
-            </div>
+            {% elif has_identity_doc %}
+                <div class="onboarding-step-card">
+                    <div class="step-number-badge">4</div>
+                    <div class="step-icon-circle" style="background: #fffbeb; color: #f59e0b;">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <h3>Verification Pending</h3>
+                    <p>Ghana Card uploaded. Review in progress.</p>
+                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Status</a>
+                </div>
+            {% else %}
+                <div class="onboarding-step-card">
+                    <div class="step-number-badge">4</div>
+                    <div class="step-icon-circle">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <h3>Upload ID Document</h3>
+                    <p>Upload Ghana Card to verify your account.</p>
+                    <a href="{% url 'landloards:create_landlord_document' %}" class="btn-step-action">Upload ID</a>
+                </div>
+            {% endif %}
         </div>
     </div>
 
@@ -148,11 +170,15 @@
                 </div>
 
                 <div class="recent-table-section">
-                    <h4>Recent Locations Added</h4>
+                    <div class="recent-table-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-main);">Locations Explorer</h4>
+                        <span class="badge-pill green" style="font-size: 11px;">Total Areas: {{ total_areas }}</span>
+                    </div>
+
                     {% for loc in recent_locations %}
                     <div class="recent-location-row">
                         <div class="loc-left">
-                            <i class="fa-solid fa-location-dot"></i>
+                            <i class="fa-solid fa-location-dot text-green"></i>
                             <div>
                                 <strong>{{ loc.name }}</strong>
                                 <span>{{ loc.town.name }}, {{ loc.town.district.region.name }}</span>
@@ -161,14 +187,35 @@
                         <span class="date-tag">{{ loc.created_at|date:"M d, Y" }}</span>
                     </div>
                     {% empty %}
-                    <p class="text-muted" style="font-size: 12px; padding: 10px 0;">No recent locations found.</p>
+                    <p class="text-muted" style="font-size: 12px; padding: 10px 0;">No locations found in database.</p>
                     {% endfor %}
+
+                    <!-- Dashboard Location Pagination Controls -->
+                    {% if recent_locations.paginator.num_pages > 1 %}
+                    <div class="dashboard-loc-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 12px;">
+                        <span class="text-muted">Page {{ recent_locations.number }} of {{ recent_locations.paginator.num_pages }}</span>
+                        <div style="display: flex; gap: 6px;">
+                            {% if recent_locations.has_previous %}
+                                <a href="?loc_page={{ recent_locations.previous_page_number }}" class="dash-page-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i> Prev</a>
+                            {% else %}
+                                <span class="dash-page-btn disabled"><i class="fa-solid fa-chevron-left"></i> Prev</span>
+                            {% endif %}
+
+                            {% if recent_locations.has_next %}
+                                <a href="?loc_page={{ recent_locations.next_page_number }}" class="dash-page-btn" title="Next Page">Next <i class="fa-solid fa-chevron-right"></i></a>
+                            {% else %}
+                                <span class="dash-page-btn disabled">Next <i class="fa-solid fa-chevron-right"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="card-footer-action">
-                    <a href="{% url 'locations:list_locations' %}">View All Locations <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="{% url 'locations:list_locations' %}">Manage Full Hierarchy <i class="fa-solid fa-arrow-right"></i></a>
                 </div>
             </div>
+
 
             <!-- Amenities Summary Widget -->
             <div class="dashboard-card-box">
@@ -921,7 +968,35 @@
     color: #94a3b8 !important;
 }
 
+/* Dashboard Locations Pagination Buttons */
+.dash-page-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.dash-page-btn:hover:not(.disabled) {
+    background: #f0fdf4;
+    border-color: var(--primary-green);
+    color: var(--primary-green);
+}
+.dash-page-btn.disabled {
+    color: #cbd5e1;
+    background: #f8fafc;
+    border-color: #f1f5f9;
+    cursor: not-allowed;
+}
+
 /* Responsive Rules */
+
 @media(max-width: 1200px) {
     .dashboard-split-layout {
         grid-template-columns: 1fr;

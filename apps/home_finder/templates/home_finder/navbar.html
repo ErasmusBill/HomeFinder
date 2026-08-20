@@ -1,445 +1,846 @@
-<!-- ============================================
-     VacantHommie — Responsive Header (v3)
-     Enhanced with an earlier drawer breakpoint (1024px)
-     to completely eliminate nav link crowding on tablets
-     and medium screens.
-     ============================================ -->
-
 {% load static %}
 
-<header class="site-header">
-    <div class="header-inner">
+<header class="vh-navbar-header" id="siteHeader">
+    <div class="vh-navbar-container">
 
-        <a href="{% url 'home_finder:home' %}" class="logo">
-            <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="logo-icon">
-            <span class="logo-text">VacantHommie <span class="logo-accent">GHANA</span></span>
+        <!-- 1. Left Brand Logo -->
+        <a href="{% url 'home_finder:home' %}" class="vh-brand" aria-label="VacantHommie Home">
+            <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-brand-logo">
         </a>
 
-        <nav class="nav-drawer" id="navDrawer">
-            <div class="nav-drawer-head">
-                <span class="nav-drawer-title">Menu</span>
-                <button type="button" class="icon-btn nav-drawer-close" id="navClose" aria-label="Close menu">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <ul class="nav-links">
-                <li><a href="{% url 'home_finder:home' %}" class="active">Home</a></li>
-                <li><a href="{% url 'home_finder:list_properties'%}">Properties</a></li>
-                <li><a href="#">How It Works</a></li>
-                <li><a href="#">About Us</a></li>
-                <li><a href="#">Blog</a></li>
-                <li><a href="#">Contact</a></li>
+        <!-- 2. Desktop Navigation Center Links -->
+        <nav class="vh-nav-desktop" aria-label="Primary navigation">
+            <ul class="vh-nav-links">
+                <li>
+                    <a href="{% url 'home_finder:home' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:list_properties' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
+                        Properties
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:how_it_works' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
+                        How It Works
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:about' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                        About Us
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:contact' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                        Contact
+                    </a>
+                </li>
             </ul>
-
-            <div class="nav-drawer-actions">
-                <a href="{% url 'account:login' %}" class="btn btn-outline">Login</a>
-                <a href="{% url 'account:register' %}" class="btn btn-primary">Sign Up</a>
-            </div>
         </nav>
 
-        <div class="nav-actions">
-            <button type="button" class="icon-btn wishlist-icon" aria-label="Wishlist">
+        <!-- 3. Right Action Tools & Auth -->
+        <div class="vh-nav-actions">
+
+            <!-- Saved / Wishlist Icon -->
+            <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}"
+               class="vh-icon-btn vh-wishlist-btn"
+               title="Saved Properties"
+               aria-label="Saved Properties">
                 <i class="fa-regular fa-heart"></i>
-            </button>
+                {% if saved_count and saved_count > 0 %}
+                    <span class="vh-badge-count">{{ saved_count }}</span>
+                {% endif %}
+            </a>
 
-            <a href="{% url 'account:login' %}" class="btn btn-outline btn-desktop">Login</a>
-            <a href="{% url 'account:register' %}" class="btn btn-primary btn-desktop">Sign Up</a>
+            <!-- Authenticated User Info / Actions -->
+            {% if request.user.is_authenticated %}
+                <div class="vh-user-pill-desktop">
+                    <span class="vh-user-avatar">
+                        {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
+                    </span>
+                    <span class="vh-user-greeting">
+                        Hi, <strong>{{ request.user.first_name|default:request.user.email|truncatechars:12 }}</strong>
+                    </span>
+                </div>
 
-            <button type="button" class="icon-btn menu-toggle" id="menuToggle"
-                    aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
-                <span class="menu-bar"></span>
-                <span class="menu-bar"></span>
-                <span class="menu-bar"></span>
+                <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
+                   class="vh-btn vh-btn-primary vh-desktop-only">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="{% url 'account:logout' %}" class="vh-btn vh-btn-outline vh-desktop-only">
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'account:login' %}" class="vh-btn vh-btn-ghost vh-desktop-only">
+                    Login
+                </a>
+                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-primary vh-desktop-only">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </a>
+            {% endif %}
+
+            <!-- Mobile Hamburger Toggle -->
+            <button class="vh-mobile-toggle"
+                    id="vhMobileToggle"
+                    type="button"
+                    aria-label="Toggle mobile menu"
+                    aria-expanded="false"
+                    aria-controls="vhMobileDrawer">
+                <i class="fa-solid fa-bars"></i>
             </button>
         </div>
 
     </div>
 </header>
 
-<div class="nav-overlay" id="navOverlay"></div>
+<!-- ==========================================================================
+     Mobile Off-Canvas Drawer Navigation
+     ========================================================================== -->
+<div class="vh-drawer-backdrop" id="vhDrawerBackdrop"></div>
+
+<aside class="vh-mobile-drawer" id="vhMobileDrawer" aria-hidden="true">
+    <!-- Drawer Header -->
+    <div class="vh-drawer-header">
+        <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-drawer-logo">
+        <button class="vh-drawer-close" id="vhDrawerClose" type="button" aria-label="Close menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Drawer User Status Block -->
+    <div class="vh-drawer-userbox">
+        {% if request.user.is_authenticated %}
+            <div class="vh-drawer-user-info">
+                <div class="vh-drawer-user-avatar">
+                    {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
+                </div>
+                <div class="vh-drawer-user-meta">
+                    <span class="vh-drawer-user-name">{{ request.user.get_full_name|default:request.user.email }}</span>
+                    <span class="vh-drawer-user-role">
+                        <i class="fa-solid fa-circle-check"></i> {{ request.user.get_role_display|default:request.user.role|title }}
+                    </span>
+                </div>
+            </div>
+        {% else %}
+            <div class="vh-drawer-guest-callout">
+                <p class="vh-guest-title">Welcome to VacantHommie</p>
+                <p class="vh-guest-sub">Find verified rental homes in Ghana.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Drawer Navigation Links -->
+    <nav class="vh-drawer-nav">
+        <ul class="vh-drawer-links">
+            <li>
+                <a href="{% url 'home_finder:home' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:list_properties' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                    <span>Browse Properties</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:how_it_works' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>How It Works</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}" class="vh-drawer-link">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>Saved Properties</span>
+                    {% if saved_count and saved_count > 0 %}
+                        <span class="vh-drawer-badge">{{ saved_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'subscription:plans' %}" class="vh-drawer-link">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Pricing Plans</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:about' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About Us</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:contact' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Contact Support</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Drawer Action Footer -->
+    <div class="vh-drawer-footer">
+        {% if request.user.is_authenticated %}
+            <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
+               class="vh-drawer-btn vh-btn-primary">
+                <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'account:logout' %}" class="vh-drawer-btn vh-btn-outline">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </a>
+        {% else %}
+            <a href="{% url 'account:role_select' %}" class="vh-drawer-btn vh-btn-primary">
+                <i class="fa-solid fa-user-plus"></i> Create an Account
+            </a>
+            <a href="{% url 'account:login' %}" class="vh-drawer-btn vh-btn-outline">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+            </a>
+        {% endif %}
+    </div>
+</aside>
 
 <style>
-    /* ---------- Palette ---------- */
+    /* ==========================================================================
+       VacantHommie — Ultra-Modern Responsive Navbar Styles
+       ========================================================================== */
     :root {
-        --color-navy: #14213d;
-        --color-navy-light: #1f3157;
-        --color-gold: #e8a33d;
-        --color-gold-dark: #cf8c28;
-        --color-bg: #ffffff;
-        --color-border: #e9ebef;
-        --color-text: #14213d;
-        --color-text-muted: #5a6478;
-
-        --header-h-desktop: 76px;
-        --header-h-tablet: 68px;
-        --header-h-mobile: 60px;
-        --max-width: 1280px;
+        --vh-navy: #0f172a;
+        --vh-navy-soft: #1e293b;
+        --vh-gold: #e8a33d;
+        --vh-gold-hover: #d9922a;
+        --vh-gold-light: rgba(232, 163, 61, 0.12);
+        --vh-green: #059669;
+        --vh-border: #e2e8f0;
+        --vh-text-main: #0f172a;
+        --vh-text-muted: #64748b;
+        --vh-bg-glass: rgba(255, 255, 255, 0.94);
+        --vh-nav-h-desktop: 78px;
+        --vh-nav-h-tablet: 70px;
+        --vh-nav-h-mobile: 62px;
     }
 
-    * { box-sizing: border-box; }
-
-    .site-header {
+    /* Fixed Sticky Header with Frosted Glass */
+    .vh-navbar-header {
         position: sticky;
         top: 0;
-        z-index: 1000;
-        width: 100%;
-        background: var(--color-bg);
-        border-bottom: 1px solid var(--color-border);
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: var(--vh-bg-glass);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+        transition: box-shadow 0.25s ease, background 0.25s ease;
     }
 
-    .header-inner {
-        max-width: var(--max-width);
+    .vh-navbar-header.scrolled {
+        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    .vh-navbar-container {
+        max-width: 1280px;
         margin: 0 auto;
-        height: var(--header-h-desktop);
+        height: var(--vh-nav-h-desktop);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: clamp(16px, 2.5vw, 32px);
-        padding: 0 clamp(16px, 4vw, 40px);
+        padding: 0 clamp(14px, 3.5vw, 36px);
+        gap: 16px;
     }
 
-    /* ---------- Logo ---------- */
-    .logo {
-        display: flex;
+    /* ---------- Brand Logo (Anchored Far Left) ---------- */
+    .vh-brand {
+        display: inline-flex;
         align-items: center;
-        gap: 10px;
+        justify-content: flex-start;
         text-decoration: none;
-        color: var(--color-text);
-        font-weight: 700;
-        font-size: clamp(1rem, 1.4vw + 0.4rem, 1.25rem);
-        white-space: nowrap;
         flex-shrink: 0;
-        min-width: 0;
+        margin-right: auto;
+        padding: 0;
+        outline: none;
     }
 
-    .logo-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        min-width: 38px;
-        border-radius: 10px;
-        background: var(--color-navy);
-        color: var(--color-gold);
-        font-size: 1rem;
+    .vh-brand-logo {
+        display: block;
+        width: auto;
+        max-width: 200px;
+        height: 60px;
         object-fit: contain;
+        object-position: left center;
+        transition: transform 0.2s ease, max-width 0.2s ease, height 0.2s ease;
     }
 
-    .logo-text {
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .vh-brand:hover .vh-brand-logo {
+        transform: scale(1.02);
     }
 
-    .logo-accent {
-        color: var(--color-gold-dark);
-        font-weight: 800;
-        letter-spacing: 0.03em;
-    }
-
-    /* ---------- Nav drawer (inline on desktop, slide-in on screens <= 1024px) ----------
-       IMPORTANT: every selector below is prefixed with `.site-header` so the
-       navbar's own rules always outrank same-named rules (`.btn`, `.btn-outline`,
-       `.btn-primary`, `.btn-desktop`, `.nav-links`, `.nav-actions`, `.icon-btn`,
-       `.menu-toggle`) declared later in a content page's <style> block. Without
-       this prefix, a later `.btn { display: inline-flex }` from a page such as
-       property_detail.html ties specificity with `.btn-desktop { display: none }`
-       and wins by source order — which is exactly the bug that made the Login
-       and Sign Up buttons stay visible on mobile and push the navbar outside
-       the viewport. */
-    .site-header .nav-drawer-head,
-    .site-header .nav-drawer-close { display: none; }
-
-    .site-header .nav-drawer {
+    /* ---------- Desktop Nav Links ---------- */
+    .vh-nav-desktop {
         display: flex;
         align-items: center;
-        flex: 1;
         justify-content: center;
-        min-width: 0;
+        flex: 1;
     }
 
-    .site-header .nav-links {
+    .vh-nav-links {
         display: flex;
         align-items: center;
-        gap: clamp(14px, 1.8vw, 26px);
+        gap: clamp(12px, 1.8vw, 28px);
         list-style: none;
         margin: 0;
         padding: 0;
-        flex-wrap: nowrap;
     }
 
-    .site-header .nav-links a {
+    .vh-nav-link {
         display: inline-block;
-        text-decoration: none;
-        color: var(--color-text-muted);
+        padding: 8px 12px;
         font-size: 0.95rem;
-        font-weight: 500;
+        font-weight: 600;
+        color: var(--vh-text-muted);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: color 0.15s ease, background 0.15s ease;
         position: relative;
-        padding: 6px 2px;
-        white-space: nowrap;
-        transition: color 0.15s ease;
     }
 
-    .site-header .nav-links a:hover,
-    .site-header .nav-links a:focus-visible {
-        color: var(--color-navy);
+    .vh-nav-link:hover {
+        color: var(--vh-navy);
+        background: #f8fafc;
     }
 
-    .site-header .nav-links a.active {
-        color: var(--color-navy);
+    .vh-nav-link.active {
+        color: var(--vh-navy);
         font-weight: 700;
     }
 
-    .site-header .nav-links a.active::after {
-        content: "";
+    .vh-nav-link.active::after {
+        content: '';
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -4px;
-        height: 2px;
-        background: var(--color-gold);
-        border-radius: 2px;
+        bottom: 0;
+        left: 12px;
+        right: 12px;
+        height: 2.5px;
+        background: var(--vh-gold);
+        border-radius: 4px;
     }
 
-    .site-header .nav-drawer-actions { display: none; }
-
-    /* ---------- Right side actions ---------- */
-    .site-header .nav-actions {
+    /* ---------- Nav Actions & Auth Buttons ---------- */
+    .vh-nav-actions {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-shrink: 0;
     }
 
-    .site-header .icon-btn {
-        display: flex;
+    .vh-icon-btn {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 40px;
         height: 40px;
-        min-width: 40px;
         border-radius: 10px;
-        border: 1px solid var(--color-border);
-        background: transparent;
-        color: var(--color-navy);
+        border: 1px solid var(--vh-border);
+        background: #ffffff;
+        color: var(--vh-navy);
+        text-decoration: none;
+        position: relative;
         cursor: pointer;
-        transition: background 0.15s ease, border-color 0.15s ease;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
     }
 
-    .site-header .icon-btn:hover { background: #f5f6f8; border-color: #d8dbe2; }
+    .vh-icon-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: var(--vh-gold);
+        transform: translateY(-1px);
+    }
 
-    .site-header .btn {
+    .vh-badge-count {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .vh-user-pill-desktop {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px 4px 4px;
+        background: #f1f5f9;
+        border-radius: 20px;
+        border: 1px solid var(--vh-border);
+    }
+
+    .vh-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--vh-navy);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .vh-user-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--vh-navy);
+    }
+
+    /* Buttons */
+    .vh-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 10px 18px;
+        gap: 6px;
+        padding: 9px 18px;
         border-radius: 10px;
         font-size: 0.9rem;
-        font-weight: 600;
+        font-weight: 700;
         text-decoration: none;
-        white-space: nowrap;
         cursor: pointer;
         border: 1px solid transparent;
-        transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+        white-space: nowrap;
+        transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
     }
 
-    .site-header .btn-outline {
-        color: var(--color-navy);
-        border-color: var(--color-border);
+    .vh-btn:active {
+        transform: translateY(1px);
+    }
+
+    .vh-btn-ghost {
+        color: var(--vh-navy);
         background: transparent;
     }
-    .site-header .btn-outline:hover { border-color: var(--color-navy); }
-
-    .site-header .btn-primary {
-        background: var(--color-gold);
-        color: var(--color-navy);
-    }
-    .site-header .btn-primary:hover {
-        background: var(--color-gold-dark);
-        box-shadow: 0 4px 14px rgba(232, 163, 61, 0.35);
+    .vh-btn-ghost:hover {
+        background: #f1f5f9;
     }
 
-    .site-header .btn:active { transform: translateY(1px); }
+    .vh-btn-outline {
+        color: var(--vh-navy);
+        background: #ffffff;
+        border-color: var(--vh-border);
+    }
+    .vh-btn-outline:hover {
+        background: #f8fafc;
+        border-color: var(--vh-navy);
+    }
 
-    /* ---------- Hamburger ---------- */
-    .site-header .menu-toggle {
+    .vh-btn-primary {
+        background: var(--vh-gold);
+        color: var(--vh-navy);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .vh-btn-primary:hover {
+        background: var(--vh-gold-hover);
+        box-shadow: 0 4px 12px rgba(232, 163, 61, 0.32);
+    }
+
+    /* ---------- Hamburger Menu Toggle ---------- */
+    .vh-mobile-toggle {
         display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--vh-border);
+        background: #ffffff;
+        cursor: pointer;
+        gap: 5px;
+        padding: 0;
+        outline: none;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .vh-mobile-toggle:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .vh-toggle-line {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: var(--vh-navy);
+        border-radius: 2px;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    }
+
+    .vh-mobile-toggle[aria-expanded="true"] .line-1 {
+        transform: translateY(7px) rotate(45deg);
+    }
+    .vh-mobile-toggle[aria-expanded="true"] .line-2 {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    .vh-mobile-toggle[aria-expanded="true"] .line-3 {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* ---------- Mobile Slide Drawer & Backdrop ---------- */
+    .vh-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1060;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .vh-drawer-backdrop.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .vh-mobile-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(340px, 86vw);
+        background: #ffffff;
+        z-index: 1070;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: -8px 0 32px rgba(15, 23, 42, 0.15);
+        overflow-y: auto;
+    }
+
+    .vh-mobile-drawer.open {
+        transform: translateX(0);
+    }
+
+    .vh-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--vh-border);
+    }
+
+    .vh-drawer-logo {
+        height: 38px;
+        width: auto;
+        object-fit: contain;
+    }
+
+    .vh-drawer-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--vh-border);
+        background: #f8fafc;
+        color: var(--vh-navy);
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .vh-drawer-close:hover {
+        background: #e2e8f0;
+    }
+
+    /* Drawer Userbox */
+    .vh-drawer-userbox {
+        padding: 18px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--vh-border);
+    }
+
+    .vh-drawer-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .vh-drawer-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--vh-navy);
+        color: white;
+        font-size: 16px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .vh-drawer-user-meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .vh-drawer-user-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--vh-navy);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vh-drawer-user-role {
+        font-size: 12px;
+        color: var(--vh-green);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+    }
+
+    .vh-drawer-guest-callout .vh-guest-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--vh-navy);
+        margin: 0 0 4px;
+    }
+
+    .vh-drawer-guest-callout .vh-guest-sub {
+        font-size: 12px;
+        color: var(--vh-text-muted);
+        margin: 0;
+    }
+
+    /* Drawer Links List */
+    .vh-drawer-nav {
+        flex: 1;
+        padding: 12px 14px;
+    }
+
+    .vh-drawer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
         flex-direction: column;
         gap: 4px;
     }
 
-    .site-header .menu-bar {
+    .vh-drawer-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--vh-navy);
+        text-decoration: none;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .vh-drawer-link i {
+        font-size: 16px;
         width: 20px;
-        height: 2px;
-        background: var(--color-navy);
-        border-radius: 2px;
-        transition: transform 0.25s ease, opacity 0.2s ease;
+        text-align: center;
+        color: var(--vh-text-muted);
+        transition: color 0.15s ease;
     }
 
-    .nav-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(20, 33, 61, 0.35);
-        z-index: 998;
-        opacity: 0;
-        transition: opacity 0.25s ease;
+    .vh-drawer-link:hover, .vh-drawer-link.active {
+        background: #f1f5f9;
+        color: var(--vh-navy);
     }
-    .nav-overlay.visible { display: block; opacity: 1; }
 
-    /* =========================================================
-       ≤1024px — Tablets and small screens: collapse nav drawer
-       earlier to completely avoid link crowding.
-       ========================================================= */
+    .vh-drawer-link.active i, .vh-drawer-link:hover i {
+        color: var(--vh-gold);
+    }
+
+    .vh-drawer-badge {
+        margin-left: auto;
+        background: #ef4444;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 10px;
+    }
+
+    /* Drawer Footer Buttons */
+    .vh-drawer-footer {
+        padding: 18px 20px 24px;
+        border-top: 1px solid var(--vh-border);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: #ffffff;
+    }
+
+    .vh-drawer-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 13px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    /* ==========================================================================
+       Responsive Breakpoints
+       ========================================================================== */
+
+    /* Tablet & Small Laptops (<= 1024px) */
     @media (max-width: 1024px) {
-        .site-header .header-inner { height: var(--header-h-tablet); }
-
-        .site-header .nav-drawer {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100dvh;
-            width: min(320px, 88vw);
-            background: var(--color-bg);
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-start;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 999;
-            box-shadow: -8px 0 24px rgba(20, 33, 61, 0.1);
-            overflow-y: auto;
-            padding-bottom: 24px;
+        .vh-navbar-container {
+            height: var(--vh-nav-h-tablet);
+            padding: 0 20px;
         }
 
-        .site-header .nav-drawer.open { transform: translateX(0); }
+        .vh-nav-desktop,
+        .vh-desktop-only,
+        .vh-user-pill-desktop {
+            display: none !important;
+        }
 
-        .site-header .nav-drawer-head {
+        .vh-mobile-toggle {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--color-border);
         }
 
-        .site-header .nav-drawer-title {
-            font-weight: 700;
-            color: var(--color-navy);
+        .vh-brand-logo {
+            max-width: 175px;
+            height: 52px;
         }
-
-        .site-header .nav-drawer-close {
-            display: flex;
-            width: 34px;
-            height: 34px;
-            min-width: 34px;
-        }
-
-        .site-header .nav-links {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0;
-            width: 100%;
-            padding: 8px 20px;
-        }
-
-        .site-header .nav-links li { width: 100%; }
-
-        .site-header .nav-links a {
-            display: block;
-            width: 100%;
-            padding: 13px 2px;
-            font-size: 1rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .site-header .nav-links a.active::after { display: none; }
-
-        .site-header .nav-drawer-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 20px;
-        }
-
-        .site-header .nav-drawer-actions .btn { width: 100%; padding: 12px; font-size: 0.95rem; }
-
-        /* Higher specificity (`.site-header .btn-desktop` = 0,2,0) guarantees
-           this rule wins over any later `.btn-desktop { display: none }` and,
-           more importantly, over any later `.btn { display: inline-flex }`
-           from a page's <style> block. */
-        .site-header .btn-desktop { display: none; }
-        .site-header .menu-toggle { display: flex; }
     }
 
-    /* =========================================================
-       ≤560px — Phones: trim padding, scale down elements
-       ========================================================= */
+    /* Phones (<= 560px) */
     @media (max-width: 560px) {
-        .site-header .header-inner { height: var(--header-h-mobile); padding: 0 14px; gap: 8px; }
-        .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; object-fit: contain; }
-        .site-header .logo-text { max-width: 44vw; }
+        .vh-navbar-container {
+            height: var(--vh-nav-h-mobile);
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .vh-brand {
+            margin-right: auto;
+            padding-left: 0;
+        }
+
+        .vh-brand-logo {
+            max-width: 145px;
+            height: 44px;
+        }
+
+        .vh-icon-btn {
+            width: 38px;
+            height: 38px;
+        }
+
+        .vh-mobile-toggle {
+            width: 38px;
+            height: 38px;
+        }
     }
 
-    /* =========================================================
-       ≤380px — Tiny screens: hide wishlist icon to preserve space
-       ========================================================= */
-    @media (max-width: 380px) {
-        .site-header .wishlist-icon { display: none; }
-        .site-header .icon-btn { width: 36px; height: 36px; min-width: 36px; }
-    }
+    /* Ultra-small phones (<= 360px) */
+    @media (max-width: 360px) {
+        .vh-navbar-container {
+            padding: 0 8px;
+        }
 
-    /* ---------- Accessibility & Motion ---------- */
-    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) { opacity: 0; }
-    .site-header .menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .vh-brand-logo {
+            max-width: 125px;
+            height: 38px;
+        }
 
-    .site-header .icon-btn:focus-visible,
-    .site-header .btn:focus-visible,
-    .site-header .nav-links a:focus-visible {
-        outline: 2px solid var(--color-gold);
-        outline-offset: 2px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .site-header .nav-drawer, .site-header .menu-bar, .nav-overlay, .site-header .btn { transition: none; }
+        .vh-wishlist-btn {
+            display: none; /* Keep header ultra focused */
+        }
     }
 </style>
 
 <script>
     (function () {
-        const toggle = document.getElementById('menuToggle');
-        const closeBtn = document.getElementById('navClose');
-        const drawer = document.getElementById('navDrawer');
-        const overlay = document.getElementById('navOverlay');
+        const toggle = document.getElementById('vhMobileToggle');
+        const closeBtn = document.getElementById('vhDrawerClose');
+        const drawer = document.getElementById('vhMobileDrawer');
+        const backdrop = document.getElementById('vhDrawerBackdrop');
+        const header = document.getElementById('siteHeader');
 
-        function closeMenu() {
-            drawer.classList.remove('open');
-            overlay.classList.remove('visible');
-            toggle.setAttribute('aria-expanded', 'false');
-            document.body.style.overflow = '';
-        }
+        if (!toggle || !drawer || !backdrop) return;
 
-        function openMenu() {
+        function openDrawer() {
             drawer.classList.add('open');
-            overlay.classList.add('visible');
+            backdrop.classList.add('active');
             toggle.setAttribute('aria-expanded', 'true');
+            drawer.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
         }
 
+        function closeDrawer() {
+            drawer.classList.remove('open');
+            backdrop.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
+            drawer.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
         toggle.addEventListener('click', function () {
-            drawer.classList.contains('open') ? closeMenu() : openMenu();
+            drawer.classList.contains('open') ? closeDrawer() : openDrawer();
         });
 
-        closeBtn.addEventListener('click', closeMenu);
-        overlay.addEventListener('click', closeMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+        backdrop.addEventListener('click', closeDrawer);
 
+        // Escape key closes drawer
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeMenu();
+            if (e.key === 'Escape' && drawer.classList.contains('open')) {
+                closeDrawer();
+                toggle.focus();
+            }
         });
 
+        // Auto close when resized to desktop
         window.addEventListener('resize', function () {
-            if (window.innerWidth > 1024) closeMenu();
+            if (window.innerWidth > 1024 && drawer.classList.contains('open')) {
+                closeDrawer();
+            }
         });
+
+        // Header shadow elevation on scroll
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 10) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }, { passive: true });
     })();
 </script>

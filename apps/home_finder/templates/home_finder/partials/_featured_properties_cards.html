@@ -1,0 +1,58 @@
+{% for property in properties %}
+    <div class="property-card">
+        <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
+            <div class="property-img-container">
+                {% if property.cover_image %}
+                    <img
+                        src="{{ property.cover_image.url }}"
+                        alt="{{ property.title }}"
+                        loading="lazy"
+                        decoding="async"
+                        class="property-cover-img"
+                        onload="this.style.opacity='1'"
+                    >
+                {% else %}
+                    <img
+                        src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80"
+                        alt="{{ property.title }}"
+                        loading="lazy"
+                        decoding="async"
+                        class="property-cover-img"
+                        onload="this.style.opacity='1'"
+                    >
+                {% endif %}
+                <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
+                <div class="property-tag">{{ property.get_room_type_display }}</div>
+                {% if request.user.is_authenticated and request.user.role == 'tenant' %}
+                    <form method="POST" action="{% url 'tenant:toggle_save_property' property.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="button" class="favorite-btn" onclick="event.preventDefault(); event.stopPropagation(); this.closest('form').submit();"><i class="fa-regular fa-heart"></i></button>
+                    </form>
+                {% else %}
+                    <button class="favorite-btn" onclick="event.preventDefault();"><i class="fa-regular fa-heart"></i></button>
+                {% endif %}
+            </div>
+            <div class="property-details">
+                <h3 class="property-title">{{ property.title }}</h3>
+                <div class="property-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    {{ property.area.name }}, {{ property.town.name }}
+                </div>
+                <div class="property-price">
+                    GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span>
+                </div>
+                <div class="property-features">
+                    <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</div>
+                    <div class="property-feature-item"><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</div>
+                    {% if property.floor_area %}
+                        <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> {{ property.floor_area }}m²</div>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    </div>
+{% empty %}
+    <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px;">
+        No properties available right now. Please check back later.
+    </p>
+{% endfor %}

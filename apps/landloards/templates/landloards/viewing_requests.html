@@ -1,0 +1,444 @@
+{% extends 'landloards/landlord_base.html' %}
+
+{% block title %}Viewing Requests - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="viewing-requests-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <h1 class="page-title">Viewing Requests</h1>
+            <p class="page-subtitle">Review and respond to tenant viewing requests for your properties.</p>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="vr-stat-grid">
+        <a href="?status=pending" class="vr-stat-card {% if current_status == 'pending' %}is-active{% endif %}">
+            <div class="vr-stat-icon pending"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="vr-stat-meta">
+                <span class="vr-stat-label">Pending</span>
+                <span class="vr-stat-value">{{ pending_count|default:0 }}</span>
+            </div>
+        </a>
+        <a href="?status=confirmed" class="vr-stat-card {% if current_status == 'confirmed' %}is-active{% endif %}">
+            <div class="vr-stat-icon confirmed"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="vr-stat-meta">
+                <span class="vr-stat-label">Confirmed</span>
+                <span class="vr-stat-value">{{ confirmed_count|default:0 }}</span>
+            </div>
+        </a>
+        <a href="?status=completed" class="vr-stat-card {% if current_status == 'completed' %}is-active{% endif %}">
+            <div class="vr-stat-icon completed"><i class="fa-solid fa-flag-checkered"></i></div>
+            <div class="vr-stat-meta">
+                <span class="vr-stat-label">Completed</span>
+                <span class="vr-stat-value">{{ completed_count|default:0 }}</span>
+            </div>
+        </a>
+        <a href="?status=cancelled" class="vr-stat-card {% if current_status == 'cancelled' %}is-active{% endif %}">
+            <div class="vr-stat-icon cancelled"><i class="fa-solid fa-ban"></i></div>
+            <div class="vr-stat-meta">
+                <span class="vr-stat-label">Cancelled</span>
+                <span class="vr-stat-value">{{ cancelled_count|default:0 }}</span>
+            </div>
+        </a>
+        <a href="?status=all" class="vr-stat-card total {% if current_status == 'all' %}is-active{% endif %}">
+            <div class="vr-stat-icon total"><i class="fa-solid fa-inbox"></i></div>
+            <div class="vr-stat-meta">
+                <span class="vr-stat-label">All</span>
+                <span class="vr-stat-value">{{ total_count|default:0 }}</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-card">
+        <div class="vr-filter-tabs">
+            <a href="?status=pending" class="vr-filter-tab {% if current_status == 'pending' %}active{% endif %}">
+                Pending <span class="vr-filter-count">{{ pending_count|default:0 }}</span>
+            </a>
+            <a href="?status=confirmed" class="vr-filter-tab {% if current_status == 'confirmed' %}active{% endif %}">
+                Confirmed <span class="vr-filter-count">{{ confirmed_count|default:0 }}</span>
+            </a>
+            <a href="?status=completed" class="vr-filter-tab {% if current_status == 'completed' %}active{% endif %}">
+                Completed <span class="vr-filter-count">{{ completed_count|default:0 }}</span>
+            </a>
+            <a href="?status=cancelled" class="vr-filter-tab {% if current_status == 'cancelled' %}active{% endif %}">
+                Cancelled <span class="vr-filter-count">{{ cancelled_count|default:0 }}</span>
+            </a>
+            <a href="?status=all" class="vr-filter-tab {% if current_status == 'all' %}active{% endif %}">
+                All <span class="vr-filter-count">{{ total_count|default:0 }}</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Requests Table Card -->
+    <div class="table-responsive-card">
+        <table class="data-table" id="viewingRequestsTable">
+            <thead>
+                <tr>
+                    <th>TENANT</th>
+                    <th>PROPERTY</th>
+                    <th>REQUESTED DATE</th>
+                    <th>REQUESTED TIME</th>
+                    <th>STATUS</th>
+                    <th>SUBMITTED</th>
+                    <th class="text-right">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if viewing_requests %}
+                    {% for vr in viewing_requests %}
+                    <tr data-status="{{ vr.status }}">
+                        <!-- Tenant / Requester -->
+                        <td>
+                            <div class="tenant-info-cell">
+                                <div class="tenant-avatar" {% if vr.is_guest %}style="background: #e0f2fe; color: #0369a1;"{% endif %}>
+                                    {{ vr.requester_name|slice:":1"|upper }}
+                                </div>
+                                <div class="tenant-text-meta">
+                                    <strong>
+                                        {{ vr.requester_name }}
+                                        {% if vr.is_guest %}
+                                            <span style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle;">Guest</span>
+                                        {% endif %}
+                                    </strong>
+                                    <span><i class="fa-regular fa-envelope"></i> {{ vr.requester_email|default:"No email" }}</span>
+                                    {% if vr.requester_phone %}
+                                        <span style="font-size: 11px; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ vr.requester_phone }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+
+
+                        <!-- Property -->
+                        <td>
+                            <div class="vr-property-cell">
+                                <strong>{{ vr.property.title }}</strong>
+                                <span>
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    {{ vr.property.area.name }}, {{ vr.property.town.name }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Date -->
+                        <td>
+                            <span class="vr-date-pill">
+                                <i class="fa-regular fa-calendar"></i>
+                                {{ vr.preferred_date|date:"M j, Y" }}
+                            </span>
+                        </td>
+
+                        <!-- Time -->
+                        <td>
+                            <span class="vr-time-pill">
+                                <i class="fa-regular fa-clock"></i>
+                                {{ vr.preferred_time|time:"g:i A" }}
+                            </span>
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            {% if vr.status == 'pending' %}
+                                <span class="status-badge pending"><span class="dot"></span> Pending</span>
+                            {% elif vr.status == 'confirmed' %}
+                                <span class="status-badge confirmed"><i class="fa-solid fa-check"></i> Confirmed</span>
+                            {% elif vr.status == 'completed' %}
+                                <span class="status-badge completed"><i class="fa-solid fa-flag-checkered"></i> Completed</span>
+                            {% elif vr.status == 'cancelled' %}
+                                <span class="status-badge cancelled"><span class="dot"></span> Cancelled</span>
+                            {% else %}
+                                <span class="status-badge draft"><span class="dot"></span> {{ vr.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Submitted -->
+                        <td class="text-muted text-sm">
+                            {{ vr.created_at|date:"M j, Y" }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-right">
+                            <div class="action-buttons-group">
+                                <a href="{% url 'landloards:viewing_request_detail' vr.id %}"
+                                   class="action-btn view" title="View details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+
+                                {% if vr.status == 'pending' %}
+                                    <form action="{% url 'landloards:confirm_viewing_request' vr.id %}"
+                                          method="POST" class="inline-form"
+                                          onsubmit="return confirm('Confirm this viewing request?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn confirm" title="Confirm viewing">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{% url 'landloards:decline_viewing_request' vr.id %}"
+                                          method="POST" class="inline-form"
+                                          onsubmit="return confirm('Decline this viewing request? The tenant will be notified.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn delete" title="Decline viewing">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                {% if vr.status == 'pending' or vr.status == 'confirmed' %}
+                                    <a href="{% url 'landloards:reschedule_viewing_request' vr.id %}"
+                                       class="action-btn edit" title="Propose new time">
+                                        <i class="fa-solid fa-calendar-pen"></i>
+                                    </a>
+                                {% endif %}
+
+                                {% if vr.status == 'confirmed' %}
+                                    <form action="{% url 'landloards:complete_viewing_request' vr.id %}"
+                                          method="POST" class="inline-form"
+                                          onsubmit="return confirm('Mark this viewing as completed?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn complete" title="Mark completed">
+                                            <i class="fa-solid fa-flag-checkered"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="fa-regular fa-calendar-xmark"></i>
+                                <h3>No viewing requests found</h3>
+                                {% if current_status == 'pending' %}
+                                    <p>You're all caught up &mdash; there are no pending viewing requests awaiting your response.</p>
+                                {% elif current_status == 'all' %}
+                                    <p>You haven't received any viewing requests yet. They'll appear here once tenants start requesting viewings on your properties.</p>
+                                {% else %}
+                                    <p>No viewing requests match the "<strong>{{ current_status }}</strong>" filter.</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tip Footer -->
+    <div class="tip-banner">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span><strong>Tip:</strong> Responding to viewing requests quickly improves your tenant match rate and helps your properties get booked faster.</span>
+    </div>
+
+</div>
+
+<style>
+    .viewing-requests-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* ---------- Stat grid ---------- */
+    .vr-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+    }
+    @media (max-width: 1024px) {
+        .vr-stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .vr-stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+    .vr-stat-card:hover {
+        border-color: var(--primary-green);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+        transform: translateY(-1px);
+    }
+    .vr-stat-card.is-active {
+        border-color: var(--primary-green);
+        background: #f0fdf4;
+    }
+    .vr-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .vr-stat-icon.pending    { background: #fef3c7; color: #d97706; }
+    .vr-stat-icon.confirmed  { background: #d1fae5; color: #059669; }
+    .vr-stat-icon.completed  { background: #dbeafe; color: #2563eb; }
+    .vr-stat-icon.cancelled  { background: #fee2e2; color: #dc2626; }
+    .vr-stat-icon.total      { background: #f1f5f9; color: #475569; }
+    .vr-stat-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .vr-stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .vr-stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+    }
+
+    /* ---------- Filter tabs ---------- */
+    .vr-filter-tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .vr-filter-tab {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--text-muted);
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .vr-filter-tab:hover {
+        background: #f0fdf4;
+        color: var(--primary-green);
+        border-color: var(--primary-green);
+    }
+    .vr-filter-tab.active {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+    .vr-filter-tab.active .vr-filter-count {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    .vr-filter-count {
+        background: white;
+        color: var(--text-muted);
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* ---------- Tenant cell ---------- */
+    .tenant-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .tenant-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .tenant-text-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+    .tenant-text-meta strong {
+        font-size: 13px;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    .tenant-text-meta span {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    /* ---------- Property cell ---------- */
+    .vr-property-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .vr-property-cell strong {
+        font-size: 13px;
+        color: var(--text-main);
+    }
+    .vr-property-cell span {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    /* ---------- Date / Time pills ---------- */
+    .vr-date-pill, .vr-time-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        color: var(--text-main);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+    }
+
+    /* ---------- Status badges ---------- */
+    .status-badge.confirmed { background: #d1fae5; color: #065f46; }
+    .status-badge.confirmed i { font-size: 9px; }
+    .status-badge.completed { background: #dbeafe; color: #1e40af; }
+    .status-badge.completed i { font-size: 9px; }
+    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+    .status-badge.cancelled .dot { background: #dc2626; }
+
+    /* ---------- Action buttons ---------- */
+    .inline-form {
+        display: inline;
+    }
+    .action-btn.confirm,
+    .action-btn.complete {
+        background: white;
+    }
+    .action-btn.confirm:hover   { background: #f0fdf4; color: #059669; border-color: #059669; }
+    .action-btn.complete:hover  { background: #eff6ff; color: #2563eb; border-color: #2563eb; }
+</style>
+{% endblock %}

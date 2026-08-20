@@ -378,61 +378,13 @@
             <a href="{% url 'home_finder:list_properties'%}" class="btn-link">View All Properties <i class="fa-solid fa-arrow-right"></i></a>
         </div>
 
-        <div class="property-grid">
-            {% for property in properties %}
-                <div class="property-card">
-                    <a href="{% url 'home_finder:property_detail' slug=property.slug %}" class="property-card-link">
-                        <div class="property-img-container">
-                            {% if property.cover_image %}
-                                <img
-                                    src="{{ property.cover_image.url }}"
-                                    alt="{{ property.title }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="property-cover-img"
-                                >
-                            {% else %}
-                                <img
-                                    src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80"
-                                    alt="{{ property.title }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="property-cover-img"
-                                >
-                            {% endif %}
-                            <div class="verified-badge"><i class="fa-solid fa-check"></i> VERIFIED</div>
-                            <div class="property-tag">{{ property.get_room_type_display }}</div>
-                            <button class="favorite-btn"><i class="fa-regular fa-heart"></i></button>
-                        </div>
-                        <div class="property-details">
-                            <h3 class="property-title">{{ property.title }}</h3>
-                            <div class="property-location">
-                                <i class="fa-solid fa-location-dot"></i>
-                                {{ property.area.name }}, {{ property.town.name }}
-                            </div>
-                            <div class="property-price">
-                                GH₵ {{ property.price|floatformat:0 }} <span>/ {{ property.get_payment_period_display|lower }}</span>
-                            </div>
-                            <div class="property-features">
-                                <div class="property-feature-item"><i class="fa-solid fa-bed"></i> {{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</div>
-                                <div class="property-feature-item"><i class="fa-solid fa-bath"></i> {{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</div>
-                                {% if property.floor_area %}
-                                    <div class="property-feature-item"><i class="fa-solid fa-vector-square"></i> {{ property.floor_area }}m²</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            {% empty %}
-                <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px;">
-                    No properties available right now. Please check back later.
-                </p>
-            {% endfor %}
+        <div class="property-grid" id="featuredPropertiesGrid">
+            {% include 'home_finder/partials/_featured_properties_cards.html' %}
         </div>
     </section>
 
     <!-- How It Works Section -->
-    <section class="how-it-works">
+    <section class="how-it-works" id="how-it-works">
         <h2>How It Works</h2>
         <p>Finding your next home is simple.</p>
 
@@ -469,7 +421,14 @@
                 <p>Find the right place and make it your home.</p>
             </div>
         </div>
+
+        <div style="text-align: center; margin-top: 36px;">
+            <a href="{% url 'home_finder:how_it_works' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700;">
+                <i class="fa-solid fa-circle-question"></i> View Detailed How It Works Guide
+            </a>
+        </div>
     </section>
+
 
     <!-- CTA Banner -->
     <div style="background-color: #0f172a; padding: 40px 0;">
@@ -478,8 +437,8 @@
                 <h2>Ready to find your new home today?</h2>
                 <p>Join thousands of Ghanaians who are already renting smart with VacantHommie.</p>
                 <div class="cta-buttons">
-                    <a href="#" class="btn btn-primary">Browse Properties</a>
-                    <a href="#" class="btn btn-light">List Your Property</a>
+                    <a href="{% url 'home_finder:list_properties' %}" class="btn btn-primary">Browse Properties</a>
+                    <a href="{% if request.user.is_authenticated and request.user.role == 'landlord' %}{% url 'landloards:create_property' %}{% else %}{% url 'account:register' %}?role=landlord{% endif %}" class="btn btn-light">List Your Property</a>
                 </div>
             </div>
             <div class="cta-stats">
@@ -507,26 +466,61 @@
         </div>
     </div>
 
-    <!-- Simple fade-in once each lazy-loaded cover image finishes downloading.
-         The grey background on .property-img-container acts as the placeholder
-         until then. -->
+    <!-- Automatic 1-minute reshuffling & image reveal script -->
     <script>
         (function () {
-            function revealImage(img) {
-                img.classList.add('is-loaded');
+            function revealImages() {
+                document.querySelectorAll('.property-cover-img').forEach(function (img) {
+                    if (img.complete && img.naturalWidth > 0) {
+                        img.classList.add('is-loaded');
+                        img.style.opacity = '1';
+                    } else {
+                        img.addEventListener('load', function () {
+                            img.classList.add('is-loaded');
+                            img.style.opacity = '1';
+                        });
+                        img.addEventListener('error', function () {
+                            img.classList.add('is-loaded');
+                            img.style.opacity = '1';
+                        });
+                    }
+                });
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('.property-cover-img').forEach(function (img) {
-                    if (img.complete && img.naturalWidth > 0) {
-                        revealImage(img);
-                    } else {
-                        img.addEventListener('load', function () { revealImage(img); });
-                        img.addEventListener('error', function () { revealImage(img); });
+                revealImages();
+
+                const grid = document.getElementById('featuredPropertiesGrid');
+                if (!grid) return;
+
+                // Live dynamic reshuffle every 1 minute (60,000 ms)
+                setInterval(function () {
+                    // Skip if user has active query filters applied in the URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('q') || urlParams.get('region') || urlParams.get('room_type') || urlParams.get('min_price') || urlParams.get('max_price')) {
+                        return;
                     }
-                });
+
+                    // Gentle smooth crossfade
+                    grid.style.transition = 'opacity 0.35s ease';
+                    grid.style.opacity = '0.2';
+
+                    fetch("{% url 'home_finder:featured_properties_api' %}")
+                        .then(function (response) {
+                            if (!response.ok) throw new Error('Network response not ok');
+                            return response.text();
+                        })
+                        .then(function (html) {
+                            grid.innerHTML = html;
+                            revealImages();
+                            grid.style.opacity = '1';
+                        })
+                        .catch(function (err) {
+                            console.debug('Featured properties refresh:', err);
+                            grid.style.opacity = '1';
+                        });
+                }, 60000);
             });
         })();
     </script>
-
 {% endblock %}

@@ -20,7 +20,7 @@
         <aside class="dashboard-sidebar" id="dashboardSidebar">
             <div class="sidebar-header">
                 <a href="{% url 'home_finder:home' %}" class="sidebar-logo">
-                    <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="sidebar-logo-img">
+                    <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="sidebar-logo-img">
                     <span>VacantHommie</span>
                 </a>
                 <button class="mobile-close-btn" onclick="toggleSidebar()" aria-label="Close navigation menu">
@@ -71,6 +71,15 @@
                     <li>
                         <a href="{% url 'landloards:create_property' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_property' %}active{% endif %}">
                             <i class="fa-solid fa-circle-plus"></i> Add New Property
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:viewing_requests' %}"
+                           class="sidebar-item {% if request.resolver_match.url_name in 'viewing_requests,viewing_request_detail,reschedule_viewing_request' %}active{% endif %}">
+                            <i class="fa-regular fa-calendar-check"></i> Viewing Requests
+                            {% if landlord_viewing_pending_count %}
+                                <span class="badge-pill amber">{{ landlord_viewing_pending_count }}</span>
+                            {% endif %}
                         </a>
                     </li>
                     <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> Tenants</a></li>
@@ -231,7 +240,7 @@
 
             <!-- Page Content Injection Block -->
             <main class="dashboard-content-body">
-                {% include "landloards/_trial_banner.html" %}
+                {% if not hide_trial_banner %}{% include "landloards/_trial_banner.html" %}{% endif %}
                 {% block content %}
                 <!-- Child templates will insert content here -->
                 {% endblock %}

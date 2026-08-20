@@ -1,0 +1,243 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Choose Your Plan | VacantHommie{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hide sidebar and top navigation for onboarding focus */
+    .dashboard-sidebar { display: none !important; }
+    .dashboard-main-content { margin-left: 0 !important; }
+    .dashboard-top-navbar { display: none !important; }
+
+    * { box-sizing: border-box; }
+
+    .pricing-onboarding-container {
+        max-width: 1000px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    .onboarding-header { text-align: center; margin-bottom: 20px; }
+    .onboarding-logo { height: 40px; margin-bottom: 20px; }
+    .onboarding-title { font-size: 28px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+    .onboarding-subtitle { color: var(--text-muted); font-size: 15px; }
+
+    /* Step indicator, matching the profile step */
+    .onboarding-steps {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin: 22px 0 34px;
+    }
+    .step-track { display: flex; align-items: center; gap: 6px; }
+    .step-dot {
+        width: 26px; height: 26px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700;
+        background: var(--primary-green); color: white; flex-shrink: 0;
+    }
+    .step-bar { width: 44px; height: 3px; border-radius: 2px; background: var(--primary-green); }
+    .step-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .step-label.step-current { color: var(--text-main); }
+
+    /* Status messages */
+    .onboarding-messages { margin-bottom: 24px; }
+    .onboarding-msg {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 14px; border-radius: 8px;
+        font-size: 13px; font-weight: 500;
+        margin-bottom: 10px; border: 1px solid transparent;
+    }
+    .onboarding-msg.msg-success { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
+    .onboarding-msg.msg-error { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .onboarding-msg.msg-warning { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+    .onboarding-msg.msg-info { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+
+    .trial-banner {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    .trial-banner-icon {
+        width: 48px; height: 48px; border-radius: 50%;
+        background: white; color: #059669;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; margin: 0 auto 14px;
+        box-shadow: 0 2px 6px rgba(5,150,105,0.15);
+    }
+    .trial-banner h2 { font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
+    .trial-banner p { color: #065f46; margin-bottom: 18px; }
+    .trial-badges {
+        display: flex; align-items: center; justify-content: center; gap: 16px;
+        margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .trial-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12px; font-weight: 700; color: #059669;
+    }
+    .btn-trial {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 13px 26px;
+        background: var(--primary-green);
+        color: white; font-weight: 700;
+        text-decoration: none; border: none; cursor: pointer;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: background 0.2s ease, box-shadow 0.2s ease, transform .08s ease;
+    }
+    .btn-trial:hover { background: var(--primary-green-hover); color: white; box-shadow: 0 4px 12px rgba(5,150,105,0.25); }
+    .btn-trial:active { transform: translateY(1px); }
+
+    .plans-divider {
+        display: flex; align-items: center; gap: 14px;
+        margin: 0 0 24px;
+        color: #94a3b8; font-size: 12px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .plans-divider::before, .plans-divider::after {
+        content: ''; flex: 1; height: 1px; background: #e2e8f0;
+    }
+
+    .pricing-plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        align-items: stretch;
+    }
+    .plan-card {
+        background: white;
+        border: 1.5px solid var(--border-color);
+        border-radius: 16px;
+        padding: 26px 24px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(5, 150, 105, 0.1);
+        border-color: #bbf7d0;
+    }
+    .plan-card.plan-popular {
+        border-color: var(--primary-green);
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.12);
+    }
+    .plan-popular-badge {
+        position: absolute;
+        top: -12px; left: 50%; transform: translateX(-50%);
+        background: var(--primary-green); color: white;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+        padding: 5px 14px; border-radius: 20px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 6px rgba(5,150,105,0.25);
+    }
+
+    .plan-name { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--text-main); }
+    .plan-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; min-height: 34px; }
+    .plan-price-row {
+        margin-bottom: 20px; padding-bottom: 18px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .plan-price { font-size: 28px; font-weight: 800; color: var(--text-main); }
+    .plan-period { font-size: 13px; color: var(--text-muted); }
+
+    .plan-features { list-style: none; padding: 0; margin: 0 0 20px 0; }
+    .plan-features li { font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+    .plan-features i { color: var(--primary-green); flex-shrink: 0; }
+
+    .btn-subscribe {
+        display: block; width: 100%; padding: 12px;
+        background: white; border: 1.5px solid var(--border-color);
+        color: var(--text-main); font-weight: 700; text-align: center;
+        border-radius: 10px; text-decoration: none;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        margin-top: auto;
+    }
+    .btn-subscribe:hover { border-color: var(--primary-green); color: var(--primary-green); background: #f0fdf9; }
+    .plan-card.plan-popular .btn-subscribe {
+        background: var(--primary-green); color: white; border-color: var(--primary-green);
+    }
+    .plan-card.plan-popular .btn-subscribe:hover { background: var(--primary-green-hover); color: white; }
+
+    .pricing-footnote { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 30px; }
+
+    @media (max-width: 640px) {
+        .pricing-onboarding-container { margin: 30px auto; }
+        .trial-banner { padding: 22px 18px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-onboarding-container">
+    <div class="onboarding-header">
+        <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="onboarding-logo mx-auto">
+        <h1 class="onboarding-title">Choose Your Plan</h1>
+        <p class="onboarding-subtitle">Select a plan or start your 30-day free trial.</p>
+    </div>
+
+    <div class="onboarding-steps">
+        <div class="step-track">
+            <span class="step-dot"><i class="fa-solid fa-check"></i></span>
+            <span class="step-label">Profile</span>
+        </div>
+        <span class="step-bar"></span>
+        <div class="step-track">
+            <span class="step-dot">2</span>
+            <span class="step-label step-current">Pricing</span>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="onboarding-messages">
+        {% for message in messages %}
+        <div class="onboarding-msg {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% elif message.tags == 'warning' %}msg-warning{% else %}msg-info{% endif %}" role="alert">
+            <i class="fa-solid fa-circle-info"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="trial-banner">
+        <div class="trial-banner-icon"><i class="fa-solid fa-gift"></i></div>
+        <h2>Not ready to commit?</h2>
+        <p>Start with our 30-day free trial. Full access to all features.</p>
+        <div class="trial-badges">
+            <span class="trial-badge"><i class="fa-solid fa-circle-check"></i> No credit card required</span>
+            <span class="trial-badge"><i class="fa-solid fa-circle-check"></i> Cancel anytime</span>
+        </div>
+        <form method="POST" action="{% url 'landloards:start_free_trial' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-trial">Start 30-Day Free Trial <i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+    </div>
+
+    <div class="plans-divider">or choose a plan</div>
+
+    <div class="pricing-plans-grid">
+        {% for plan in plans %}
+        <div class="plan-card {% if forloop.counter == 2 %}plan-popular{% endif %}">
+            {% if forloop.counter == 2 %}<span class="plan-popular-badge">Most popular</span>{% endif %}
+            <div class="plan-name">{{ plan.name }}</div>
+            <div class="plan-desc">{{ plan.description|default:"A great fit for landlords." }}</div>
+            <div class="plan-price-row">
+                <span class="plan-price">GH&#8373; {{ plan.price|floatformat:2 }}</span>
+                <span class="plan-period">/ {{ plan.duration_days }} days</span>
+            </div>
+            <ul class="plan-features">
+                <li><i class="fa-solid fa-circle-check"></i> Up to <strong>{{ plan.maximum_listings }}</strong> listings</li>
+                <li><i class="fa-solid fa-circle-check"></i> Verified-listing badge</li>
+                <li><i class="fa-solid fa-circle-check"></i> In-app tenant messaging</li>
+            </ul>
+            <a href="{% url 'subscription:initiate_payment' plan.id %}" class="btn-subscribe">Subscribe Now</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <p class="pricing-footnote">You can change or cancel your plan anytime from account settings.</p>
+</div>
+{% endblock %}

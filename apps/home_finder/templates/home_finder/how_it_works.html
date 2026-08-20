@@ -1,0 +1,646 @@
+{% extends 'home_finder/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="vh-breadcrumb-wrap">
+    <div class="vh-breadcrumb-container">
+        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
+        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
+        <span>How It Works</span>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="vh-hiw-hero">
+    <div class="vh-container">
+        <div class="vh-hiw-hero-content">
+            <span class="vh-pill-badge"><i class="fa-solid fa-circle-question"></i> Simple, Transparent & Secure</span>
+            <h1>How <span>VacantHommie</span> Works</h1>
+            <p>
+                Whether you are searching for your next apartment in Accra, Kumasi, or Takoradi, or you're a property owner looking to fill vacancies with vetted tenants, here is how our platform makes it effortless.
+            </p>
+            <div class="vh-role-toggle-group">
+                <a href="#tenants-guide" class="vh-btn vh-btn-gold">
+                    <i class="fa-solid fa-user"></i> For Tenants &amp; Renters
+                </a>
+                <a href="#landlords-guide" class="vh-btn vh-btn-outline-white">
+                    <i class="fa-solid fa-building-user"></i> For Landlords &amp; Owners
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 1: For Tenants -->
+<section id="tenants-guide" class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Renter's Guide</span>
+            <h2 class="vh-section-title">How Renting Works for <span>Tenants</span></h2>
+            <p class="vh-section-sub">Find and secure your ideal home in 3 clear steps without stress or illegal agent viewing charges.</p>
+        </div>
+
+        <div class="vh-steps-grid">
+            <!-- Step 1 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">01</div>
+                <div class="vh-step-icon-wrap bg-emerald">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </div>
+                <h3>1. Search &amp; Filter</h3>
+                <p>
+                    Browse verified rental listings across all 16 regions in Ghana. Filter by location (Region, District, Town, Area), budget, bedroom count, and amenities to find your match.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> High-resolution photos &amp; real rental terms
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">02</div>
+                <div class="vh-step-icon-wrap bg-amber">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3>2. Book Viewings or Express Interest</h3>
+                <p>
+                    Found a property you love? Click <strong>Book Viewing</strong> to pick your preferred date and time, or register your interest with a single click from your tenant dashboard.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> 100% Free — No middlemen viewing fees
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">03</div>
+                <div class="vh-step-icon-wrap bg-blue">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <h3>3. Inspect &amp; Move In</h3>
+                <p>
+                    Meet the verified landlord for the viewing, inspect the premises, agree on tenancy agreement details, and finalize your lease with confidence and full transparency.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Direct interaction with verified landlords
+                </div>
+            </div>
+        </div>
+
+        <div class="vh-center-btn-wrap">
+            <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-navy">
+                <i class="fa-solid fa-house-chimney"></i> Browse Available Properties Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Section 2: For Landlords -->
+<section id="landlords-guide" class="vh-section">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Property Owner's Guide</span>
+            <h2 class="vh-section-title">How Listing Works for <span>Landlords</span></h2>
+            <p class="vh-section-sub">Rent out your vacancies faster, manage viewing schedules smoothly, and attract qualified tenants.</p>
+        </div>
+
+        <div class="vh-steps-grid">
+            <!-- Step 1 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">01</div>
+                <div class="vh-step-icon-wrap bg-purple">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h3>1. List Your Vacancy</h3>
+                <p>
+                    Create a landlord account and add your listing details in minutes: pricing, location, features, room types, and multi-angle photos with automated optimization.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Showcase all features &amp; amenities clearly
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">02</div>
+                <div class="vh-step-icon-wrap bg-emerald">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h3>2. Verify Identity Once</h3>
+                <p>
+                    Upload your <strong>Ghana Card / National ID</strong> once. Once approved by our compliance team, all your current and future listings receive the prestigious <strong>VERIFIED</strong> badge!
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Verified badges boost inquiries by up to 300%
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">03</div>
+                <div class="vh-step-icon-wrap bg-amber">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h3>3. Receive Inquiries &amp; Rent</h3>
+                <p>
+                    Manage viewing requests and tenant inquiries right from your dedicated Landlord Dashboard. Reschedule, confirm, and communicate directly with renters.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Instant notifications and dashboard tracking
+                </div>
+            </div>
+        </div>
+
+        <div class="vh-center-btn-wrap">
+            <a href="{% if request.user.is_authenticated and request.user.role == 'landlord' %}{% url 'landloards:create_property' %}{% else %}{% url 'account:role_select' %}{% endif %}" class="vh-btn vh-btn-gold">
+                <i class="fa-solid fa-plus"></i> List Your Property on VacantHommie
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Trust & Verification Breakdown -->
+<section class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-dual-grid">
+            <div class="vh-dual-content">
+                <span class="vh-section-tag">Safety First</span>
+                <h2 class="vh-section-title">Our Strict <span>Verification Standards</span></h2>
+                <p class="vh-lead-p">
+                    We take property legitimacy seriously. That's why unverified or suspicious properties are never approved for public search.
+                </p>
+                
+                <div class="vh-verification-items">
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-id-badge"></i></div>
+                        <div>
+                            <h4>Ghana Card Identity Check</h4>
+                            <p>Every landlord's identity is vetted by our compliance team against official national identification standards.</p>
+                        </div>
+                    </div>
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-file-contract"></i></div>
+                        <div>
+                            <h4>Land Title &amp; Indenture Audits</h4>
+                            <p>Property ownership documents and building permits can be attached to validate legal ownership.</p>
+                        </div>
+                    </div>
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-images"></i></div>
+                        <div>
+                            <h4>Genuine Media Processing</h4>
+                            <p>All property photos are processed, watermarked, and optimized to guarantee authentic visual representations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="vh-dual-image">
+                <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" alt="Beautiful Verified Property">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="vh-section">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Got Questions?</span>
+            <h2 class="vh-section-title">Frequently Asked <span>Questions</span></h2>
+            <p class="vh-section-sub">Quick answers to common questions about using VacantHommie.</p>
+        </div>
+
+        <div class="vh-faq-grid">
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> Do tenants pay any fee to browse or view properties?</h4>
+                <p>No! Browsing listings, filtering by location/price, and submitting viewing requests or expressing interest is completely free for tenants.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> How long does landlord document verification take?</h4>
+                <p>Our administrative team reviews uploaded Ghana Cards and property documents promptly—usually within a few hours to 1 business day.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> Can a landlord use one Ghana Card for all listings?</h4>
+                <p>Yes! Once your Ghana Card is uploaded and approved, it acts as a platform-wide identity verification covering all your current and future property listings.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> What should I do if I encounter an issue or have a question?</h4>
+                <p>You can reach our dedicated support team via our <a href="{% url 'home_finder:contact' %}">Contact Page</a> anytime and we will assist you immediately.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="vh-cta-section">
+    <div class="vh-container">
+        <div class="vh-cta-content">
+            <h2>Ready to Get Started?</h2>
+            <p>Experience safe, transparent, and modern property rentals in Ghana today.</p>
+            <div class="vh-cta-btns">
+                <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
+                    <i class="fa-solid fa-magnifying-glass"></i> Find a Home
+                </a>
+                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-outline-white">
+                    <i class="fa-solid fa-user-plus"></i> Create Free Account
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* ============================================================
+   How It Works Custom Styling
+   ============================================================ */
+:root {
+    --vh-navy: #0f172a;
+    --vh-navy-soft: #1e293b;
+    --vh-gold: #e8a33d;
+    --vh-gold-hover: #d9922a;
+    --vh-green: #059669;
+    --vh-border: #e2e8f0;
+    --vh-text-main: #0f172a;
+    --vh-text-muted: #64748b;
+    --vh-bg-light: #f8fafc;
+}
+
+.vh-breadcrumb-wrap {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--vh-border);
+    padding: 14px 0;
+}
+.vh-breadcrumb-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--vh-text-muted);
+}
+.vh-breadcrumb-container a {
+    color: var(--vh-text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+.vh-breadcrumb-container a:hover {
+    color: var(--vh-gold);
+}
+.vh-bc-sep {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.vh-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.vh-section {
+    padding: 80px 0;
+}
+.vh-bg-light {
+    background: var(--vh-bg-light);
+}
+
+/* HIW Hero */
+.vh-hiw-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 80px 0 90px;
+    text-align: center;
+}
+.vh-hiw-hero-content {
+    max-width: 780px;
+    margin: 0 auto;
+}
+.vh-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(232, 163, 61, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(232, 163, 61, 0.3);
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+.vh-hiw-hero h1 {
+    font-size: clamp(2rem, 3.5vw + 0.5rem, 3.2rem);
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 18px;
+}
+.vh-hiw-hero h1 span {
+    color: var(--vh-gold);
+}
+.vh-hiw-hero p {
+    font-size: 1.1rem;
+    color: #cbd5e1;
+    line-height: 1.7;
+    margin-bottom: 32px;
+}
+.vh-role-toggle-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Buttons */
+.vh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 26px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.vh-btn-gold {
+    background: var(--vh-gold);
+    color: #0f172a;
+    border: 2px solid var(--vh-gold);
+}
+.vh-btn-gold:hover {
+    background: var(--vh-gold-hover);
+    border-color: var(--vh-gold-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(232, 163, 61, 0.35);
+}
+.vh-btn-outline-white {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+}
+.vh-btn-outline-white:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+}
+.vh-btn-navy {
+    background: var(--vh-navy);
+    color: #ffffff;
+    border: 2px solid var(--vh-navy);
+}
+.vh-btn-navy:hover {
+    background: var(--vh-navy-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+}
+
+/* Steps Grid */
+.vh-section-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 50px;
+}
+.vh-section-tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--vh-gold);
+    margin-bottom: 10px;
+}
+.vh-section-title {
+    font-size: clamp(1.8rem, 2.5vw + 0.5rem, 2.4rem);
+    font-weight: 800;
+    color: var(--vh-navy);
+    line-height: 1.25;
+    margin-bottom: 14px;
+}
+.vh-section-title span {
+    color: var(--vh-gold);
+}
+.vh-section-sub {
+    font-size: 1rem;
+    color: var(--vh-text-muted);
+    line-height: 1.6;
+    margin-top: 6px;
+}
+
+.vh-steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+.vh-step-card {
+    background: #ffffff;
+    border: 1px solid var(--vh-border);
+    border-radius: 18px;
+    padding: 36px 28px;
+    position: relative;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+}
+.vh-step-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+    border-color: var(--vh-gold);
+}
+.vh-step-number {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #e2e8f0;
+    line-height: 1;
+}
+.vh-step-icon-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 22px;
+}
+.bg-emerald { background: #d1fae5; color: #059669; }
+.bg-amber { background: #fef3c7; color: #d97706; }
+.bg-blue { background: #dbeafe; color: #2563eb; }
+.bg-purple { background: #f3e8ff; color: #9333ea; }
+
+.vh-step-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--vh-navy);
+    margin-bottom: 12px;
+}
+.vh-step-card p {
+    font-size: 14px;
+    color: var(--vh-text-muted);
+    line-height: 1.65;
+    margin-bottom: 20px;
+    flex: 1;
+}
+.vh-step-highlight {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--vh-green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+.vh-center-btn-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 48px;
+}
+
+/* Dual Grid */
+.vh-dual-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 60px;
+    align-items: center;
+}
+.vh-dual-image img {
+    width: 100%;
+    height: 440px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+}
+.vh-lead-p {
+    font-size: 1.05rem;
+    color: #475569;
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+.vh-verification-items {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.vh-v-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+.vh-v-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #e6fffa;
+    color: #0d9488;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.vh-v-item h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--vh-navy);
+    margin-bottom: 4px;
+}
+.vh-v-item p {
+    font-size: 13.5px;
+    color: var(--vh-text-muted);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* FAQ Grid */
+.vh-faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+.vh-faq-card {
+    background: #ffffff;
+    border: 1px solid var(--vh-border);
+    border-radius: 14px;
+    padding: 28px;
+}
+.vh-faq-card h4 {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--vh-navy);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+}
+.text-gold {
+    color: var(--vh-gold);
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.vh-faq-card p {
+    font-size: 14px;
+    color: var(--vh-text-muted);
+    line-height: 1.65;
+    margin: 0;
+}
+.vh-faq-card a {
+    color: var(--vh-gold);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* CTA */
+.vh-cta-section {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 80px 0;
+    text-align: center;
+}
+.vh-cta-content h2 {
+    font-size: clamp(1.8rem, 2.5vw + 0.5rem, 2.4rem);
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+.vh-cta-content p {
+    font-size: 1.05rem;
+    color: #94a3b8;
+    max-width: 580px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+}
+.vh-cta-btns {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .vh-steps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .vh-dual-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+}
+@media (max-width: 768px) {
+    .vh-steps-grid,
+    .vh-faq-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

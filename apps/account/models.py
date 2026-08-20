@@ -19,16 +19,16 @@ class User(BaseModel, AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.TENANT)
 
-    # --- Free-trial window for landlords -----------------------------------
-    # We store the trial window on the User (rather than on a separate
-    # LandlordTrial table) because every landlord gets exactly one trial
-    # and the columns are tiny. The dates are NULL for non-landlords and
-    # for landlords whose trial has not been started yet; the
-    # ``trial_started`` boolean is the single source of truth for
-    # "has this landlord ever been granted a trial?" — guards and the
-    # context processor should consult that rather than inferring it
-    # from the date columns (so we can distinguish "never seeded" from
-    # "trial finished" without ambiguity).
+    email_property_alerts = models.BooleanField(
+        default=True,
+        help_text=(
+            "If True, the tenant receives an email when a new property "
+            "matches one of their saved PropertyAlert rows. The in-app "
+            "notification is always created regardless of this flag — "
+            "the email is the only thing this controls."
+        ),
+    )
+
     trial_started = models.BooleanField(
         default=False,
         db_index=True,
@@ -43,17 +43,8 @@ class User(BaseModel, AbstractUser):
     trial_end_date = models.DateTimeField(
         null=True,
         blank=True,
-        # Indexed because the daily Celery beat task filters on
-        # ``trial_end_date__lte=now`` for every landlord in the
-        # system. Without this index the query is a sequential scan
-        # that grows linearly with the user table.
         db_index=True,
     )
-    # Timestamp recorded the first time the daily beat task sends the
-    # "your free trial has ended" email to a given landlord. Used to
-    # make the notification genuinely one-time per landlord — without
-    # this we'd re-email every day until the landlord subscribes,
-    # which is spammy and erodes trust in the notification.
     notified_trial_ended_at = models.DateTimeField(
         null=True,
         blank=True,

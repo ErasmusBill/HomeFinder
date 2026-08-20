@@ -2,37 +2,37 @@
 <footer>
         <div class="footer-grid">
             <div class="footer-col">
-                <a href="#" class="logo" style="color: white; margin-bottom: 15px; display: inline-flex;">
-                    <img src="{% static 'images/logo.jpeg' %}" alt="VacantHommie" class="logo-icon" style="object-fit: contain;">
-                    VacantHommie <span>GHANA</span>
+                <a href="{% url 'home_finder:home' %}" class="logo" style="color: white; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 12px;">
+                    <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="logo-icon" style="object-fit: contain; width: 56px; height: 56px; min-width: 56px; border-radius: 12px; background: transparent; padding: 0;">
+                    <span style="font-size: 1.25rem; font-weight: 800;"><span style="color: #e8a33d; font-weight: 900; letter-spacing: 0.04em;"></span></span>
                 </a>
             </div>
             <div class="footer-col">
                 <h5>Quick Links</h5>
                 <ul>
                     <li><a href="{% url 'home_finder:list_properties' %}">Properties</a></li>
-                    <li><a href="#">How It Works</a></li>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Blog</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><a href="{% url 'home_finder:how_it_works' %}">How It Works</a></li>
+                    <li><a href="{% url 'home_finder:about' %}">About Us</a></li>
+                    <li><a href="{% url 'subscription:plans' %}">Pricing Plans</a></li>
+                    <li><a href="{% url 'home_finder:contact' %}">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-col">
                 <h5>For Tenants</h5>
                 <ul>
                     <li><a href="{% url 'home_finder:list_properties' %}">Browse Properties</a></li>
-                    <li><a href="#">Saved Properties</a></li>
-                    <li><a href="#">How It Works</a></li>
-                    <li><a href="#">Help Center</a></li>
+                    <li><a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}">Saved Properties</a></li>
+                    <li><a href="{% url 'home_finder:how_it_works' %}#tenants-guide">Tenant Guide</a></li>
+                    <li><a href="{% url 'home_finder:contact' %}">Help Center</a></li>
                 </ul>
             </div>
             <div class="footer-col">
                 <h5>For Landlords</h5>
                 <ul>
-                    <li><a href="{% url 'home_finder:list_properties' %}">List Your Property</a></li>
-                    <li><a href="#">Landlord Guide</a></li>
-                    <li><a href="#">Pricing Plans</a></li>
-                    <li><a href="#">Resources</a></li>
+                    <li><a href="{% if request.user.is_authenticated and request.user.role == 'landlord' %}{% url 'landloards:create_property' %}{% else %}{% url 'account:role_select' %}{% endif %}">List Your Property</a></li>
+                    <li><a href="{% url 'home_finder:how_it_works' %}#landlords-guide">Landlord Guide</a></li>
+                    <li><a href="{% url 'subscription:plans' %}">Pricing Plans</a></li>
+                    <li><a href="{% url 'home_finder:contact' %}">Landlord Support</a></li>
                 </ul>
             </div>
             <div class="footer-col">

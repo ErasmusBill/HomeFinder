@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Access Denied &mdash; VacantHommie{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 text-gray-800 antialiased flex items-center justify-center px-4">
+
+    <div class="w-full max-w-xl">
+        <div class="bg-white shadow-xl shadow-emerald-100/60 border border-emerald-100 rounded-3xl px-8 py-10 sm:px-12 sm:py-14 text-center">
+
+            <!-- Brand -->
+            <div class="flex items-center justify-center gap-2 mb-8">
+                <img src="{% static 'images/logo.png' %}"
+                     onerror="this.style.display='none'"
+                     alt="VacantHommie"
+                     class="w-10 h-10 rounded-xl object-contain">
+                <span class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">VacantHommie</span>
+            </div>
+
+            <!-- Icon + code -->
+            <div class="mx-auto w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6">
+                <i class="fa-solid fa-lock text-3xl text-emerald-600"></i>
+            </div>
+
+            <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600 mb-2">
+                Error 403
+            </p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+                Access denied
+            </h1>
+            <p class="text-gray-600 leading-relaxed mb-8">
+                {% block message %}
+                You don't have permission to view this page. If you believe this is a mistake,
+                please contact our support team and we'll be happy to help.
+                {% endblock %}
+            </p>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="{% url 'home_finder:home' %}"
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors shadow-sm">
+                    <i class="fa-solid fa-house"></i>
+                    Go to homepage
+                </a>
+                <a href="javascript:history.back()"
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white hover:bg-gray-50 text-gray-700 font-medium border border-gray-200 transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Go back
+                </a>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            Need help? Reach us at <span class="text-emerald-600">support@vacanthommie.com</span>
+        </p>
+    </div>
+
+</body>
+</html>

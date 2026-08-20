@@ -1,0 +1,310 @@
+{% extends 'landloards/landlord_base.html' %}
+{% load static %}
+
+{% block title %}Complete Your Profile | VacantHommie{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hide sidebar and top navigation for onboarding focus */
+    .dashboard-sidebar { display: none !important; }
+    .dashboard-main-content { margin-left: 0 !important; }
+    .dashboard-top-navbar { display: none !important; }
+
+    * { box-sizing: border-box; }
+
+    .onboarding-container {
+        max-width: 600px;
+        margin: 60px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+        border: 1.5px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+    .onboarding-container::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 5px;
+        background: var(--primary-green);
+    }
+
+    .onboarding-header { text-align: center; margin-bottom: 20px; }
+    .onboarding-logo { height: 40px; margin-bottom: 20px; }
+    .onboarding-title { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+    .onboarding-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 0; }
+
+    /* Step indicator */
+    .onboarding-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin: 22px 0 30px;
+    }
+    .step-track { display: flex; align-items: center; gap: 6px; }
+    .step-dot {
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700;
+        background: var(--primary-green);
+        color: white;
+        flex-shrink: 0;
+    }
+    .step-dot.step-pending { background: #e2e8f0; color: #94a3b8; }
+    .step-bar { width: 44px; height: 3px; border-radius: 2px; background: #e2e8f0; }
+    .step-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .step-label.step-current { color: var(--text-main); }
+
+    /* Status messages */
+    .onboarding-messages { margin-bottom: 20px; }
+    .onboarding-msg {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 14px; border-radius: 8px;
+        font-size: 13px; font-weight: 500;
+        margin-bottom: 10px; border: 1px solid transparent;
+    }
+    .onboarding-msg.msg-success { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
+    .onboarding-msg.msg-error { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+    .onboarding-msg.msg-warning { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+    .onboarding-msg.msg-info { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+
+    .onboarding-form .form-group-item { margin-bottom: 22px; }
+    .onboarding-form .form-group-item label {
+        display: flex; align-items: baseline; gap: 6px;
+        font-size: 13px; font-weight: 700; color: var(--text-main);
+        margin-bottom: 8px; letter-spacing: 0.01em;
+    }
+    .onboarding-form .required-mark { color: #dc2626; }
+    .onboarding-form .optional-tag { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.03em; }
+
+    /* Icon-in-input wrapper */
+    .onboarding-form .input-with-icon { position: relative; display: flex; align-items: center; }
+    .onboarding-form .input-with-icon i {
+        position: absolute; left: 16px; color: #94a3b8; font-size: 14px;
+        pointer-events: none; transition: color .15s ease;
+    }
+    .onboarding-form .input-with-icon input { padding-left: 42px; }
+    .onboarding-form .input-with-icon:focus-within i { color: var(--primary-green); }
+
+    .onboarding-form input[type="text"],
+    .onboarding-form input[type="email"],
+    .onboarding-form input[type="tel"],
+    .onboarding-form input[type="number"],
+    .onboarding-form input[type="url"],
+    .onboarding-form select,
+    .onboarding-form textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #0f172a;
+        outline: none;
+        background: #fff;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .onboarding-form input:hover,
+    .onboarding-form select:hover,
+    .onboarding-form textarea:hover { border-color: #cbd5e1; }
+    .onboarding-form input:focus,
+    .onboarding-form select:focus,
+    .onboarding-form textarea:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+    }
+
+    /* Custom file dropzone (native file input hidden, label styled instead) */
+    .dropzone-wrap { position: relative; }
+    .dropzone-wrap input[type="file"] {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        opacity: 0; cursor: pointer; z-index: 2;
+    }
+    .dropzone-label {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #f8fafc;
+        transition: border-color .15s ease, background .15s ease;
+    }
+    .dropzone-wrap:hover .dropzone-label,
+    .dropzone-label.has-file {
+        border-color: var(--primary-green);
+        background: #f0fdf9;
+    }
+    .dropzone-icon {
+        width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #e2e8f0; color: #64748b; font-size: 15px;
+        transition: background .15s ease, color .15s ease;
+    }
+    .dropzone-label.has-file .dropzone-icon { background: #d1fae5; color: #059669; }
+    .dropzone-text { font-size: 13.5px; color: #475569; }
+    .dropzone-text .dz-filename { font-weight: 700; color: #0f172a; }
+    .dropzone-text .dz-hint { display: block; font-size: 11.5px; color: #94a3b8; margin-top: 2px; }
+
+    .onboarding-form .field-hint {
+        display: flex; align-items: center; gap: 6px;
+        color: #94a3b8; font-size: 12px; margin-top: 7px;
+    }
+    .onboarding-form .field-hint.trust-hint { color: #059669; }
+    .onboarding-form .field-error {
+        display: flex; align-items: center; gap: 6px;
+        color: #dc2626; font-size: 12px; font-weight: 500; margin-top: 6px;
+    }
+    .onboarding-form .form-group-item.has-error input,
+    .onboarding-form .form-group-item.has-error select,
+    .onboarding-form .form-group-item.has-error textarea { border-color: #fca5a5; }
+    .onboarding-form .form-group-item.has-error input:focus,
+    .onboarding-form .form-group-item.has-error select:focus,
+    .onboarding-form .form-group-item.has-error textarea:focus {
+        border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.10);
+    }
+
+    .btn-onboarding {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; padding: 14px;
+        background: var(--primary-green);
+        color: white; font-weight: 700; font-size: 15px;
+        border-radius: 10px; border: none; cursor: pointer;
+        letter-spacing: 0.01em;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: background 0.2s ease, box-shadow 0.2s ease, transform .08s ease;
+    }
+    .btn-onboarding i { font-size: 13px; transition: transform .15s ease; }
+    .btn-onboarding:hover { background: var(--primary-green-hover); box-shadow: 0 4px 12px rgba(5,150,105,0.25); }
+    .btn-onboarding:hover i { transform: translateX(3px); }
+    .btn-onboarding:active { transform: translateY(1px); }
+    .btn-onboarding:focus-visible { outline: 2px solid var(--primary-green); outline-offset: 2px; }
+
+    .onboarding-footnote {
+        text-align: center; font-size: 12px; color: #94a3b8;
+        margin-top: 14px;
+    }
+
+    @media (max-width: 640px) {
+        .onboarding-container { margin: 30px 16px; padding: 28px 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-container">
+    <div class="onboarding-header">
+        <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="onboarding-logo mx-auto">
+        <h1 class="onboarding-title">Welcome to VacantHommie!</h1>
+        <p class="onboarding-subtitle">Optionally tell us a bit about your business — you can always skip this and come back later.</p>
+    </div>
+
+    <div class="onboarding-steps">
+        <div class="step-track">
+            <span class="step-dot">1</span>
+            <span class="step-label step-current">Profile</span>
+        </div>
+        <span class="step-bar"></span>
+        <div class="step-track">
+            <span class="step-dot step-pending">2</span>
+            <span class="step-label">Pricing</span>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="onboarding-messages">
+        {% for message in messages %}
+        <div class="onboarding-msg {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% elif message.tags == 'warning' %}msg-warning{% else %}msg-info{% endif %}" role="alert">
+            <i class="fa-solid fa-circle-info"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="onboarding-form">
+        {% csrf_token %}
+        {% for field in form %}
+        {% with itype=field.field.widget.input_type label_lower=field.label|lower %}
+        <div class="form-group-item {% if field.errors %}has-error{% endif %}">
+            <label for="{{ field.id_for_label }}">
+                {{ field.label }}
+                {% if field.field.required %}<span class="required-mark">*</span>{% else %}<span class="optional-tag">Optional</span>{% endif %}
+            </label>
+
+            {% if itype == 'file' %}
+                <div class="dropzone-wrap">
+                    <label for="{{ field.id_for_label }}" class="dropzone-label" id="dz-label-{{ field.id_for_label }}">
+                        <span class="dropzone-icon"><i class="fa-solid fa-camera"></i></span>
+                        <span class="dropzone-text">
+                            <span class="dz-filename">Click to upload a photo</span>
+                            <span class="dz-hint">PNG or JPG, up to 5MB</span>
+                        </span>
+                    </label>
+                    {{ field }}
+                </div>
+            {% elif 'company' in label_lower or 'business' in label_lower %}
+                <div class="input-with-icon"><i class="fa-solid fa-building"></i>{{ field }}</div>
+            {% elif 'tax' in label_lower %}
+                <div class="input-with-icon"><i class="fa-solid fa-id-card"></i>{{ field }}</div>
+            {% elif 'bank' in label_lower or 'payout' in label_lower or 'account' in label_lower %}
+                <div class="input-with-icon"><i class="fa-solid fa-building-columns"></i>{{ field }}</div>
+            {% elif itype == 'email' %}
+                <div class="input-with-icon"><i class="fa-regular fa-envelope"></i>{{ field }}</div>
+            {% elif itype == 'tel' %}
+                <div class="input-with-icon"><i class="fa-solid fa-phone"></i>{{ field }}</div>
+            {% elif itype == 'number' %}
+                <div class="input-with-icon"><i class="fa-solid fa-hashtag"></i>{{ field }}</div>
+            {% elif itype == 'url' %}
+                <div class="input-with-icon"><i class="fa-solid fa-link"></i>{{ field }}</div>
+            {% elif itype == 'text' %}
+                <div class="input-with-icon"><i class="fa-solid fa-pen"></i>{{ field }}</div>
+            {% else %}
+                {{ field }}
+            {% endif %}
+
+            {% if field.help_text %}
+                <small class="field-hint">{{ field.help_text }}</small>
+            {% elif 'tax' in label_lower %}
+                <small class="field-hint"><i class="fa-solid fa-circle-info"></i> Used for tax reporting only — kept private.</small>
+            {% elif 'bank' in label_lower or 'payout' in label_lower %}
+                <small class="field-hint trust-hint"><i class="fa-solid fa-lock"></i> Encrypted and used only to send you payouts.</small>
+            {% endif %}
+
+            {% for error in field.errors %}
+                <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endwith %}
+        {% endfor %}
+
+        <button type="submit" class="btn-onboarding mt-4">Save & Continue <i class="fa-solid fa-arrow-right"></i></button>
+        <p class="onboarding-footnote">You can update any of these details later from your account settings.</p>
+    </form>
+
+    <!-- Skip option -->
+    <form method="POST" style="margin-top: 12px; text-align: center;">
+        {% csrf_token %}
+        <button type="submit" name="skip" value="1" style="background: none; border: none; color: #94a3b8; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 4px;">
+            Skip for now — I'll complete my profile later
+        </button>
+    </form>
+</div>
+
+<script>
+document.querySelectorAll('input[type="file"]').forEach(function (input) {
+    input.addEventListener('change', function () {
+        var label = document.getElementById('dz-label-' + input.id);
+        if (!label) return;
+        var nameEl = label.querySelector('.dz-filename');
+        if (input.files && input.files.length > 0) {
+            nameEl.textContent = input.files[0].name;
+            label.classList.add('has-file');
+        } else {
+            nameEl.textContent = 'Click to upload a photo';
+            label.classList.remove('has-file');
+        }
+    });
+});
+</script>
+{% endblock %}

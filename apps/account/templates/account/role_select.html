@@ -1,0 +1,295 @@
+{% extends 'home_finder/base.html' %}
+{% load static %}
+
+{% block title %}Join VacantHommie — Find a Home or List Your Property{% endblock %}
+
+{% block content %}
+<section class="rs-section">
+
+    <div class="rs-container">
+
+        <!-- Header -->
+        <div class="rs-header">
+            <a href="{% url 'home_finder:home' %}" class="rs-back-link">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </a>
+            <div class="rs-logo-badge">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <h1>Welcome to <span>VacantHommie</span></h1>
+            <p>Tell us who you are so we can personalise your experience.</p>
+        </div>
+
+        <!-- Cards -->
+        <div class="rs-cards">
+
+            <!-- TENANT -->
+            <a href="{% url 'account:register' %}?role=tenant" class="rs-card rs-tenant" id="join-as-tenant">
+                <div class="rs-card-icon tenant-icon">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </div>
+                <div class="rs-card-badge">Free forever</div>
+                <h2>I'm a <strong>Tenant</strong></h2>
+                <p>Find your perfect home, save favourites and apply directly to landlords.</p>
+                <ul class="rs-perks">
+                    <li><i class="fa-solid fa-check"></i> Browse thousands of listings</li>
+                    <li><i class="fa-solid fa-check"></i> Save favourite properties</li>
+                    <li><i class="fa-solid fa-check"></i> Contact landlords directly</li>
+                    <li><i class="fa-solid fa-check"></i> Set property alerts</li>
+                </ul>
+                <div class="rs-cta tenant-cta">
+                    Find a Home <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- LANDLORD -->
+            <a href="{% url 'account:register' %}?role=landlord" class="rs-card rs-landlord" id="join-as-landlord">
+                <div class="rs-card-icon landlord-icon">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div class="rs-card-badge landlord-badge">30 -day free trial</div>
+                <h2>I'm a <strong>Landlord</strong></h2>
+                <p>List your properties, manage tenants and grow your rental portfolio.</p>
+                <ul class="rs-perks">
+                    <li><i class="fa-solid fa-check"></i> List unlimited properties</li>
+                    <li><i class="fa-solid fa-check"></i> Tenant screening tools</li>
+                    <li><i class="fa-solid fa-check"></i> Analytics dashboard</li>
+                    <li><i class="fa-solid fa-check"></i> Priority support</li>
+                </ul>
+                <div class="rs-cta landlord-cta">
+                    Start Free Trial <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Footer note -->
+        <p class="rs-footer-note">
+            Already have an account? <a href="{% url 'account:login' %}">Log in</a>
+        </p>
+
+    </div>
+</section>
+
+<style>
+* { box-sizing: border-box; }
+
+.rs-section {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 40%, #f8fafc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+.rs-container {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Header */
+.rs-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+.rs-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 30px;
+    transition: color .15s;
+}
+.rs-back-link:hover { color: #059669; }
+
+.rs-logo-badge {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #059669, #10b981);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(5,150,105,0.3);
+}
+
+.rs-header h1 {
+    font-size: 36px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+.rs-header h1 span { color: #059669; }
+.rs-header p {
+    font-size: 16px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+/* Cards */
+.rs-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.rs-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 36px;
+    border: 2px solid #e2e8f0;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    cursor: pointer;
+}
+.rs-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 24px 24px 0 0;
+}
+.rs-tenant::before { background: linear-gradient(90deg, #059669, #34d399); }
+.rs-landlord::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+
+.rs-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+.rs-tenant:hover { border-color: #059669; }
+.rs-landlord:hover { border-color: #6366f1; }
+
+/* Icon */
+.rs-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+.tenant-icon { background: #d1fae5; color: #059669; }
+.landlord-icon { background: #ede9fe; color: #6366f1; }
+
+/* Badge */
+.rs-card-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #d1fae5;
+    color: #059669;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.landlord-badge {
+    background: #ede9fe;
+    color: #6366f1;
+}
+
+.rs-card h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+.rs-card p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Perks */
+.rs-perks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+.rs-perks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+}
+.rs-perks li i {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+.rs-tenant .rs-perks li i { background: #d1fae5; color: #059669; }
+.rs-landlord .rs-perks li i { background: #ede9fe; color: #6366f1; }
+
+/* CTA */
+.rs-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 24px;
+    border-radius: 12px;
+    margin-top: 8px;
+    transition: gap .15s ease, transform .08s ease;
+}
+.rs-cta i { transition: transform .15s ease; }
+.rs-card:hover .rs-cta i { transform: translateX(4px); }
+
+.tenant-cta { background: linear-gradient(135deg, #059669, #10b981); color: white; }
+.rs-tenant:hover .tenant-cta { box-shadow: 0 6px 20px rgba(5,150,105,0.35); }
+
+.landlord-cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.rs-landlord:hover .landlord-cta { box-shadow: 0 6px 20px rgba(99,102,241,0.35); }
+
+/* Footer */
+.rs-footer-note {
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+}
+.rs-footer-note a {
+    color: #059669;
+    font-weight: 700;
+    text-decoration: none;
+}
+.rs-footer-note a:hover { text-decoration: underline; }
+
+@media (max-width: 700px) {
+    .rs-cards { grid-template-columns: 1fr; }
+    .rs-header h1 { font-size: 26px; }
+    .rs-card { padding: 30px 24px; }
+}
+</style>
+
+{% endblock %}

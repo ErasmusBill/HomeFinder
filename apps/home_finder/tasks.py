@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task(name="process_property_cover", bind=True)
 def process_property_cover(self, property_id):
-    print(f"Processing cover image for property {property_id} in {self.request.hostname}")
+    logger.info(f"Processing cover image for property {property_id} in {self.request.hostname}")
 
     try:
         property_obj = Property.objects.get(pk=property_id)
@@ -26,7 +26,8 @@ def process_property_cover(self, property_id):
             compressed_file = compress_image(original_file)
             filename = original_file.name.split("/")[-1]
 
-            property_obj.cover_image.save(filename, compressed_file, save=True)
+            property_obj.cover_image.save(filename, compressed_file, save=False)
+            property_obj.save(update_fields=['cover_image'])
 
             logger.info(f"Successfully compressed cover image for property {property_id}")
 
@@ -36,7 +37,8 @@ def process_property_cover(self, property_id):
 
 @shared_task(name="process_property_media", bind=True)
 def process_property_media(self, media_id):
-    print(f"Processing media {media_id} in {self.request.hostname}")
+    logger.info(f"Processing media {media_id} in {self.request.hostname}")
+
 
     try:
         media = PropertyMedia.objects.get(pk=media_id)

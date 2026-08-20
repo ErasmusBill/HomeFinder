@@ -575,7 +575,9 @@
         letter-spacing: 0.03em;
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
         width: 100%;
         padding: 10px 12px;
         border: 1px solid var(--border-color, #e9ebef);
@@ -585,10 +587,14 @@
         color: var(--text-dark, #14213d);
         background: #fff;
         box-sizing: border-box;
+        font-family: inherit;
     }
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
         border-color: var(--primary, #1f8a4c);
     }
+
 
     /* ================= Responsive Media Queries ================= */
 
@@ -717,8 +723,20 @@
 <section class="property-detail-section">
     <div class="property-detail-container">
 
+        {% if messages %}
+            <div class="property-alert-messages" style="margin-bottom: 24px;">
+                {% for message in messages %}
+                    <div class="alert-box" style="padding: 12px 18px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; {% if message.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;{% elif message.tags == 'success' %}background: #dcfce7; color: #166534; border: 1px solid #86efac;{% else %}background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc;{% endif %}">
+                        <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <!-- Header: Title & Actions -->
         <div class="detail-header-row">
+
             <div class="detail-title-area">
                 <div class="badge-group">
                     {% if property.verification_status == 'verified' %}
@@ -858,25 +876,39 @@
 
             </div>
 
-            <!-- Right Column: Agent Contact Card Sticky Sidebar -->
+            <!-- Right Column: Landlord Contact Card Sticky Sidebar -->
             <div class="detail-sidebar">
                 <div class="agent-card-sticky">
                     <div class="agent-header">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Agent Profile" class="agent-avatar" loading="lazy" decoding="async">
-                        <div>
-                            <h4>Akosua Mensah</h4>
-                            <p class="agent-role">Verified Prime Agent</p>
-                            <span class="rating"><i class="fa-solid fa-star"></i> 4.9 (42 reviews)</span>
+                        <div class="landlord-avatar-initial" style="width: 52px; height: 52px; border-radius: 50%; background: #dcfce7; color: #166534; font-weight: 800; font-size: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid #86efac; flex-shrink: 0;">
+                            {{ property.landlord.full_name|default:"Host"|slice:":1"|upper }}
+                        </div>
+                        <div style="min-width: 0;">
+                            <h4 style="margin: 0 0 2px; font-size: 1.05rem; font-weight: 700; color: var(--text-dark, #14213d); overflow-wrap: break-word;">
+                                {{ property.landlord.full_name|default:"Property Landlord" }}
+                            </h4>
+                            <p class="agent-role" style="margin: 0; font-size: 0.8rem; color: var(--text-muted, #5a6478);">Property Landlord / Host</p>
+                            <span class="rating" style="font-size: 0.75rem; color: var(--primary, #1f8a4c); font-weight: 600;">
+                                <i class="fa-solid fa-shield-halved text-green"></i> Verified Host
+                            </span>
                         </div>
                     </div>
 
+                    <!-- Direct Call & WhatsApp Contact Actions -->
                     <div class="agent-contact-actions">
-                        <a href="tel:+233201234567" class="btn btn-outline btn-block">
-                            <i class="fa-solid fa-phone"></i> Call Agent
-                        </a>
-                        <a href="https://wa.me/233201234567" target="_blank" class="btn btn-whatsapp btn-block" rel="noopener noreferrer">
-                            <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
-                        </a>
+                        {% if property.landlord_phone %}
+                            <a href="{{ property.landlord_call_url }}" class="btn btn-outline btn-block" title="Call Landlord">
+                                <i class="fa-solid fa-phone"></i> Call ({{ property.landlord_phone }})
+                            </a>
+                            <a href="{{ property.landlord_whatsapp_url }}" target="_blank" class="btn btn-whatsapp btn-block" rel="noopener noreferrer" title="Chat on WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline btn-block disabled" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <i class="fa-solid fa-phone-slash"></i> Phone Not Provided
+                            </button>
+                        {% endif %}
+
                         {% if request.user.is_authenticated and request.user.role == 'tenant' %}
                             <form method="post" action="{% url 'home_finder:express_property_interest' property.slug %}">
                                 {% csrf_token %}
@@ -890,24 +922,56 @@
 
                     <hr class="sidebar-divider">
 
-                    <form class="tour-form" onsubmit="event.preventDefault(); alert('Tour request sent successfully! The agent will contact you shortly.');">
-                        <h4>Schedule a Tour</h4>
-                        <div class="form-group">
-                            <label>Your Name</label>
-                            <input type="text" placeholder="Kwame Owusu" required>
+                    <!-- Functional Viewing Tour Booking Form (Guests + Authenticated Tenants) -->
+                    <form class="tour-form" method="POST" action="{% url 'home_finder:book_property_tour' property.slug %}">
+                        {% csrf_token %}
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                            <h4 style="margin: 0;">Schedule a Tour</h4>
+                            {% if not request.user.is_authenticated %}
+                                <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
+                                    <i class="fa-solid fa-user-check"></i> Guest Mode
+                                </span>
+                            {% endif %}
                         </div>
+
                         <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="tel" placeholder="+233 XX XXX XXXX" required>
+                            <label for="id_name">Your Name <span style="color:#ef4444;">*</span></label>
+                            <input type="text" id="id_name" name="name" value="{{ tour_form.name.value|default:'' }}" placeholder="Kwame Owusu" required>
                         </div>
+
                         <div class="form-group">
-                            <label>Preferred Date</label>
-                            <input type="date" required>
+                            <label for="id_email">Email Address <span style="color:#ef4444;">*</span></label>
+                            <input type="email" id="id_email" name="email" value="{{ tour_form.email.value|default:'' }}" placeholder="your.email@example.com" required>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Request Property Tour</button>
+
+                        <div class="form-group">
+                            <label for="id_phone">Phone Number <span style="color:#ef4444;">*</span></label>
+                            <input type="tel" id="id_phone" name="phone" value="{{ tour_form.phone.value|default:'' }}" placeholder="024 XXX XXXX or +233 XX XXX XXXX" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label for="id_preferred_date">Date <span style="color:#ef4444;">*</span></label>
+                                <input type="date" id="id_preferred_date" name="preferred_date" value="{{ tour_form.preferred_date.value|date:'Y-m-d'|default:tour_form.preferred_date.value|default:'' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_preferred_time">Time <span style="color:#ef4444;">*</span></label>
+                                <input type="time" id="id_preferred_time" name="preferred_time" value="{{ tour_form.preferred_time.value|time:'H:i'|default:tour_form.preferred_time.value|default:'' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_notes">Notes / Questions</label>
+                            <textarea id="id_notes" name="notes" rows="2" placeholder="Any preferred viewing arrangements...">{{ tour_form.notes.value|default:'' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fa-regular fa-calendar-check"></i> Request Property Tour
+                        </button>
                     </form>
                 </div>
             </div>
+
 
         </div>
 

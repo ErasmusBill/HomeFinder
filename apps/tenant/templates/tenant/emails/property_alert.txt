@@ -1,0 +1,14 @@
+Hi {{ full_name }},
+
+A new property just landed on VacantHommie that matches one of your saved alerts.
+
+  Title:      {{ property_title }}
+  Location:   {{ property_location }}
+  Room type:  {{ property_room_type }}
+  Price:      {{ property_price }}
+
+View it here: {{ property_url }}
+
+---
+You're receiving this because you have an active property alert on VacantHommie.
+You can manage or pause your alerts any time from your tenant dashboard.

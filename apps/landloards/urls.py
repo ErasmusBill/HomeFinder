@@ -1,10 +1,16 @@
 from django.urls import path
-from . import views
+from . import views, views_onboarding
 
 app_name = 'landloards'
 
 urlpatterns = [
+    # Onboarding
+    path('onboarding/profile/', views_onboarding.onboarding_profile, name='onboarding_profile'),
+    path('onboarding/pricing/', views_onboarding.onboarding_pricing, name='onboarding_pricing'),
+    path('onboarding/start-trial/', views_onboarding.start_free_trial, name='start_free_trial'),
     path('landlord_dashboard', views.landlords_dashboard, name='landloards_dashboard'),
+    path('landlord_dashboard/', views.landlords_dashboard, name='landloards_dashboard_slash'),
+    path('dashboard/', views.landlords_dashboard, name='dashboard'),
 
     # Amenities
     path('amenities/', views.list_amenities, name='amenity_list'),
@@ -32,4 +38,12 @@ urlpatterns = [
     # Subscription
     path('subcription/list_landlord_subscription/', views.list_landlord_subscription, name='list_landlord_subscription'),
     path('plans/<uuid:plan_id>/confirm/', views.confirm_plan_change_view, name='confirm_plan_change'),
+
+    # Viewing requests (landlord inbox)
+    path('viewing-requests/', views.viewing_requests_list_view, name='viewing_requests'),
+    path('viewing-requests/<uuid:request_id>/', views.viewing_request_detail_view, name='viewing_request_detail'),
+    path('viewing-requests/<uuid:request_id>/confirm/', views.confirm_viewing_request_view, name='confirm_viewing_request'),
+    path('viewing-requests/<uuid:request_id>/decline/', views.decline_viewing_request_view, name='decline_viewing_request'),
+    path('viewing-requests/<uuid:request_id>/reschedule/', views.reschedule_viewing_request_view, name='reschedule_viewing_request'),
+    path('viewing-requests/<uuid:request_id>/complete/', views.mark_viewing_completed_view, name='complete_viewing_request'),
 ]

@@ -14,7 +14,13 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight text-gray-900">Property Alerts</h1>
-                <p class="text-sm text-gray-500">Get notified when properties match your preferences.</p>
+                <p class="text-sm text-gray-500">
+                    {% if total_count %}
+                        {{ active_count }} active{% if paused_count %}, {{ paused_count }} paused{% endif %} &mdash; we'll notify you when properties match your preferences.
+                    {% else %}
+                        Get notified when properties match your preferences.
+                    {% endif %}
+                </p>
             </div>
         </div>
         <div>
@@ -33,9 +39,11 @@
             <div>
                 <p class="text-xs font-medium text-gray-500">Active Alerts</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-bold text-gray-900">{{ alerts_count|default:3 }}</span>
+                    <span class="text-2xl font-bold text-gray-900">{{ active_count|default:0 }}</span>
                 </div>
-                <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Receiving notifications</p>
+                <p class="text-[11px] text-emerald-600 font-medium mt-0.5">
+                    {% if active_count %}Receiving notifications{% else %}No active alerts yet{% endif %}
+                </p>
             </div>
         </div>
 
@@ -46,9 +54,11 @@
             <div>
                 <p class="text-xs font-medium text-gray-500">Paused Alerts</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-bold text-gray-900">1</span>
+                    <span class="text-2xl font-bold text-gray-900">{{ paused_count|default:0 }}</span>
                 </div>
-                <p class="text-[11px] text-blue-600 font-medium mt-0.5">Temporarily paused</p>
+                <p class="text-[11px] text-blue-600 font-medium mt-0.5">
+                    {% if paused_count %}Temporarily paused{% else %}Nothing paused{% endif %}
+                </p>
             </div>
         </div>
 
@@ -59,7 +69,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-500">Total Alerts</p>
                 <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-bold text-gray-900">4</span>
+                    <span class="text-2xl font-bold text-gray-900">{{ total_count|default:0 }}</span>
                 </div>
                 <p class="text-[11px] text-purple-600 font-medium mt-0.5">All time alerts</p>
             </div>
@@ -72,16 +82,24 @@
         <!-- Left 2 Columns: Alerts List -->
         <div class="lg:col-span-2 space-y-4">
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
-                <h2 class="text-sm font-bold text-gray-900">Your Property Alerts</h2>
-                <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl text-xs">
+                <h2 class="text-sm font-bold text-gray-900">
+                    Your Property Alerts
+                    <span class="text-xs font-medium text-gray-400 ml-1">({{ total_count|default:0 }})</span>
+                </h2>
+                <form method="GET" class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl text-xs">
                     <span class="text-gray-500 font-medium">Sort by:</span>
-                    <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-                        <option>Most Recent</option>
-                        <option>Oldest</option>
+                    <select name="sort"
+                            onchange="this.form.submit()"
+                            class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                        <option value="newest"  {% if current_sort == "newest"  %}selected{% endif %}>Most Recent</option>
+                        <option value="oldest"  {% if current_sort == "oldest"  %}selected{% endif %}>Oldest</option>
+                        <option value="active"  {% if current_sort == "active"  %}selected{% endif %}>Active First</option>
+                        <option value="paused"  {% if current_sort == "paused"  %}selected{% endif %}>Paused First</option>
                     </select>
-                </div>
+                </form>
             </div>
 
+            {% if alerts %}
             <div class="space-y-3">
                 {% for alert in alerts %}
                 <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -90,10 +108,10 @@
                             <i class="fa-regular fa-bell text-sm"></i>
                         </div>
                         <div class="space-y-1">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <h3 class="font-semibold text-gray-900 text-sm">
-                                    {% if alert.room_type %}{{ alert.room_type|title }}{% else %}Property{% endif %}
-                                    {% if alert.area %}in {{ alert.area.name }}{% elif alert.district %}in {{ alert.district.name }}{% elif alert.region %}in {{ alert.region.name }}{% endif %}
+                                    {{ alert.room_type|room_type_display }}
+                                    {% if alert.area %}in {{ alert.area.name }}{% elif alert.district %}in {{ alert.district.name }}{% elif alert.region %}in {{ alert.region.name }}{% else %}anywhere{% endif %}
                                 </h3>
                                 {% if alert.is_active %}
                                     <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full">Active</span>
@@ -102,70 +120,71 @@
                                 {% endif %}
                             </div>
                             <p class="text-xs text-gray-500 flex items-center gap-1">
-                                <i class="fa-solid fa-location-dot text-gray-400"></i> {{ alert.area.name|default:alert.region.name|default:"Any location" }}
+                                <i class="fa-solid fa-location-dot text-gray-400"></i>
+                                {% if alert.area %}{{ alert.area.name }}, {{ alert.district.name }}, {{ alert.region.name }}
+                                {% elif alert.district %}{{ alert.district.name }}, {{ alert.region.name }}
+                                {% elif alert.region %}{{ alert.region.name }}
+                                {% else %}Any location{% endif %}
                             </p>
+                            {% if alert.created_at %}
+                            <p class="text-[11px] text-gray-400">Created {{ alert.created_at|timeago }}</p>
+                            {% endif %}
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
                         <div class="text-left sm:text-right">
                             <p class="text-xs font-bold text-gray-900">
-                                {% if alert.min_price %}GH₵ {{ alert.min_price|floatformat:0 }}{% else %}GH₵ 0{% endif %} -
-                                {% if alert.max_price %}GH₵ {{ alert.max_price|floatformat:0 }}{% else %}Any{% endif %}
+                                {{ alert.min_price|ghana_money }} - {{ alert.max_price|ghana_money }}
                             </p>
-                            <p class="text-[11px] text-gray-500">Created: {{ alert.created_at|date:"M j, Y" }}</p>
+                            <p class="text-[11px] text-gray-500">{{ alert.room_type|room_type_display }}</p>
                         </div>
 
                         <!-- Action Buttons -->
                         <div class="flex items-center gap-1">
-                            <a href="{% url 'tenant:update_property_alert' alert.id %}" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors">
+                            <a href="{% url 'tenant:update_property_alert' alert.id %}"
+                               class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"
+                               title="Edit alert">
                                 <i class="fa-regular fa-pen-to-square text-xs"></i>
                             </a>
                             <form method="POST" action="{% url 'tenant:toggle_property_alert' alert.id %}">
                                 {% csrf_token %}
-                                <button type="submit" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors cursor-pointer border-0" title="Toggle Pause/Active">
+                                <button type="submit"
+                                        class="w-8 h-8 rounded-lg {% if alert.is_active %}bg-amber-50 hover:bg-amber-100 text-amber-600{% else %}bg-emerald-50 hover:bg-emerald-100 text-emerald-600{% endif %} flex items-center justify-center transition-colors cursor-pointer border-0"
+                                        title="{% if alert.is_active %}Pause alert{% else %}Activate alert{% endif %}">
                                     <i class="fa-solid fa-power-off text-xs"></i>
                                 </button>
                             </form>
-                            <form method="POST" action="{% url 'tenant:delete_property_alert' alert.id %}">
+                            <form method="POST" action="{% url 'tenant:delete_property_alert' alert.id %}"
+                                  onsubmit="return confirm('Delete this property alert? This cannot be undone.');">
                                 {% csrf_token %}
-                                <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border-0" title="Delete">
+                                <button type="submit"
+                                        class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors cursor-pointer border-0"
+                                        title="Delete">
                                     <i class="fa-regular fa-trash-can text-xs"></i>
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
-                {% empty %}
-                <!-- Static Fallback Mock Items -->
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-regular fa-bell text-sm"></i>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-gray-900 text-sm">2 Bedroom in East Legon</h3>
-                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full">Active</span>
-                            </div>
-                            <p class="text-xs text-gray-500 flex items-center gap-1">
-                                <i class="fa-solid fa-location-dot text-gray-400"></i> East Legon, Accra
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
-                        <div class="text-left sm:text-right">
-                            <p class="text-xs font-bold text-gray-900">GHS 1,500 - GHS 3,000</p>
-                            <p class="text-[11px] text-gray-500">Created: Today, 9:15 AM</p>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <a href="#" class="w-8 h-8 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-pen-to-square text-xs"></i></a>
-                            <a href="#" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors"><i class="fa-regular fa-trash-can text-xs"></i></a>
-                        </div>
-                    </div>
-                </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <!-- Clean empty state when the tenant has no alerts at all. -->
+            <div class="bg-white p-10 rounded-3xl border border-gray-100 shadow-xs text-center">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mb-4">
+                    <i class="fa-regular fa-bell"></i>
+                </div>
+                <h3 class="text-base font-bold text-gray-900">No property alerts yet</h3>
+                <p class="text-sm text-gray-500 mt-1 max-w-md mx-auto">
+                    Create your first alert and we'll notify you the moment a property that matches your preferences is listed.
+                </p>
+                <a href="#create-alert-form"
+                   class="inline-flex items-center gap-2 mt-5 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition-colors shadow-xs">
+                    <i class="fa-solid fa-plus text-xs"></i> Create Your First Alert
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Right Column: Form bound to PropertyAlertForm -->
@@ -271,7 +290,7 @@
             </div>
         </div>
         <div>
-            <a href="#" class="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0">
+            <a href="{% url 'account:settings' %}" class="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs shrink-0">
                 <i class="fa-solid fa-gear text-emerald-600"></i> Notification Settings
             </a>
         </div>

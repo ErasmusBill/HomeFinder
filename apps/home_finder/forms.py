@@ -1,5 +1,7 @@
 from django import forms
+from django.utils import timezone
 from apps.home_finder.models import Amenity, Property, PropertyMedia, LandlordDocument
+
 
 INPUT_CLASSES = (
     "block w-full rounded-lg border border-gray-300 "
@@ -180,3 +182,114 @@ class LandlordDocumentReviewForm(TailwindModelForm):
             "verification_status",
             "rejection_reason",
         ]
+
+
+class ContactForm(forms.Form):
+    SUBJECT_CHOICES = [
+        ("general", "General Inquiry"),
+        ("support", "Support & Assistance"),
+        ("landlord", "Landlord Listing Support"),
+        ("tenant", "Tenant Inquiries"),
+        ("partnership", "Partnership & Business"),
+        ("report", "Report an Issue"),
+    ]
+
+    name = forms.CharField(
+        max_length=120,
+        widget=forms.TextInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "Your Full Name",
+        }),
+        label="Full Name"
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "your.email@example.com",
+        }),
+        label="Email Address"
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "+233 XX XXX XXXX (Optional)",
+        }),
+        label="Phone Number"
+    )
+    subject = forms.ChoiceField(
+        choices=SUBJECT_CHOICES,
+        widget=forms.Select(attrs={
+            "class": SELECT_CLASSES,
+        }),
+        label="Subject"
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={
+            "class": TEXTAREA_CLASSES,
+            "rows": 5,
+            "placeholder": "How can we help you? Please describe your request or question...",
+        }),
+        label="Message"
+    )
+
+
+class PropertyTourBookingForm(forms.Form):
+    name = forms.CharField(
+        max_length=120,
+        required=True,
+        widget=forms.TextInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "Your Full Name",
+        }),
+        label="Your Name"
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "your.email@example.com",
+        }),
+        label="Email Address"
+    )
+    phone = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={
+            "class": INPUT_CLASSES,
+            "placeholder": "024 XXX XXXX or +233 XX XXX XXXX",
+        }),
+        label="Phone Number"
+    )
+    preferred_date = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={
+            "class": INPUT_CLASSES,
+            "type": "date",
+        }),
+        label="Preferred Date"
+    )
+    preferred_time = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(attrs={
+            "class": INPUT_CLASSES,
+            "type": "time",
+        }),
+        label="Preferred Time"
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            "class": TEXTAREA_CLASSES,
+            "rows": 3,
+            "placeholder": "Any specific requests, preferred viewing format, or questions for the landlord...",
+        }),
+        label="Notes / Questions (Optional)"
+    )
+
+    def clean_preferred_date(self):
+        preferred_date = self.cleaned_data.get("preferred_date")
+        if preferred_date and preferred_date < timezone.localdate():
+            raise forms.ValidationError("Preferred date cannot be in the past.")
+        return preferred_date

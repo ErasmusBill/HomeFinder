@@ -70,17 +70,32 @@ class ViewingRequestForm(forms.ModelForm):
             "notes": "Additional Notes",
         }
         widgets = {
-            "property": forms.Select(attrs={"class": INPUT_CLASS}),
+            "property": forms.Select(attrs={"class": SELECT_CLASS}),
             "preferred_date": forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}),
             "preferred_time": forms.TimeInput(attrs={"type": "time", "class": INPUT_CLASS}),
             "notes": forms.Textarea(attrs={"rows": 4, "class": TEXTAREA_CLASS, "placeholder": "Any specific notes for the landlord..."}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, exclude_property=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["notes"].required = False
         today = timezone.localdate()
         self.fields["preferred_date"].widget.attrs.update({"min": today.isoformat()})
+
+        if exclude_property:
+            self.fields.pop("property", None)
+            return
+
+        from apps.home_finder.models import Property
+
+        base_qs = Property.objects.filter(
+            is_available=True,
+        ).select_related("region", "district", "area").order_by("-created_at")
+
+        bound_property = self.data.get(self.add_prefix("property")) if self.is_bound else None
+        if bound_property:
+            base_qs = base_qs | Property.objects.filter(pk=bound_property)
+        self.fields["property"].queryset = base_qs.distinct()
 
     def clean_preferred_date(self):
         preferred_date = self.cleaned_data.get("preferred_date")

@@ -70,6 +70,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,14 +85,19 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR, 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
+
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.common.context_processors.landlord_subscription_status',
+                'apps.landloards.context_processors.landlord_viewing_request_counts',
+                'apps.tenant.context_processors.saved_count',
+                'apps.tenant.context_processors.recent_saved_properties',
+                'apps.tenant.context_processors.tenant_sidebar_counts',
             ],
         },
     },
@@ -104,10 +110,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db('DATABASE_URL', default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
 
 
@@ -181,7 +184,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-
+LOGIN_URL = 'account:login'
+LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 # Login & Signup methods
@@ -190,12 +194,55 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
+
 
 CELERY_BROKER_URL = env(
     "CELERY_BROKER_URL",
     default="redis://127.0.0.1:6379/0",
+)
+
+# ---------------------------------------------------------------------------
+# Property alert pipeline
+# ---------------------------------------------------------------------------
+# When False (default), creating/updating a property will NOT trigger any
+# tenant notifications even if matching PropertyAlert rows exist. This is a
+# kill-switch so the pipeline can be deployed and tested safely without
+# spamming real tenants.
+#
+# Flip to True (e.g. via .env: PROPERTY_ALERTS_ENABLED=True) once you're
+# ready to start notifying tenants of new matching properties.
+PROPERTY_ALERTS_ENABLED = env.bool("PROPERTY_ALERTS_ENABLED", default=False)
+
+# ---------------------------------------------------------------------------
+# Viewing request retention
+# ---------------------------------------------------------------------------
+# Number of days to keep a viewing request that has reached a terminal
+# state (cancelled or completed) before the nightly
+# ``purge_stale_viewing_requests_task`` Celery beat job hard-deletes it.
+# Pending and confirmed requests are never auto-deleted: those reflect
+# live plans the landlord needs to see and act on.
+VIEWING_REQUEST_RETENTION_DAYS = env.int(
+    "VIEWING_REQUEST_RETENTION_DAYS", default=30,
+)
+
+# When True, only properties with verification_status='verified' are
+# eligible for the alert pipeline. The default is False so the
+# pipeline matches the previous behavior (alerts on any published
+# listing); flip this to True once you're comfortable only surfacing
+# verified listings to tenants. See
+# apps/tenant/services/property_alerts.is_property_alertable.
+PROPERTY_ALERTS_REQUIRE_VERIFICATION = env.bool(
+    "PROPERTY_ALERTS_REQUIRE_VERIFICATION", default=False
+)
+
+# How long (in seconds) the email fanout is allowed to spread over for
+# a single property that matches many tenants. Each per-tenant email
+# task gets a countdown of (i / N) * FANOUT_MAX_DELAY, so a 100-tenant
+# fanout with FANOUT_MAX_DELAY=60 spreads emails over a minute, while
+# a 3-tenant fanout fires them within ~3 seconds. Set to 0 to fire
+# everything immediately (the original behavior).
+PROPERTY_ALERTS_FANOUT_MAX_DELAY = env.int(
+    "PROPERTY_ALERTS_FANOUT_MAX_DELAY", default=60
 )
 
 CELERY_RESULT_BACKEND = env(
@@ -249,6 +296,26 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'Subscription.tasks.send_trial_ending_reminders',
         'schedule': 24 * 60 * 60,
     },
+    # Property alert catchup — re-runs the matcher for any property
+    # published in the last 24h that may have been missed by the
+    # post_save signal (worker offline, pipeline previously disabled,
+    # etc.). The M2M dedup in apps.tenant.services.property_alerts
+    # ensures we only ever notify about a (tenant, property) pair once.
+    # Gated on PROPERTY_ALERTS_ENABLED so it stays a no-op when the
+    # pipeline is intentionally silenced.
+    'property-alert-catchup': {
+        'task': 'tenant.tasks.property_alert_catchup_task',
+        'schedule': 60 * 60,  # hourly
+    },
+    # Hard-delete viewing requests that have been sitting in a terminal
+    # state (cancelled / completed) for more than
+    # VIEWING_REQUEST_RETENTION_DAYS. Keeps the tenant dashboard list
+    # and stat counts tidy without manual cleanup.
+    # See apps/tenant/tasks.py::purge_stale_viewing_requests_task.
+    'purge-stale-viewing-requests': {
+        'task': 'tenant.tasks.purge_stale_viewing_requests_task',
+        'schedule': 24 * 60 * 60,  # once a day at 03:17 server time
+    },
 }
 
 
@@ -271,12 +338,14 @@ SOCIALACCOUNT_PROVIDERS = {
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_PORT = env.int("EMAIL_PORT", default=465)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@homefinder.com")
-EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="erasmuschawey12345@gmail.com")
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=20)
+
 
 
 PAYSTACK_SECRET_KEY=env("PAYSTACK_SECRET_KEY")

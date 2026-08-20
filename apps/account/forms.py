@@ -21,10 +21,15 @@ class RegisterUserForm(ModelForm):
         }),
         label="Confirm Password"
     )
+    role = forms.ChoiceField(
+        choices=[(User.Role.TENANT, 'tenant'), (User.Role.LANDLORD, 'landlord')],
+        widget=forms.HiddenInput(),
+        initial=User.Role.TENANT
+    )
 
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'phone_number', 'password']
+        fields = ['full_name', 'email', 'phone_number', 'role', 'password']
         widgets = {
             'full_name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
@@ -40,26 +45,34 @@ class RegisterUserForm(ModelForm):
             }),
         }
 
+    def __init__(self, *args, initial_role=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if initial_role:
+            self.fields['role'].initial = initial_role
+            self.initial['role'] = initial_role
+            # If no POST data has overridden it, force the initial
+            if not self.data.get('role'):
+                self.data = self.data.copy()
+                self.data['role'] = initial_role
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
-
         if password and confirm_password and password != confirm_password:
             self.add_error('confirm_password', "Passwords do not match.")
-
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
         password = self.cleaned_data.get("password")
-
         if password:
             user.set_password(password)
-
         if commit:
             user.save()
         return user
+
+
 
 
 class TenantProfileForm(forms.ModelForm):
@@ -88,25 +101,23 @@ class TenantProfileForm(forms.ModelForm):
 class LandlordProfileForm(forms.ModelForm):
     class Meta:
         model = LandlordProfile
-        fields = ['profile_picture', 'company_name', 'tax_identification_number', 'payout_bank_account']
+        fields = ['profile_picture', 'company_name']
         widgets = {
             'profile_picture': forms.ClearableFileInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white'
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg bg-white'
             }),
             'company_name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                'placeholder': 'Company Name (Optional)'
-            }),
-            'tax_identification_number': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                'placeholder': 'Tax ID / TIN'
-            }),
-            'payout_bank_account': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500',
-                'placeholder': 'Bank Account Number'
+                'placeholder': 'e.g. Chawey Properties Ltd'
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Both fields are optional — user can skip this step entirely
+        self.fields['profile_picture'].required = False
+        self.fields['company_name'].required = False
+        self.fields['company_name'].help_text = 'Optional — you can always add this later in settings.'
 
 class PasswordResetForm(DjangoPasswordResetForm):
     email = forms.EmailField(

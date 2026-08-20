@@ -130,54 +130,29 @@ def create_user_profile(sender, instance, created, **kwargs):
             TenantProfile.objects.create(user=instance)
         elif instance.role == User.Role.LANDLORD:
             LandlordProfile.objects.create(user=instance)
-            # Start a 1-month free trial the moment the landlord account
-            # is created. ``start_landlord_trial`` is idempotent, so
-            # even if the data migration has already seeded the trial
-            # we won't double-write it. We don't wrap the profile
-            # creation in the same atomic block because we want a
-            # profile row even if the trial seed fails for any
-            # reason (the trial can be backfilled later by an admin
-            # running the seed management command).
-            try:
-                start_landlord_trial(instance)
-            except Exception:
-                logger.exception(
-                    "create_user_profile: trial seed failed for landlord %s; "
-                    "profile was created but the trial row is missing. "
-                    "Run `python manage.py backfill_landlord_trials` to repair.",
-                    instance.pk,
-                )
+            # Automatically seed the 30-day free trial on landlord signup.
+            # start_landlord_trial uses select_for_update inside its own
+            # transaction.atomic(), so it's safe to call here directly.
+            # Calling it directly (rather than via on_commit) ensures it runs
+            # inside Django TestCase's wrapping transaction so tests can assert
+            # trial fields without a real commit.
+            start_landlord_trial(instance)
+
     else:
-        # Existing user being updated. If the role was just
-        # changed TO landlord (i.e. a tenant was promoted, or the
-        # user was created without a role and is now being assigned
-        # landlord), seed the trial. We only fire on an actual
-        # role transition (previous_role != landlord) so that:
-        #   - ordinary landlord profile updates don't re-seed, and
-        #   - ``manage_trial revoke`` (which clears trial_started
-        #     but keeps role='landlord') is not immediately undone.
-        # ``start_landlord_trial`` is still idempotent on its own,
-        # so this branch is the same safety net.
         previous_role = getattr(instance, "_previous_role", None)
         if (
             instance.role == User.Role.LANDLORD
             and previous_role != User.Role.LANDLORD
         ):
             # A user changing roles may only have the profile for their old
-            # role.  Create the new role's profile before any view tries to
+            # role. Create the new role's profile before any view tries to
             # access the reverse one-to-one relation.
             LandlordProfile.objects.get_or_create(user=instance)
-            try:
-                start_landlord_trial(instance)
-            except Exception:
-                logger.exception(
-                    "create_user_profile: trial seed failed on role "
-                    "change for landlord %s; "
-                    "Run `python manage.py backfill_landlord_trials` to repair.",
-                    instance.pk,
-                )
+            # Also seed the trial for role transitions (e.g. tenant → landlord).
+            start_landlord_trial(instance)
         elif (
             instance.role == User.Role.TENANT
             and previous_role != User.Role.TENANT
         ):
             TenantProfile.objects.get_or_create(user=instance)
+

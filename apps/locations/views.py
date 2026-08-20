@@ -4,12 +4,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.common.cache import invalidate_locations_cache
-from .forms import AreaForm, DistrictForm, RegionForm, TownForm
+from .forms import AreaForm, DistrictForm, RegionForm, TownForm, LocationHierarchyForm
 from .models import Area, District, Region, Town
 from .selectors import get_all_locations
+
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', 300)
 
@@ -266,10 +268,75 @@ def update_area(request, area_id: str):
 def list_locations(request):
     _clear_location_sessions(request)
 
-    locations = get_all_locations()
+    if request.method == 'POST':
+        form = LocationHierarchyForm(request.POST)
+        if form.is_valid():
+            region_name = form.cleaned_data['region_name'].strip()
+            district_name = form.cleaned_data.get('district_name', '').strip()
+            town_name = form.cleaned_data.get('town_name', '').strip()
+            area_name = form.cleaned_data.get('area_name', '').strip()
 
-    paginator = Paginator(locations, 50)
-    page = request.GET.get('page')
-    page_obj = paginator.get_page(page)
+            region, _ = Region.objects.get_or_create(name=region_name)
 
-    return render(request, 'locations/location.html', {'locations': page_obj})
+            district = None
+            if district_name:
+                district, _ = District.objects.get_or_create(region=region, name=district_name)
+
+            town = None
+            if town_name and district:
+                town, _ = Town.objects.get_or_create(district=district, name=town_name)
+
+            if area_name and town:
+                Area.objects.get_or_create(town=town, name=area_name)
+
+            _invalidate_location_cache()
+            messages.success(request, f'Location hierarchy under "{region_name}" saved successfully!')
+            return redirect('locations:list_locations')
+        else:
+            messages.error(request, 'Error saving location hierarchy. Please check the inputs.')
+    else:
+        form = LocationHierarchyForm()
+
+    search_query = request.GET.get('q', '').strip()
+
+    # Query regions with all nested children
+    regions_qs = Region.objects.prefetch_related(
+        'districts__towns__areas'
+    ).order_by('name')
+
+    if search_query:
+        regions_qs = regions_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(districts__name__icontains=search_query) |
+            Q(districts__towns__name__icontains=search_query) |
+            Q(districts__towns__areas__name__icontains=search_query)
+        ).distinct()
+
+    try:
+        per_page = int(request.GET.get('per_page', 5))
+        if per_page not in (5, 10, 20, 50):
+            per_page = 5
+    except (ValueError, TypeError):
+        per_page = 5
+
+    paginator = Paginator(regions_qs, per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    total_regions = Region.objects.count()
+    total_districts = District.objects.count()
+    total_towns = Town.objects.count()
+    total_areas = Area.objects.count()
+
+    context = {
+        'form': form,
+        'locations': page_obj,
+        'search_query': search_query,
+        'per_page': per_page,
+        'total_regions': total_regions,
+        'total_districts': total_districts,
+        'total_towns': total_towns,
+        'total_areas': total_areas,
+    }
+
+    return render(request, 'locations/location.html', context)

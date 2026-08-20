@@ -4,20 +4,42 @@
 
 {% block content %}
 <section class="login-section">
-    <div class="login-container">
+    <div class="login-container {% if is_landlord %}landlord-theme{% endif %}">
 
         <!-- Left Column: Register Form -->
         <div class="login-form-column">
 
             <div class="back-link-wrap">
-                <a href="{% url 'home_finder:home' %}" class="back-home-link">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                <a href="{% url 'account:role_select' %}" class="back-home-link">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to Join Options
+                </a>
+            </div>
+
+            <!-- Role Switcher: bordered tab control, replaces the old text link -->
+            <div class="role-tabs" role="tablist" aria-label="Choose account type">
+                <a href="{% url 'account:register' %}?role=tenant"
+                   class="role-tab tenant-tab {% if not is_landlord %}active-tab{% endif %}"
+                   role="tab" aria-selected="{% if not is_landlord %}true{% else %}false{% endif %}">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Tenant
+                </a>
+                <a href="{% url 'account:register' %}?role=landlord"
+                   class="role-tab landlord-tab {% if is_landlord %}active-tab{% endif %}"
+                   role="tab" aria-selected="{% if is_landlord %}true{% else %}false{% endif %}">
+                    <i class="fa-solid fa-building-user"></i> Landlord
                 </a>
             </div>
 
             <div class="login-header-block">
-                <h1>Create <span>Account</span></h1>
-                <p>Join VacantHommie to find or list your next property.</p>
+                {% if is_landlord %}
+                    <div class="role-pill landlord-pill"><i class="fa-solid fa-building-user"></i> Landlord Account</div>
+                    <h1>List your <span class="landlord-accent">Properties</span></h1>
+                    <p>Start your 30-day free trial. No credit card required.</p>
+                {% else %}
+                    <div class="role-pill tenant-pill"><i class="fa-solid fa-magnifying-glass-location"></i> Tenant Account</div>
+                    <h1>Find your <span>Dream Home</span></h1>
+                    <p>Join VacantHommie and discover thousands of verified listings.</p>
+                {% endif %}
             </div>
 
             <!-- Social Auth Buttons: only rendered for providers actually configured in the DB/settings -->
@@ -87,6 +109,9 @@
                     {% endif %}
                 </div>
 
+                {# role is submitted as a hidden field - no visible dropdown needed #}
+                {{ form.role }}
+
                 <!-- Password -->
                 <div class="form-group-item {% if form.password.errors %}has-error{% endif %}">
                     <label for="{{ form.password.id_for_label }}">Password</label>
@@ -119,9 +144,9 @@
                     {% endif %}
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary btn-block login-submit-btn">
-                    Create Account <i class="fa-solid fa-arrow-right"></i>
+                <button type="submit" class="btn btn-primary btn-block login-submit-btn {% if is_landlord %}landlord-submit-btn{% endif %}">
+                    {% if is_landlord %}Start Free Trial{% else %}Create Account{% endif %}
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
 
                 <!-- Login Redirect Footer -->
@@ -135,27 +160,46 @@
 
         <!-- Right Column: Features & Imagery Banner -->
         <div class="login-banner-column">
-            <div class="banner-features-stack">
-                <div class="banner-feature-item">
-                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div><h4>Verified & Safe</h4><p>Every property and landlord is verified for your safety.</p></div>
+                <div class="banner-features-stack">
+                    {% if is_landlord %}
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box purple-bg"><i class="fa-solid fa-chart-line"></i></div>
+                            <div><h4>Powerful Dashboard</h4><p>Manage all your properties in one place.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box purple-bg"><i class="fa-solid fa-user-check"></i></div>
+                            <div><h4>Tenant Screening</h4><p>Review applications and verify tenants easily.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box purple-bg"><i class="fa-solid fa-bell"></i></div>
+                            <div><h4>Instant Notifications</h4><p>Get notified the moment someone enquires.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box purple-bg"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                            <div><h4>30-Day Free Trial</h4><p>Full access, no credit card required.</p></div>
+                        </div>
+                    {% else %}
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box green-bg"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div><h4>Verified & Safe</h4><p>Every property and landlord is verified for your safety.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box green-bg"><i class="fa-solid fa-lock-open"></i></div>
+                            <div><h4>No Hidden Fees</h4><p>Transparent pricing with no surprise charges.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box green-bg"><i class="fa-solid fa-headset"></i></div>
+                            <div><h4>24/7 Support</h4><p>Our team is here to help you every step of the way.</p></div>
+                        </div>
+                        <div class="banner-feature-item">
+                            <div class="banner-icon-box green-bg"><i class="fa-regular fa-heart"></i></div>
+                            <div><h4>Save Favourites</h4><p>Save and compare your favourite properties.</p></div>
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="banner-feature-item">
-                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-lock-open"></i></div>
-                    <div><h4>No Hidden Fees</h4><p>Transparent pricing with no surprise charges.</p></div>
-                </div>
-                <div class="banner-feature-item">
-                    <div class="banner-icon-box green-bg"><i class="fa-solid fa-headset"></i></div>
-                    <div><h4>24/7 Support</h4><p>Our team is here to help you every step of the way.</p></div>
-                </div>
-                <div class="banner-feature-item">
-                    <div class="banner-icon-box green-bg"><i class="fa-regular fa-heart"></i></div>
-                    <div><h4>Save Favorites</h4><p>Save and compare your favorite properties.</p></div>
-                </div>
-            </div>
 
             <div class="banner-property-graphic">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80" alt="Luxury Modern Architecture">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80" alt="Luxury Modern Architecture" loading="lazy">
             </div>
         </div>
 
@@ -166,12 +210,83 @@
 * { box-sizing: border-box; }
 
 .login-section { background: #f8fafc; padding: 40px 5% 80px; }
-.login-container { max-width: 1350px; margin: 0 auto; background: white; border: 1px solid #e2e8f0; border-radius: 16px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+
+.login-container {
+    max-width: 1350px;
+    margin: 0 auto;
+    background: white;
+    border: 1.5px solid #a7f3d0;
+    border-radius: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    position: relative;
+}
+.login-container.landlord-theme {
+    border-color: #c7d2fe;
+}
+
+/* Colored top-edge accent tied to the selected role */
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: #059669;
+    z-index: 3;
+}
+.login-container.landlord-theme::before {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
 .login-form-column { padding: 50px 60px; }
 
 .back-link-wrap { margin-bottom: 25px; }
 .back-home-link { font-size: 13px; color: #64748b; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: color .15s ease, gap .15s ease; }
 .back-home-link:hover { color: #059669; gap: 10px; }
+
+/* Role tabs: bordered pair of options for switching account type */
+.role-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 22px;
+    background: #f8fafc;
+    border: 1.5px solid #a7f3d0;
+    border-radius: 12px;
+}
+.login-container.landlord-theme .role-tabs {
+    border-color: #c7d2fe;
+}
+.role-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1.5px solid transparent;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.role-tab:hover { color: #0f172a; }
+.role-tab.tenant-tab.active-tab {
+    background: #fff;
+    color: #059669;
+    border-color: #a7f3d0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.role-tab.landlord-tab.active-tab {
+    background: #fff;
+    color: #6366f1;
+    border-color: #c7d2fe;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
 
 .login-header-block { margin-bottom: 25px; }
 .login-header-block h1 { font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
@@ -214,8 +329,10 @@
 .input-with-icon input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(5,150,105,0.12); }
 .input-with-icon:focus-within i:not(.password-toggle-btn i) { color: #059669; }
 
+/* Fixed: JS now toggles the .password-visible class so padding stays correct
+   after the field switches from type="password" to type="text". */
 .input-with-icon input[type="password"],
-.input-with-icon input[type="text"].password-visible {
+.input-with-icon input.password-visible {
     padding-right: 44px;
 }
 
@@ -256,15 +373,27 @@
 .auth-redirect-footer a { color: #059669; font-weight: 700; text-decoration: none; }
 .auth-redirect-footer a:hover { text-decoration: underline; }
 
-.login-banner-column { background: #f1f5f9; padding: 50px 40px 0; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.login-banner-column { background: #f1f5f9; padding: 50px 40px 0; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; border-left: 1px solid #a7f3d0; }
+.login-container.landlord-theme .login-banner-column { border-left-color: #c7d2fe; }
 .banner-features-stack { display: flex; flex-direction: column; gap: 20px; z-index: 2; }
 .banner-feature-item { display: flex; align-items: flex-start; gap: 15px; }
-.banner-icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.banner-icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; border: 1.5px solid rgba(255,255,255,0.6); }
 .banner-icon-box.green-bg { background: #d1fae5; color: #059669; }
+.banner-icon-box.purple-bg { background: #ede9fe; color: #6366f1; }
 .banner-feature-item h4 { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
 .banner-feature-item p { font-size: 13px; color: #64748b; line-height: 1.4; }
-.banner-property-graphic { margin-top: 30px; border-top-left-radius: 16px; overflow: hidden; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); }
+.banner-property-graphic { margin-top: 30px; border-top-left-radius: 16px; overflow: hidden; box-shadow: 0 -10px 25px rgba(0,0,0,0.05); border: 1px solid #a7f3d0; border-bottom: none; border-right: none; }
+.login-container.landlord-theme .banner-property-graphic { border-color: #c7d2fe; }
 .banner-property-graphic img { width: 100%; height: 280px; object-fit: cover; display: block; }
+
+/* Role pill */
+.role-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+.tenant-pill { background: #d1fae5; color: #059669; border-color: #a7f3d0; }
+.landlord-pill { background: #ede9fe; color: #6366f1; border-color: #c7d2fe; }
+.landlord-accent { color: #6366f1; }
+.landlord-submit-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6) !important; }
+.landlord-submit-btn:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed) !important; box-shadow: 0 4px 12px rgba(99,102,241,0.35) !important; }
+
 
 @media(max-width: 1024px) {
     .login-container { grid-template-columns: 1fr; }
@@ -280,11 +409,13 @@ function togglePassword(fieldId, btn) {
     if (!field) return;
     if (field.type === 'password') {
         field.type = 'text';
+        field.classList.add('password-visible');
         icon.classList.remove('fa-eye-slash');
         icon.classList.add('fa-eye');
         btn.setAttribute('aria-label', 'Hide password');
     } else {
         field.type = 'password';
+        field.classList.remove('password-visible');
         icon.classList.remove('fa-eye');
         icon.classList.add('fa-eye-slash');
         btn.setAttribute('aria-label', 'Show password');

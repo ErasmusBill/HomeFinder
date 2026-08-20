@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from apps.home_finder.models import Property
+from apps.home_finder.models import Property, LandlordDocument
 
 CACHE_TTL = getattr(settings, "CACHE_TTL", 300)
 
@@ -10,11 +10,21 @@ def _property_cache_key(prefix, *args):
     return ":".join(["properties", prefix, *[str(arg) for arg in args if arg is not None]])
 
 def _property_queryset():
+    verified_docs_q = (
+        Q(
+            landlord_documents__verification_status=LandlordDocument.VerificationStatus.VERIFIED
+        )
+        | Q(
+            landlord__documents__document_type=LandlordDocument.DocumentType.NATIONAL_ID,
+            landlord__documents__verification_status=LandlordDocument.VerificationStatus.VERIFIED,
+        )
+    )
     return Property.objects.filter(
+        verified_docs_q,
         publication_status=Property.PublicationStatus.PUBLISHED,
         verification_status=Property.VerificationStatus.VERIFIED,
         is_available=True,
-    ).select_related(
+    ).distinct().select_related(
         "region",
         "district",
         "town",

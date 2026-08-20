@@ -43,13 +43,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/.venv/bin:$PATH"
 
-# Create a non-root user
-RUN useradd --create-home --shell /bin/bash appuser
+# Create a non-root user and staticfiles directory with correct ownership
+RUN useradd --create-home --shell /bin/bash appuser && \
+    mkdir -p /app/staticfiles /app/media && \
+    chown -R appuser:appuser /app
 
 # Bring in the pre-built virtual environment from /opt and app code with correct ownership
 COPY --chown=appuser:appuser --from=builder /opt/.venv /opt/.venv
 COPY --chown=appuser:appuser . /app
 
 USER appuser
+
+COPY --chown=appuser:appuser entrypoint.sh /entrypoint.sh
+
 EXPOSE 8000
-CMD ["gunicorn", "myproject.wsgi:application", "--bind", "0.0.0.0:8000"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]

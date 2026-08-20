@@ -1,0 +1,691 @@
+{% extends 'home_finder/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="vh-breadcrumb-wrap">
+    <div class="vh-breadcrumb-container">
+        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
+        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
+        <span>Contact Us</span>
+    </div>
+</div>
+
+<!-- Hero Header -->
+<section class="vh-contact-hero">
+    <div class="vh-container">
+        <div class="vh-contact-hero-content">
+            <span class="vh-pill-badge"><i class="fa-solid fa-headset"></i> We're Here to Help</span>
+            <h1>Get in Touch with <span>VacantHommie</span></h1>
+            <p>
+                Have a question about a rental listing, need help verifying your landlord account, or want to partner with us? Reach out anytime and our dedicated team will assist you.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Contact Section -->
+<section class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-contact-layout">
+
+            <!-- LEFT COLUMN: Contact Information & Cards -->
+            <div class="vh-contact-info-col">
+                <div class="vh-info-card-main">
+                    <h3>Contact Information</h3>
+                    <p class="vh-info-sub">Speak with our support agents or send us a message directly.</p>
+
+                    <div class="vh-info-list">
+                        <div class="vh-info-item">
+                            <div class="vh-info-icon"><i class="fa-solid fa-location-dot"></i></div>
+                            <div>
+                                <strong>Our Headquarters</strong>
+                                <span>Accra, Greater Accra Region, Ghana</span>
+                            </div>
+                        </div>
+
+                        <div class="vh-info-item">
+                            <div class="vh-info-icon"><i class="fa-solid fa-envelope"></i></div>
+                            <div>
+                                <strong>Email Support</strong>
+                                <a href="mailto:support@vacanthommie.com">support@vacanthommie.com</a>
+                                <span class="vh-info-extra">Typical response within 2 hours</span>
+                            </div>
+                        </div>
+
+                        <div class="vh-info-item">
+                            <div class="vh-info-icon"><i class="fa-solid fa-phone"></i></div>
+                            <div>
+                                <strong>Phone &amp; WhatsApp</strong>
+                                <a href="tel:+233209501103">+233 (0) 20 950 1103</a>
+                                <span class="vh-info-extra">Mon – Sat: 8:00 AM – 6:00 PM GMT</span>
+                            </div>
+                        </div>
+
+                        <div class="vh-info-item">
+                            <div class="vh-info-icon"><i class="fa-solid fa-clock"></i></div>
+                            <div>
+                                <strong>Office Hours</strong>
+                                <span>Monday to Saturday: 8:00am – 6:00pm</span>
+                                <span class="vh-info-extra">Online assistance available 24/7</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vh-social-block">
+                        <h4>Follow Our Community</h4>
+                        <div class="vh-contact-socials">
+                            <a href="#" class="vh-social-btn" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="vh-social-btn" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="vh-social-btn" title="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a>
+                            <a href="#" class="vh-social-btn" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Help Box -->
+                <div class="vh-quick-help-box">
+                    <div class="vh-qhelp-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div>
+                        <h4>Landlord Verification Assistance</h4>
+                        <p>Need urgent approval for your Ghana Card or property documents? Send an inquiry selecting "Landlord Listing Support".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Interactive Contact Form -->
+            <div class="vh-contact-form-col">
+                <div class="vh-form-card">
+                    <div class="vh-form-header">
+                        <h2>Send Us a Message</h2>
+                        <p>Fill in the form below and we will get back to you promptly.</p>
+                    </div>
+
+                    <!-- Django Messages Display -->
+                    {% if messages %}
+                        <div class="vh-messages-wrap">
+                            {% for msg in messages %}
+                                <div class="vh-alert-msg vh-alert-{{ msg.tags }}">
+                                    <i class="fa-solid {% if msg.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                                    <span>{{ msg }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'home_finder:contact' %}" class="vh-contact-form" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="vh-alert-msg vh-alert-error">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span>{{ form.non_field_errors }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="vh-form-row-2">
+                            <div class="vh-form-group">
+                                <label for="{{ form.name.id_for_label }}">Full Name <span class="req">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <span class="vh-field-err"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.name.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="vh-form-group">
+                                <label for="{{ form.email.id_for_label }}">Email Address <span class="req">*</span></label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <span class="vh-field-err"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.email.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="vh-form-row-2">
+                            <div class="vh-form-group">
+                                <label for="{{ form.phone.id_for_label }}">Phone Number <span class="optional">(Optional)</span></label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <span class="vh-field-err"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.phone.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="vh-form-group">
+                                <label for="{{ form.subject.id_for_label }}">Inquiry Subject <span class="req">*</span></label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <span class="vh-field-err"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.subject.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="vh-form-group">
+                            <label for="{{ form.message.id_for_label }}">Your Message <span class="req">*</span></label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <span class="vh-field-err"><i class="fa-solid fa-triangle-exclamation"></i> {{ form.message.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="vh-form-submit-wrap">
+                            <button type="submit" class="vh-btn vh-btn-gold vh-submit-btn">
+                                <i class="fa-solid fa-paper-plane"></i> Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Regions We Serve Banner -->
+<section class="vh-regions-serve-strip">
+    <div class="vh-container">
+        <div class="vh-regions-header">
+            <h3><i class="fa-solid fa-map-location-dot text-gold"></i> Serving Renters &amp; Landlords Across All 16 Regions of Ghana</h3>
+            <p>Accra • Kumasi • Takoradi • Cape Coast • Tamale • Sunyani • Tema • Koforidua • Ho • Techiman • Wa • Bolgatanga &amp; more.</p>
+        </div>
+    </div>
+</section>
+
+<style>
+/* ============================================================
+   Contact Page Custom Styling
+   ============================================================ */
+:root {
+    --vh-navy: #0f172a;
+    --vh-navy-soft: #1e293b;
+    --vh-gold: #e8a33d;
+    --vh-gold-hover: #d9922a;
+    --vh-green: #059669;
+    --vh-border: #e2e8f0;
+    --vh-text-main: #0f172a;
+    --vh-text-muted: #64748b;
+    --vh-bg-light: #f8fafc;
+    --vh-radius-sm: 10px;
+    --vh-radius-md: 16px;
+    --vh-radius-lg: 22px;
+}
+
+.vh-breadcrumb-wrap {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--vh-border);
+    padding: 16px 0;
+}
+.vh-breadcrumb-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--vh-text-muted);
+}
+.vh-breadcrumb-container a {
+    color: var(--vh-text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.vh-breadcrumb-container a:hover {
+    color: var(--vh-gold);
+    background: rgba(232, 163, 61, 0.08);
+}
+.vh-bc-sep {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.vh-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+.vh-section {
+    padding: 80px 0 96px;
+}
+.vh-bg-light {
+    background: var(--vh-bg-light);
+}
+
+/* Contact Hero */
+.vh-contact-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 80px 0 88px;
+    text-align: center;
+    border-radius: 0 0 var(--vh-radius-lg) var(--vh-radius-lg);
+}
+.vh-contact-hero-content {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+.vh-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: rgba(232, 163, 61, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(232, 163, 61, 0.3);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+.vh-contact-hero h1 {
+    font-size: clamp(2rem, 3.5vw + 0.5rem, 3rem);
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 18px;
+}
+.vh-contact-hero h1 span {
+    color: var(--vh-gold);
+}
+.vh-contact-hero p {
+    font-size: 1.08rem;
+    color: #cbd5e1;
+    line-height: 1.7;
+}
+
+/* Layout */
+.vh-contact-layout {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+/* Info Column */
+.vh-info-card-main {
+    background: #ffffff;
+    border: 1px solid var(--vh-border);
+    border-radius: var(--vh-radius-lg);
+    padding: 40px 36px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    margin-bottom: 24px;
+}
+.vh-info-card-main h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--vh-navy);
+    margin-bottom: 6px;
+}
+.vh-info-sub {
+    font-size: 14px;
+    color: var(--vh-text-muted);
+    margin-bottom: 30px;
+}
+.vh-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+}
+.vh-info-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 12px;
+    border-radius: var(--vh-radius-md);
+    transition: background 0.2s ease;
+}
+.vh-info-item:hover {
+    background: var(--vh-bg-light);
+}
+.vh-info-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(232, 163, 61, 0.12);
+    color: var(--vh-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.vh-info-item strong {
+    display: block;
+    font-size: 14.5px;
+    color: var(--vh-navy);
+    margin-bottom: 3px;
+}
+.vh-info-item a,
+.vh-info-item span {
+    font-size: 14px;
+    color: #475569;
+    text-decoration: none;
+    line-height: 1.4;
+}
+.vh-info-item a:hover {
+    color: var(--vh-gold);
+}
+.vh-info-extra {
+    display: block;
+    font-size: 12px;
+    color: var(--vh-green);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* Social Block */
+.vh-social-block {
+    padding-top: 26px;
+    border-top: 1px solid var(--vh-border);
+}
+.vh-social-block h4 {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--vh-navy);
+    margin-bottom: 14px;
+}
+.vh-contact-socials {
+    display: flex;
+    gap: 12px;
+}
+.vh-social-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #f1f5f9;
+    color: var(--vh-navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.vh-social-btn:hover {
+    background: var(--vh-gold);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(232, 163, 61, 0.3);
+}
+
+/* Quick Help Box */
+.vh-quick-help-box {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: var(--vh-radius-md);
+    padding: 26px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+.vh-qhelp-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: #10b981;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.vh-quick-help-box h4 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #065f46;
+    margin-bottom: 5px;
+}
+.vh-quick-help-box p {
+    font-size: 13px;
+    color: #047857;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Form Column */
+.vh-form-card {
+    background: #ffffff;
+    border: 1px solid var(--vh-border);
+    border-radius: var(--vh-radius-lg);
+    padding: 44px 40px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+.vh-form-header {
+    margin-bottom: 30px;
+}
+.vh-form-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--vh-navy);
+    margin-bottom: 6px;
+}
+.vh-form-header p {
+    font-size: 14px;
+    color: var(--vh-text-muted);
+}
+
+/* Alerts */
+.vh-messages-wrap {
+    margin-bottom: 24px;
+}
+.vh-alert-msg {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--vh-radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.vh-alert-success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+.vh-alert-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Form Fields */
+.vh-contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.vh-form-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+.vh-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vh-form-group label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--vh-navy);
+}
+.req {
+    color: #ef4444;
+}
+.optional {
+    font-size: 12px;
+    color: var(--vh-text-muted);
+    font-weight: 500;
+}
+
+/* Style the actual Django-rendered inputs/textarea/select.
+   These have no classes by default, so target them generically
+   within the form group for a consistent, friendly look. */
+.vh-form-group input[type="text"],
+.vh-form-group input[type="email"],
+.vh-form-group input[type="tel"],
+.vh-form-group input:not([type]),
+.vh-form-group select,
+.vh-form-group textarea {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 14.5px;
+    font-family: inherit;
+    color: var(--vh-text-main);
+    background: var(--vh-bg-light);
+    border: 1.5px solid var(--vh-border);
+    border-radius: var(--vh-radius-sm);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-sizing: border-box;
+}
+.vh-form-group textarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.6;
+}
+.vh-form-group input::placeholder,
+.vh-form-group textarea::placeholder {
+    color: #94a3b8;
+}
+.vh-form-group input:hover,
+.vh-form-group select:hover,
+.vh-form-group textarea:hover {
+    border-color: #cbd5e1;
+}
+.vh-form-group input:focus,
+.vh-form-group select:focus,
+.vh-form-group textarea:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--vh-gold);
+    box-shadow: 0 0 0 4px rgba(232, 163, 61, 0.15);
+}
+.vh-form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.vh-field-err {
+    font-size: 12px;
+    color: #ef4444;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.vh-form-submit-wrap {
+    margin-top: 4px;
+}
+.vh-submit-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 15px;
+    font-size: 16px;
+}
+
+.vh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: var(--vh-radius-sm);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.vh-btn-gold {
+    background: var(--vh-gold);
+    color: #0f172a;
+    border: 2px solid var(--vh-gold);
+}
+.vh-btn-gold:hover {
+    background: var(--vh-gold-hover);
+    border-color: var(--vh-gold-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(232, 163, 61, 0.35);
+}
+.vh-btn-gold:active {
+    transform: translateY(0);
+}
+.vh-btn-gold:focus-visible {
+    outline: 3px solid rgba(232, 163, 61, 0.5);
+    outline-offset: 2px;
+}
+
+/* Regions Serve Strip */
+.vh-regions-serve-strip {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 48px 0;
+    text-align: center;
+    border-radius: var(--vh-radius-lg) var(--vh-radius-lg) 0 0;
+}
+.vh-regions-header h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.text-gold {
+    color: var(--vh-gold);
+}
+.vh-regions-header p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .vh-contact-layout {
+        grid-template-columns: 1fr;
+    }
+    .vh-form-row-2 {
+        grid-template-columns: 1fr;
+    }
+    .vh-section {
+        padding: 56px 0 64px;
+    }
+}
+@media (max-width: 560px) {
+    .vh-contact-hero {
+        padding: 56px 0 64px;
+        border-radius: 0 0 var(--vh-radius-md) var(--vh-radius-md);
+    }
+    .vh-form-card {
+        padding: 28px 22px;
+        border-radius: var(--vh-radius-md);
+    }
+    .vh-info-card-main {
+        padding: 28px 22px;
+        border-radius: var(--vh-radius-md);
+    }
+    .vh-quick-help-box {
+        padding: 20px;
+        border-radius: var(--vh-radius-sm);
+    }
+    .vh-container {
+        padding: 0 18px;
+    }
+}
+</style>
+{% endblock %}

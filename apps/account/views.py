@@ -67,20 +67,42 @@ def _should_auto_redirect_to_paystack(user):
     return not LandlordSubscription.objects.filter(landlord=user).exists()
 
 
+def role_select_view(request):
+    """Step 1: Ask the user whether they are a Tenant or a Landlord."""
+    if request.user.is_authenticated:
+        return redirect('home_finder:home')
+    return render(request, 'account/role_select.html')
+
+
 def register_view(request):
+    """Step 2: Registration form, role pre-filled from ?role= query param."""
+    if request.user.is_authenticated:
+        return redirect('home_finder:home')
+
+
+    role_param = (request.POST.get('role') or request.GET.get('role', '')).lower()
+
+    valid_roles = {User.Role.TENANT, User.Role.LANDLORD}
+
+    initial_role = role_param if role_param in valid_roles else User.Role.TENANT
+
     if request.method == 'POST':
-        form = RegisterUserForm(request.POST, request.FILES)
+        form = RegisterUserForm(request.POST, request.FILES, initial_role=initial_role)
         if form.is_valid():
             user = form.save()
             send_activation_email_task.delay(user.id)
-
-            messages.success(request, 'Account created successfully! Please check your email to activate your account.')
+            messages.success(
+                request,
+                'Account created! Please check your email to verify your account before logging in.'
+            )
             return redirect('account:login')
     else:
-        form = RegisterUserForm()
+        form = RegisterUserForm(initial_role=initial_role)
 
     context = {
-        'form': form
+        'form': form,
+        'role': initial_role,
+        'is_landlord': initial_role == User.Role.LANDLORD,
     }
     return render(request, 'account/register.html', context)
 
@@ -256,13 +278,13 @@ def change_password_view(request):
 
             role_val = getattr(user, 'role', None)
             if role_val == User.Role.TENANT or role_val == 'tenant':
-                return redirect('tenant-dashboard')
+                return redirect('tenant:dashboard')
             elif role_val == User.Role.LANDLORD or role_val == 'landlord':
-                return redirect('landlord-dashboard')
+                return redirect('landloards:landloards_dashboard')
             elif role_val == User.Role.ADMIN or role_val == 'admin' or user.is_staff or user.is_superuser:
                 return redirect('/admin/')
             else:
-                return redirect('dashboard')
+                return redirect('home_finder:home')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
@@ -282,8 +304,6 @@ def account_settings_view(request):
     if user.role == User.Role.LANDLORD:
         template = "landloards/account/settings.html"
     elif user.role == User.Role.TENANT:
-        # Tenant settings have not yet got a dedicated page.  Keep the
-        # endpoint safe and render the generic template in the meantime.
         template = "tenant/account/settings.html"
     else:
         messages.error(request, "Admins manage their account settings in the admin site.")
@@ -306,10 +326,7 @@ def update_personal_information(request):
     if request.method != "POST":
         return redirect("account:settings")
 
-    form = UserProfileForm(
-        request.POST,
-        instance=request.user,
-    )
+    form = UserProfileForm(request.POST, instance=request.user,)
 
     if form.is_valid():
         form.save()

@@ -1,0 +1,448 @@
+{% extends 'landloards/landlord_base.html' %}
+
+{% block title %}Viewing Request - {{ viewing_request.property.title }}{% endblock %}
+
+{% block content %}
+<div class="vr-detail-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <div class="breadcrumb-trail">
+                <a href="{% url 'landloards:viewing_requests' %}">Viewing Requests</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span>Details</span>
+            </div>
+            <div class="title-with-badges">
+                <h1 class="page-title">{{ viewing_request.property.title }}</h1>
+                {% if viewing_request.status == 'pending' %}
+                    <span class="status-badge pending"><span class="dot"></span> Pending</span>
+                {% elif viewing_request.status == 'confirmed' %}
+                    <span class="status-badge confirmed"><i class="fa-solid fa-check"></i> Confirmed</span>
+                {% elif viewing_request.status == 'completed' %}
+                    <span class="status-badge completed"><i class="fa-solid fa-flag-checkered"></i> Completed</span>
+                {% elif viewing_request.status == 'cancelled' %}
+                    <span class="status-badge cancelled"><span class="dot"></span> Cancelled</span>
+                {% endif %}
+            </div>
+            <p class="page-subtitle">
+                <i class="fa-regular fa-calendar"></i>
+                Requested for {{ viewing_request.preferred_date|date:"l, F j, Y" }}
+                at {{ viewing_request.preferred_time|time:"g:i A" }}
+            </p>
+        </div>
+
+        <div class="header-action-buttons">
+            <a href="{% url 'landloards:viewing_requests' %}" class="btn-outline-action">
+                <i class="fa-solid fa-arrow-left"></i> Back to inbox
+            </a>
+
+            {% if viewing_request.status == 'pending' or viewing_request.status == 'confirmed' %}
+                <a href="{% url 'landloards:reschedule_viewing_request' viewing_request.id %}" class="btn-outline-action">
+                    <i class="fa-solid fa-calendar-pen"></i> Propose new time
+                </a>
+            {% endif %}
+
+            {% if viewing_request.status == 'pending' %}
+                <form action="{% url 'landloards:confirm_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary-green"
+                            onclick="return confirm('Confirm this viewing request?');">
+                        <i class="fa-solid fa-check"></i> Confirm
+                    </button>
+                </form>
+            {% endif %}
+
+            {% if viewing_request.status == 'confirmed' %}
+                <form action="{% url 'landloards:complete_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary-green"
+                            onclick="return confirm('Mark this viewing as completed?');">
+                        <i class="fa-solid fa-flag-checkered"></i> Mark completed
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="vr-detail-grid">
+
+        <!-- LEFT: Tenant & Request -->
+        <div class="vr-detail-left">
+
+            <!-- Tenant card -->
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-solid fa-user"></i> {% if viewing_request.is_guest %}Guest Requester{% else %}Tenant{% endif %}</h3>
+                <div class="vr-tenant-block">
+                    <div class="vr-tenant-avatar-lg" {% if viewing_request.is_guest %}style="background: #e0f2fe; color: #0369a1;"{% endif %}>
+                        {{ viewing_request.requester_name|slice:":1"|upper }}
+                    </div>
+                    <div class="vr-tenant-info">
+                        <strong>
+                            {{ viewing_request.requester_name }}
+                            {% if viewing_request.is_guest %}
+                                <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle;">Guest</span>
+                            {% endif %}
+                        </strong>
+                        {% if viewing_request.requester_email %}
+                            <span><i class="fa-regular fa-envelope"></i> {{ viewing_request.requester_email }}</span>
+                        {% endif %}
+                        {% if viewing_request.requester_phone %}
+                            <span><i class="fa-solid fa-phone"></i> {{ viewing_request.requester_phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Request details card -->
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-regular fa-calendar-check"></i> Request Details</h3>
+
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Requested date</span>
+                    <span class="vr-info-value">{{ viewing_request.preferred_date|date:"l, F j, Y" }}</span>
+                </div>
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Requested time</span>
+                    <span class="vr-info-value">{{ viewing_request.preferred_time|time:"g:i A" }}</span>
+                </div>
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Submitted on</span>
+                    <span class="vr-info-value">{{ viewing_request.created_at|date:"M j, Y \a\t g:i A" }}</span>
+                </div>
+
+                {% if viewing_request.notes %}
+                <div class="vr-notes-block">
+                    <span class="vr-info-label">Tenant notes</span>
+                    <p>{{ viewing_request.notes|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if viewing_request.status == 'pending' %}
+            <!-- Decline card -->
+            <div class="vr-detail-card danger-zone">
+                <h3 class="vr-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Decline this request</h3>
+                <p class="vr-danger-help">
+                    Declining will cancel the request and notify the tenant that you can't accommodate this viewing.
+                </p>
+                <form action="{% url 'landloards:decline_viewing_request' viewing_request.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger-outline"
+                            onclick="return confirm('Decline this viewing request? The tenant will be notified.');">
+                        <i class="fa-solid fa-xmark"></i> Decline viewing request
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- RIGHT: Property -->
+        <div class="vr-detail-right">
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-solid fa-house"></i> Property</h3>
+                <div class="vr-property-block">
+                    {% if viewing_request.property.cover_image %}
+                        <img src="{{ viewing_request.property.cover_image.url }}"
+                             alt="{{ viewing_request.property.title }}"
+                             class="vr-property-image">
+                    {% else %}
+                        <div class="vr-property-image vr-property-image-placeholder">
+                            <i class="fa-solid fa-house"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="vr-property-text">
+                        <strong>{{ viewing_request.property.title }}</strong>
+                        <span><i class="fa-solid fa-location-dot"></i>
+                            {{ viewing_request.property.area.name }},
+                            {{ viewing_request.property.town.name }}
+                        </span>
+                        <span class="vr-property-price">
+                            GHS {{ viewing_request.property.price|floatformat:0 }}
+                            <small>/ {{ viewing_request.property.get_payment_period_display }}</small>
+                        </span>
+                        <a href="{% url 'landloards:property_detail' viewing_request.property.slug %}"
+                           class="btn-outline-action btn-small">
+                            <i class="fa-solid fa-eye"></i> View property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .vr-detail-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .breadcrumb-trail {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+    .breadcrumb-trail a {
+        color: var(--text-muted);
+        text-decoration: none;
+    }
+    .breadcrumb-trail a:hover { color: var(--primary-green); }
+    .breadcrumb-trail i { font-size: 9px; }
+
+    .title-with-badges {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .header-action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn-outline-action {
+        background: white;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .btn-outline-action:hover {
+        background: #f8fafc;
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+    .btn-outline-action.btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    .btn-primary-green {
+        background: var(--primary-green);
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-primary-green:hover { background: var(--primary-green-hover); }
+
+    .btn-danger-outline {
+        background: white;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-danger-outline:hover {
+        background: #fef2f2;
+        border-color: #dc2626;
+    }
+
+    .vr-detail-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 900px) {
+        .vr-detail-grid { grid-template-columns: 1fr; }
+    }
+    .vr-detail-left, .vr-detail-right {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .vr-detail-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 18px 20px;
+    }
+    .vr-card-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 14px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .vr-card-title i { color: var(--primary-green); }
+
+    /* Tenant block */
+    .vr-tenant-block {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .vr-tenant-avatar-lg {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        font-weight: 700;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .vr-tenant-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .vr-tenant-info strong {
+        font-size: 15px;
+        color: var(--text-main);
+    }
+    .vr-tenant-info span {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Info rows */
+    .vr-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px;
+    }
+    .vr-info-row:last-of-type { border-bottom: none; }
+    .vr-info-label {
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 12px;
+    }
+    .vr-info-value {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    /* Notes */
+    .vr-notes-block {
+        margin-top: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+    .vr-notes-block p {
+        margin: 8px 0 0 0;
+        font-size: 13px;
+        color: var(--text-main);
+        line-height: 1.6;
+    }
+
+    /* Danger zone */
+    .vr-detail-card.danger-zone {
+        border-color: #fecaca;
+        background: #fffafa;
+    }
+    .vr-detail-card.danger-zone .vr-card-title { color: #991b1b; }
+    .vr-detail-card.danger-zone .vr-card-title i { color: #dc2626; }
+    .vr-danger-help {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0 0 12px 0;
+        line-height: 1.5;
+    }
+
+    /* Property block */
+    .vr-property-block {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .vr-property-image {
+        width: 100%;
+        height: 180px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+    .vr-property-image-placeholder {
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #cbd5e1;
+        font-size: 40px;
+    }
+    .vr-property-text {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .vr-property-text strong {
+        font-size: 15px;
+        color: var(--text-main);
+    }
+    .vr-property-text span {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .vr-property-price {
+        font-size: 14px !important;
+        font-weight: 700;
+        color: var(--primary-green) !important;
+        margin-top: 4px;
+    }
+    .vr-property-price small {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Status badges */
+    .status-badge.confirmed { background: #d1fae5; color: #065f46; }
+    .status-badge.confirmed i { font-size: 9px; }
+    .status-badge.completed { background: #dbeafe; color: #1e40af; }
+    .status-badge.completed i { font-size: 9px; }
+    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+    .status-badge.cancelled .dot { background: #dc2626; }
+</style>
+{% endblock %}

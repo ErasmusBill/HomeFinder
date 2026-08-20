@@ -23,56 +23,73 @@
     box-sizing: border-box;
 }
 
-.header-inner {
+/* FIX: this rule was previously unprefixed (`.header-inner` instead of
+   `.site-header .header-inner`) — every other selector in this file is
+   scoped under `.site-header` except this one, so any unrelated
+   `.header-inner` rule elsewhere in index.css could freely override its
+   `display`/`justify-content` and collapse the flex row, which is what
+   was pulling the logo and hamburger toward the center instead of
+   pinning them to opposite edges. Now scoped + the layout-critical
+   properties are `!important` since this exact class has already lost
+   a cascade fight once. */
+.site-header .header-inner {
     max-width: 1280px;
     margin: 0 auto;
-    height: 76px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: clamp(16px, 2.5vw, 32px);
+    height: 84px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: clamp(12px, 2.5vw, 32px);
     padding: 0 clamp(16px, 4vw, 40px);
 }
 
-/* ---- Logo ---- */
+/* ---- Logo ----
+   This file is now the ONLY stylesheet allowed to style the navbar —
+   the template's inline <style> block has been removed, so nothing
+   else should be able to override these rules. `!important` is kept
+   on every layout-critical property anyway as a safety net in case
+   another stylesheet gets added later.
+   Bigger and fully fluid: height scales continuously with clamp(),
+   width:auto preserves the source image's aspect ratio at every size.
+   `order: -1` + `margin-right: auto` pin it to the far left of the
+   header on every screen size. `align-self: center` (not `stretch`)
+   matches how `.nav-links a` sits in the row, so the logo's visual
+   center lines up with the nav links' vertical center exactly. */
 .site-header .logo {
     all: unset;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start;
+    gap: 14px;
     text-decoration: none;
     color: #14213d;
-    font-weight: 700;
-    font-size: clamp(1rem, 1.4vw + 0.4rem, 1.25rem);
+    font-weight: 800;
     white-space: nowrap;
     flex-shrink: 0;
     min-width: 0;
     cursor: pointer;
+    align-self: center !important;
+    order: -1 !important;
+    margin-right: auto !important;
+    margin-left: 0 !important;
+    position: relative;
+    left: 0 !important;
 }
 
 .site-header .logo-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    border-radius: 10px;
-    background: #14213d;
+    display: block !important;
+    height: clamp(46px, 7vw + 24px, 72px);
+    width: auto !important;
+    max-width: 50vw;
+    min-width: 0;
+    border-radius: 0;
+    background: none;
     color: #e8a33d;
-    font-size: 1rem;
     flex-shrink: 0;
-}
-
-.site-header .logo-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.site-header .logo-accent {
-    color: #cf8c28;
-    font-weight: 800;
-    letter-spacing: 0.03em;
+    object-fit: contain;
+    object-position: left center;
+    padding: 0;
+    margin: 0 !important;
 }
 
 /* ---- Drawer (desktop = inline) ---- */
@@ -134,10 +151,11 @@
 
 /* ---- Right side actions ---- */
 .site-header .nav-actions {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     gap: 10px;
     flex-shrink: 0;
+    margin-left: 0 !important;
 }
 
 .site-header .icon-btn {
@@ -193,7 +211,7 @@
 
 /* ---- Hamburger (hidden on desktop) ---- */
 .site-header .menu-toggle {
-    display: none;
+    display: none !important;
     flex-direction: column;
     gap: 4px;
 }
@@ -222,12 +240,13 @@
    ≤1024px — Tablets and small screens: collapse to drawer
    ========================================================= */
 @media (max-width: 1024px) {
-    .site-header .header-inner { height: 68px; }
+    .site-header .header-inner { height: 76px; }
 
     .site-header .nav-drawer {
-        position: fixed;
-        top: 0;
-        right: 0;
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        left: auto !important;
         height: 100dvh;
         width: min(320px, 88vw);
         background: #ffffff;
@@ -289,17 +308,19 @@
     }
     .site-header .nav-drawer-actions .btn { width: 100%; padding: 12px; font-size: 0.95rem; }
 
-    .site-header .btn-desktop { display: none; }
-    .site-header .menu-toggle { display: flex; }
+    /* !important: this exact selector has already lost a cascade fight
+       once to a page-level `.btn` / `.btn-desktop` rule elsewhere. */
+    .site-header .btn-desktop { display: none !important; }
+    .site-header .menu-toggle { display: flex !important; }
 }
 
 /* =========================================================
-   ≤560px — Phones: trim padding, scale down elements
+   ≤560px — Phones: trim padding only. Logo sizing is now
+   fully handled by the clamp() on .logo-icon above, so it no
+   longer needs a breakpoint-specific override here.
    ========================================================= */
 @media (max-width: 560px) {
-    .site-header .header-inner { height: 60px; padding: 0 14px; gap: 8px; }
-    .site-header .logo-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.9rem; }
-    .site-header .logo-text { max-width: 44vw; }
+    .site-header .header-inner { height: 64px; padding: 0 14px; gap: 8px; }
 }
 
 /* =========================================================

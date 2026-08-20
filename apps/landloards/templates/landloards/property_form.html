@@ -197,10 +197,202 @@
                     </div>
                 </div>
 
-                <!-- SECTION 3: Pricing & Type -->
+                <!-- SECTION 3: Property Documents & Verification -->
                 <div class="form-section-block">
                     <div class="section-badge-title">
                         <span class="step-num">3</span>
+                        <h3>Property Documents &amp; Verification</h3>
+                    </div>
+                    <p class="section-subtitle">
+                        {% if identity_doc and identity_doc.verification_status == 'verified' %}
+                            <i class="fa-solid fa-circle-check" style="color:#10b981"></i>
+                            Your Ghana Card is verified and covers all your listings. You may optionally add extra property documents below — your listing will go live without them.
+                        {% elif identity_doc %}
+                            <i class="fa-solid fa-clock" style="color:#f59e0b"></i>
+                            Your Ghana Card is under review. Upload at least one document now (your Ghana Card again or a property-specific document) so this listing can be created. Extra documents you add below may take additional time to review but won't block the listing.
+                        {% else %}
+                            Upload at least one document. Choose <strong>National ID / Ghana Card</strong> to verify all your listings at once, or pick a property-specific document type.
+                        {% endif %}
+                    </p>
+
+                    <div class="section-body">
+
+                        {% if identity_doc %}
+                            <!-- Ghana Card status banner -->
+                            <div class="identity-verification-box identity-box-{{ identity_doc.verification_status }} mb-4">
+                                <div class="identity-box-icon">
+                                    {% if identity_doc.verification_status == 'verified' %}
+                                        <i class="fa-solid fa-circle-check text-green"></i>
+                                    {% elif identity_doc.verification_status == 'rejected' %}
+                                        <i class="fa-solid fa-circle-xmark text-red"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-clock text-amber"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="identity-box-content">
+                                    <h4>Ghana Card / National ID <span class="doc-status-badge doc-status-{{ identity_doc.verification_status }}">{{ identity_doc.get_verification_status_display }}</span></h4>
+                                    <p>
+                                        {% if identity_doc.verification_status == 'verified' %}
+                                            Your verified Ghana Card covers all your property listings — no per-listing document needed.
+                                        {% elif identity_doc.verification_status == 'rejected' %}
+                                            Your Ghana Card was rejected{% if identity_doc.rejection_reason %}: {{ identity_doc.rejection_reason }}{% endif %}. Please upload a new one below by selecting <em>National ID / Ghana Card</em> in the Document Type dropdown.
+                                        {% else %}
+                                            Your Ghana Card is awaiting admin review. Your listing will go live once it's verified.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Tip: no Ghana Card yet -->
+                            <div class="doc-tip-banner mb-4">
+                                <div class="doc-tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                                <div class="doc-tip-body">
+                                    <strong>Tip — Upload your Ghana Card once, verify all listings!</strong>
+                                    <p>Select <em>National ID / Ghana Card</em> from the Document Type dropdown below and upload your Ghana Card. It will cover all your current and future listings, so you never have to upload it again.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if existing_documents %}
+                            <div class="existing-documents-card mb-4">
+                                <div class="existing-docs-header">
+                                    <h4><i class="fa-solid fa-folder-open"></i> Documents already on file ({{ existing_documents|length }})</h4>
+                                    <small class="text-muted">These are already registered in the system for your account.</small>
+                                </div>
+                                <div class="existing-docs-grid">
+                                    {% for edoc in existing_documents %}
+                                        <div class="existing-doc-item">
+                                            <div class="existing-doc-info">
+                                                <span class="existing-doc-name">
+                                                    {% if edoc.document_type == 'national_id' %}
+                                                        <i class="fa-solid fa-id-card" style="color:#10b981"></i>
+                                                    {% else %}
+                                                        <i class="fa-solid fa-file-lines" style="color:#64748b"></i>
+                                                    {% endif %}
+                                                    {{ edoc.get_document_type_display }}
+                                                </span>
+                                                <span class="existing-doc-scope">
+                                                    {% if edoc.property %}
+                                                        <i class="fa-solid fa-building"></i> {{ edoc.property.title }}
+                                                    {% else %}
+                                                        <i class="fa-solid fa-user-shield" style="color:#10b981"></i> Landlord Identity — Covers All Listings
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="existing-doc-meta">
+                                                <span class="doc-status-badge doc-status-{{ edoc.verification_status }}">{{ edoc.get_verification_status_display }}</span>
+                                                {% if edoc.file %}
+                                                    <a href="{{ edoc.file.url }}" target="_blank" class="existing-doc-view-btn">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Unified Document FormSet -->
+                        {% if doc_formset %}
+                            {{ doc_formset.management_form }}
+
+                            {% if doc_formset.non_form_errors %}
+                                <div class="form-error-banner mb-3">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> {{ doc_formset.non_form_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="docs-formset-container" id="doc-formset-wrapper">
+                                {% for dform in doc_formset %}
+                                    <div class="doc-form-row">
+                                        <div class="media-row-header">
+                                            <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> Document {{ forloop.counter }}</span>
+                                            <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
+                                        </div>
+
+                                        {% if dform.non_field_errors %}
+                                            <div class="form-error-banner">{{ dform.non_field_errors }}</div>
+                                        {% endif %}
+
+                                        {% for hidden in dform.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+
+                                        <div class="form-grid-2col">
+                                            <div class="form-group">
+                                                <label>
+                                                    Document Type
+                                                    {% if docs_required %}
+                                                        <span class="required-star">*</span>
+                                                    {% else %}
+                                                        <span class="optional-tag">optional</span>
+                                                    {% endif %}
+                                                </label>
+                                                {{ dform.document_type }}
+                                                {% if dform.document_type.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.document_type.errors.0 }}</span>{% endif %}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    Upload File (PDF / Image)
+                                                    {% if docs_required %}
+                                                        <span class="required-star">*</span>
+                                                    {% else %}
+                                                        <span class="optional-tag">optional</span>
+                                                    {% endif %}
+                                                </label>
+                                                {{ dform.file }}
+                                                {% if dform.file.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.file.errors.0 }}</span>{% endif %}
+                                                <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                            </div>
+                                        </div>
+
+                                        {% if doc_formset.can_delete and dform.instance.pk %}
+                                            <div class="media-row-footer-actions">
+                                                <label class="delete-checkbox-label">
+                                                    {{ dform.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this document
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Template for dynamic client-side doc cloning -->
+                            <div id="empty-doc-template" style="display: none;">
+                                <div class="doc-form-row">
+                                    <div class="media-row-header">
+                                        <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> New Document</span>
+                                        <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
+                                    </div>
+                                    <div class="form-grid-2col">
+                                        <div class="form-group">
+                                            <label>Document Type</label>
+                                            {{ doc_formset.empty_form.document_type }}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Upload File (PDF / Image)</label>
+                                            {{ doc_formset.empty_form.file }}
+                                            <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="button" id="add-more-docs-btn" class="btn-sub-action">
+                                    <i class="fa-solid fa-plus"></i> Add Another Document
+                                </button>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Pricing & Type -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">4</span>
                         <h3>Pricing & Type</h3>
                     </div>
 
@@ -239,10 +431,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 4: Location -->
+                <!-- SECTION 5: Location -->
                 <div class="form-section-block">
                     <div class="section-badge-title">
-                        <span class="step-num">4</span>
+                        <span class="step-num">5</span>
                         <h3>Location</h3>
                     </div>
 
@@ -276,10 +468,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 5: Amenities -->
+                <!-- SECTION 6: Amenities -->
                 <div class="form-section-block">
                     <div class="section-badge-title">
-                        <span class="step-num">5</span>
+                        <span class="step-num">6</span>
                         <h3>Amenities</h3>
                     </div>
 
@@ -292,10 +484,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 6: Property Features -->
+                <!-- SECTION 7: Property Features -->
                 <div class="form-section-block">
                     <div class="section-badge-title">
-                        <span class="step-num">6</span>
+                        <span class="step-num">7</span>
                         <h3>Property Features</h3>
                     </div>
 
@@ -348,10 +540,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 7: Availability & Status -->
+                <!-- SECTION 8: Availability & Status -->
                 <div class="form-section-block">
                     <div class="section-badge-title">
-                        <span class="step-num">7</span>
+                        <span class="step-num">8</span>
                         <h3>Availability & Status</h3>
                     </div>
 
@@ -380,10 +572,10 @@
                     </div>
                 </div>
 
-                <!-- SECTION 8: Publication Status -->
+                <!-- SECTION 9: Publication Status -->
                 <div class="form-section-block form-section-block-last">
                     <div class="section-badge-title">
-                        <span class="step-num">8</span>
+                        <span class="step-num">9</span>
                         <h3>Publication Status</h3>
                     </div>
                     <p class="section-subtitle">Control whether this listing is visible to tenants</p>
@@ -800,6 +992,20 @@
 .required-star {
     color: #ef4444;
     font-weight: 700;
+}
+
+.optional-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #047857;
+    background: #d1fae5;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
 }
 
 .form-group input[type="text"],
@@ -1283,6 +1489,239 @@
     font-size: 11.5px;
     color: var(--text-muted);
 }
+
+/* ---------- Document & Identity Box Styling ---------- */
+
+.identity-verification-box {
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+}
+
+.identity-box-missing {
+    border-color: #fed7aa;
+    background: #fffbeb;
+}
+
+.identity-box-verified {
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+}
+
+.identity-box-pending {
+    border-color: #fde68a;
+    background: #fffdf5;
+}
+
+.identity-box-rejected {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.identity-box-icon {
+    font-size: 26px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+}
+
+.identity-box-content {
+    flex: 1;
+}
+
+.identity-box-content h4 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 4px 0;
+}
+
+.identity-box-content p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.doc-status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.doc-status-verified {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.doc-status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.doc-status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.doc-form-row {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+/* ---------- Existing Documents Card ---------- */
+.existing-documents-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 18px 20px;
+}
+
+.existing-docs-header {
+    margin-bottom: 14px;
+}
+
+.existing-docs-header h4 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.existing-docs-header small {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.existing-docs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.existing-doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color-soft);
+    border-radius: var(--radius-sm);
+    gap: 12px;
+}
+
+.existing-doc-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.existing-doc-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.existing-doc-scope {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.existing-doc-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.existing-doc-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-green-dark);
+    background: var(--primary-green-light);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.existing-doc-view-btn:hover {
+    background: #a7f3d0;
+    color: var(--primary-green-dark);
+    text-decoration: none;
+}
+
+/* ---------- Ghana Card / Doc Tip Banner ---------- */
+.doc-tip-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+}
+
+.doc-tip-icon {
+    font-size: 20px;
+    color: #d97706;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.doc-tip-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: #92400e;
+    margin-bottom: 4px;
+}
+
+.doc-tip-body p {
+    font-size: 12.5px;
+    color: #78350f;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ---------- Doc row hint ---------- */
+.media-row-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.doc-row-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 3px 10px;
+    line-height: 1.4;
+}
 </style>
 
 <script>
@@ -1370,19 +1809,36 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----- Dynamic media formset row cloning -----
-    var addMoreBtn = document.getElementById('add-more-media-btn');
-    var formsetWrapper = document.getElementById('media-formset-wrapper');
-    var emptyFormTemplate = document.getElementById('empty-form-template');
-    var totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+    var addMoreMediaBtn = document.getElementById('add-more-media-btn');
+    var mediaFormsetWrapper = document.getElementById('media-formset-wrapper');
+    var emptyMediaTemplate = document.getElementById('empty-form-template');
+    var totalMediaInput = document.querySelector('input[name="media-TOTAL_FORMS"]') || document.querySelector('input[name$="-TOTAL_FORMS"]');
 
-    if (addMoreBtn && formsetWrapper && emptyFormTemplate && totalFormsInput) {
-        addMoreBtn.addEventListener('click', function () {
-            var formCount = parseInt(totalFormsInput.value, 10);
-            var newRowHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, formCount);
+    if (addMoreMediaBtn && mediaFormsetWrapper && emptyMediaTemplate && totalMediaInput) {
+        addMoreMediaBtn.addEventListener('click', function () {
+            var formCount = parseInt(totalMediaInput.value, 10);
+            var newRowHtml = emptyMediaTemplate.innerHTML.replace(/__prefix__/g, formCount);
             var wrapperDiv = document.createElement('div');
             wrapperDiv.innerHTML = newRowHtml;
-            formsetWrapper.appendChild(wrapperDiv.firstElementChild);
-            totalFormsInput.value = formCount + 1;
+            mediaFormsetWrapper.appendChild(wrapperDiv.firstElementChild);
+            totalMediaInput.value = formCount + 1;
+        });
+    }
+
+    // ----- Dynamic docs formset row cloning -----
+    var addMoreDocsBtn = document.getElementById('add-more-docs-btn');
+    var docFormsetWrapper = document.getElementById('doc-formset-wrapper');
+    var emptyDocTemplate = document.getElementById('empty-doc-template');
+    var totalDocsInput = document.querySelector('input[name="docs-TOTAL_FORMS"]');
+
+    if (addMoreDocsBtn && docFormsetWrapper && emptyDocTemplate && totalDocsInput) {
+        addMoreDocsBtn.addEventListener('click', function () {
+            var formCount = parseInt(totalDocsInput.value, 10);
+            var newRowHtml = emptyDocTemplate.innerHTML.replace(/__prefix__/g, formCount);
+            var wrapperDiv = document.createElement('div');
+            wrapperDiv.innerHTML = newRowHtml;
+            docFormsetWrapper.appendChild(wrapperDiv.firstElementChild);
+            totalDocsInput.value = formCount + 1;
         });
     }
 });

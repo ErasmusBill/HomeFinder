@@ -9,6 +9,7 @@ def invalidate_property_cache(property_obj=None, landlord_id=None, property_id=N
         if hasattr(cache, "delete_pattern"):
             cache.delete_pattern("properties:*")
             cache.delete_pattern("home_finder:properties:*")
+            cache.delete_pattern("home_featured_3_epoch_*")
         else:
             # Fallback (may leave wildcards like search/price stale)
             cache.delete("properties:published")

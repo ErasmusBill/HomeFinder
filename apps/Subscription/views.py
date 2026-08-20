@@ -9,8 +9,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -36,16 +34,6 @@ logger = logging.getLogger(__name__)
 
 CACHE_TTL = 60 * 60 * 24  # 24 Hours (Plans change rarely)
 PLANS_CACHE_KEY = "active_subscription_plans_cache"
-
-
-# ---------------------------------------------------------------------------
-# Cache Invalidation Signals for Subscription Plans
-# ---------------------------------------------------------------------------
-from apps.common.cache import invalidate_subscription_plans_cache
-
-@receiver([post_save, post_delete], sender=SubscriptionPlan)
-def trigger_invalidate_subscription_plans_cache(sender, **kwargs):
-    invalidate_subscription_plans_cache()
 
 
 # ---------------------------------------------------------------------------

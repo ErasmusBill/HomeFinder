@@ -1,0 +1,425 @@
+{% extends 'tenant/base.html' %}
+{% load static %}
+
+{% block title %}{{ property.title|default:"Property Details" }} - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    {# ===== Breadcrumb ===== #}
+    <nav class="flex items-center gap-2 text-sm text-gray-500 overflow-x-auto whitespace-nowrap" aria-label="Breadcrumb">
+        <a href="{% url 'tenant:dashboard' %}" class="hover:text-emerald-600 transition-colors">Dashboard</a>
+        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+        <a href="{% url 'home_finder:list_properties' %}" class="hover:text-emerald-600 transition-colors">Properties</a>
+        <i class="fa-solid fa-chevron-right text-[9px]"></i>
+        <span class="text-gray-700 font-medium truncate">{{ property.title|default:"Property Details" }}</span>
+    </nav>
+
+    {# ===== Header: Title & Actions ===== #}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 sm:p-6 lg:p-8">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+
+            {# Title area #}
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    {% if property.verification_status == 'verified' %}
+                        <span class="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                            <i class="fa-solid fa-check text-[10px]"></i> Verified
+                        </span>
+                    {% endif %}
+                    <span class="inline-flex items-center bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                        {{ property.get_room_type_display|default:"For Rent" }}
+                    </span>
+                    {% if property.reference_number %}
+                        <span class="inline-flex items-center bg-gray-50 text-gray-500 text-[11px] font-mono px-2 py-1 rounded border border-gray-200">
+                            {{ property.reference_number }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight break-words">
+                    {{ property.title|default:"Property Details" }}
+                </h1>
+
+                <p class="mt-2 flex items-start gap-2 text-sm sm:text-base text-gray-500">
+                    <i class="fa-solid fa-location-dot text-emerald-600 mt-1 shrink-0"></i>
+                    <span>
+                        {{ property.area.name }}, {{ property.town.name }}, {{ property.district.name }}, {{ property.region.name }}
+                    </span>
+                </p>
+            </div>
+
+            {# Action area #}
+            <div class="flex flex-col items-stretch lg:items-end gap-3 shrink-0">
+                <div class="text-left lg:text-right">
+                    <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-tight">
+                        GH&#8373; {{ property.price|floatformat:0 }}
+                        <span class="text-sm font-normal text-gray-500">/ {{ property.get_payment_period_display|lower }}</span>
+                    </div>
+                    {% if property.available_from %}
+                        <p class="text-xs text-gray-500 mt-1">Available from {{ property.available_from|date:"M j, Y" }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <form method="post" action="{% url 'tenant:toggle_save_property' property.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-colors
+                                       {% if is_saved %}bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100{% else %}bg-white border-gray-200 text-gray-700 hover:bg-gray-50{% endif %}"
+                                title="{% if is_saved %}Remove from saved{% else %}Save property{% endif %}">
+                            <i class="fa-{% if is_saved %}solid{% else %}regular{% endif %} fa-heart"></i>
+                            <span>{% if is_saved %}Saved{% else %}Save{% endif %}</span>
+                        </button>
+                    </form>
+
+                    <button type="button"
+                            onclick="navigator.clipboard.writeText(window.location.href); this.innerHTML='<i class=\'fa-solid fa-check\'></i> Copied!'; setTimeout(()=>{ this.innerHTML='<i class=\'fa-solid fa-share-nodes\'></i> Share'; }, 1800);"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                        <i class="fa-solid fa-share-nodes"></i> Share
+                    </button>
+
+                    <a href="{% url 'tenant:request_viewing' property.id %}"
+                       class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                        <i class="fa-regular fa-calendar-days"></i> Request Viewing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===== Photo Grid Gallery ===== #}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+        <div class="property-gallery-grid">
+            <div class="gallery-main-img">
+                {% if property.cover_image %}
+                    <img src="{{ property.cover_image.url }}" alt="{{ property.title }}" loading="lazy" decoding="async">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Main Property View" loading="lazy" decoding="async">
+                {% endif %}
+            </div>
+            <div class="gallery-sub-imgs">
+                {% for media in property.media.all|slice:":4" %}
+                    <div class="sub-img-card">
+                        {% if media.thumbnail %}
+                            <img src="{{ media.thumbnail.url }}" alt="{{ media.caption|default:property.title }}" loading="lazy" decoding="async">
+                        {% elif media.file %}
+                            <img src="{{ media.file.url }}" alt="{{ media.caption|default:property.title }}" loading="lazy" decoding="async">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Property View" loading="lazy" decoding="async">
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=80" alt="Interior View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" alt="Kitchen View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card"><img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80" alt="Bathroom View" loading="lazy" decoding="async"></div>
+                    <div class="sub-img-card more-photos">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" alt="More Photos" loading="lazy" decoding="async">
+                        <div class="overlay-text">
+                            <i class="fa-solid fa-images"></i>
+                            <span>View All Photos</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {# ===== Content Split Layout ===== #}
+    <div class="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6 items-start">
+
+        {# Left column #}
+        <div class="space-y-6 min-w-0">
+
+            {# Quick overview #}
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 sm:p-5">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-bed"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <span class="block text-[11px] uppercase tracking-wide text-gray-500 font-semibold">Bedrooms</span>
+                            <strong class="block text-sm text-gray-900 truncate">{{ property.bedrooms }} Bed{{ property.bedrooms|pluralize }}</strong>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-bath"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <span class="block text-[11px] uppercase tracking-wide text-gray-500 font-semibold">Bathrooms</span>
+                            <strong class="block text-sm text-gray-900 truncate">{{ property.bathrooms }} Bath{{ property.bathrooms|pluralize }}</strong>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <span class="block text-[11px] uppercase tracking-wide text-gray-500 font-semibold">Size</span>
+                            <strong class="block text-sm text-gray-900 truncate">{% if property.floor_area %}{{ property.floor_area }} m&#178;{% else %}N/A{% endif %}</strong>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-warehouse"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <span class="block text-[11px] uppercase tracking-wide text-gray-500 font-semibold">Parking</span>
+                            <strong class="block text-sm text-gray-900 truncate">{% if property.parking_spaces %}{{ property.parking_spaces }} Car{{ property.parking_spaces|pluralize }}{% else %}None{% endif %}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Description #}
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-3">About This Property</h3>
+                <p class="text-sm leading-relaxed text-gray-600 whitespace-pre-line">
+                    {{ property.description|default:"No description provided for this property." }}
+                </p>
+            </div>
+
+            {# Amenities #}
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Amenities &amp; Features</h3>
+                {% if property.amenities.all %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        {% for amenity in property.amenities.all %}
+                            <div class="flex items-center gap-2.5 text-sm text-gray-800 bg-gray-50 border border-gray-100 px-3 py-2.5 rounded-xl">
+                                <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-check text-[10px]"></i>
+                                </span>
+                                <span class="truncate">{{ amenity.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-500">No amenities listed for this property.</p>
+                {% endif %}
+            </div>
+
+            {# Location / Map #}
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-3">Location &amp; Neighborhood</h3>
+                <p class="flex items-start gap-2 text-sm font-medium text-gray-700 mb-4">
+                    <i class="fa-solid fa-map-location-dot text-emerald-600 mt-0.5 shrink-0"></i>
+                    <span>
+                        {{ property.area.name }}, {{ property.town.name }}, {{ property.district.name }}
+                        {% if property.latitude and property.longitude %}
+                            <span class="text-gray-400 font-normal">({{ property.latitude }}, {{ property.longitude }})</span>
+                        {% endif %}
+                    </span>
+                </p>
+                <div class="w-full h-64 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center">
+                    <div class="flex flex-col items-center gap-2 text-gray-500 text-sm text-center px-4">
+                        <i class="fa-solid fa-map text-2xl text-emerald-600"></i>
+                        <span>Map of {{ property.area.name }}, {{ property.region.name }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Viewing requests for this property #}
+            {% if viewing_requests %}
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Your Viewing Requests</h3>
+                <ul class="divide-y divide-gray-100">
+                    {% for vr in viewing_requests %}
+                        <li class="py-3 flex flex-wrap items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-gray-900">
+                                    {{ vr.preferred_date|date:"M j, Y" }} at {{ vr.preferred_time|time:"g:i A" }}
+                                </p>
+                                {% if vr.message %}
+                                    <p class="text-xs text-gray-500 truncate max-w-md">{{ vr.message }}</p>
+                                {% endif %}
+                            </div>
+                            <span class="inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full
+                                {% if vr.status == 'pending' %}bg-amber-100 text-amber-700
+                                {% elif vr.status == 'confirmed' %}bg-emerald-100 text-emerald-700
+                                {% elif vr.status == 'cancelled' %}bg-rose-100 text-rose-700
+                                {% elif vr.status == 'completed' %}bg-blue-100 text-blue-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ vr.get_status_display }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Right column: landlord sidebar #}
+        <aside class="space-y-4 xl:sticky xl:top-24 min-w-0">
+
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-xs">
+                <div class="flex items-center gap-3 mb-4">
+                    {% if property.landlord.landlord_profile.profile_picture %}
+                        <img src="{{ property.landlord.landlord_profile.profile_picture.url }}"
+                             alt="{{ property.landlord.full_name }}"
+                             class="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0">
+                    {% else %}
+                        <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg shrink-0">
+                            {{ property.landlord.full_name|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <h4 class="text-base font-bold text-gray-900 truncate">{{ property.landlord.full_name|default:"Property Owner" }}</h4>
+                        <p class="text-xs text-gray-500">Verified Property Owner</p>
+                        {% if property.landlord.phone_number %}
+                            <p class="text-xs text-gray-500 truncate">{{ property.landlord.phone_number }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    {% if property.landlord.phone_number %}
+                        <a href="tel:{{ property.landlord.phone_number }}"
+                           class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-800 hover:bg-gray-50 transition-colors">
+                            <i class="fa-solid fa-phone"></i> Call Owner
+                        </a>
+                    {% endif %}
+                    {% if property.landlord.phone_number %}
+                        <a href="https://wa.me/{{ property.landlord.phone_number|cut:'+'|cut:' '|cut:'-' }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
+                            <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'tenant:request_viewing' property.id %}"
+                       class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                        <i class="fa-regular fa-calendar-days"></i> Request a Viewing
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-xs">
+                <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Facts</h4>
+                <dl class="text-sm divide-y divide-gray-100">
+                    <div class="flex justify-between py-2">
+                        <dt class="text-gray-500">Type</dt>
+                        <dd class="text-gray-900 font-medium">{{ property.get_room_type_display }}</dd>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <dt class="text-gray-500">Furnished</dt>
+                        <dd class="text-gray-900 font-medium">{% if property.is_furnished %}Yes{% else %}No{% endif %}</dd>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <dt class="text-gray-500">Available</dt>
+                        <dd class="text-gray-900 font-medium">{% if property.is_available %}Yes{% else %}No{% endif %}</dd>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <dt class="text-gray-500">Toilets</dt>
+                        <dd class="text-gray-900 font-medium">{{ property.toilets }}</dd>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <dt class="text-gray-500">Listed</dt>
+                        <dd class="text-gray-900 font-medium">{{ property.created_at|date:"M j, Y" }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+        </aside>
+    </div>
+
+</div>
+
+<style>
+    .property-gallery-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 8px;
+        height: 420px;
+        width: 100%;
+    }
+    .gallery-main-img,
+    .gallery-sub-imgs { min-width: 0; }
+    .gallery-main-img {
+        overflow: hidden;
+        border-radius: 12px 0 0 12px;
+        background: #e5e7eb;
+    }
+    .gallery-main-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .gallery-main-img img:hover { transform: scale(1.02); }
+
+    .gallery-sub-imgs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .sub-img-card {
+        position: relative;
+        overflow: hidden;
+        background: #e5e7eb;
+    }
+    .sub-img-card:first-child { border-top-right-radius: 12px; }
+    .sub-img-card:last-child  { border-bottom-right-radius: 12px; }
+    .sub-img-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .sub-img-card img:hover { transform: scale(1.02); }
+
+    .more-photos .overlay-text {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+        padding: 4px;
+    }
+
+    @media (max-width: 900px) {
+        .property-gallery-grid {
+            grid-template-columns: 1fr;
+            height: auto;
+            gap: 8px;
+        }
+        .gallery-main-img {
+            aspect-ratio: 16 / 10;
+            height: auto;
+            border-radius: 12px 12px 0 0;
+        }
+        .gallery-sub-imgs {
+            display: flex;
+            overflow-x: auto;
+            grid-template-columns: unset;
+            grid-template-rows: unset;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 4px;
+        }
+        .sub-img-card {
+            flex: 0 0 clamp(120px, 36vw, 180px);
+            aspect-ratio: 1 / 1;
+            scroll-snap-align: start;
+            height: auto;
+        }
+        .sub-img-card:first-child { border-top-right-radius: 0; border-top-left-radius: 0; }
+        .sub-img-card:last-child  { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .gallery-main-img img,
+        .sub-img-card img { transition: none; }
+    }
+</style>
+{% endblock %}

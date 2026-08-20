@@ -67,3 +67,45 @@ class AreaForm(BaseLocationForm):
     class Meta:
         model = Area
         fields = ("town", "name",)
+
+
+class LocationHierarchyForm(forms.Form):
+    region_name = forms.CharField(
+        max_length=150,
+        label="Region Name",
+        widget=forms.TextInput(attrs={
+            "class": TAILWIND_INPUT_CLASSES,
+            "placeholder": "e.g., Greater Accra, Ashanti",
+            "autocomplete": "off",
+        })
+    )
+    district_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="District Name",
+        widget=forms.TextInput(attrs={
+            "class": TAILWIND_INPUT_CLASSES,
+            "placeholder": "e.g., Accra Metropolitan, Kumasi Metropolitan",
+            "autocomplete": "off",
+        })
+    )
+    town_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="Town Name",
+        widget=forms.TextInput(attrs={
+            "class": TAILWIND_INPUT_CLASSES,
+            "placeholder": "e.g., Accra, Tema, Kumasi",
+            "autocomplete": "off",
+        })
+    )
+    area_name = forms.CharField(
+        max_length=150,
+        required=False,
+        label="Area Name",
+        widget=forms.TextInput(attrs={
+            "class": TAILWIND_INPUT_CLASSES,
+            "placeholder": "e.g., Osu, East Legon, Bantama",
+            "autocomplete": "off",
+        })
+    )

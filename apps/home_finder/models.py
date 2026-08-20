@@ -150,8 +150,39 @@ class Property(BaseModel):
                 raise
         self._original_title = self.title
 
+    @property
+    def landlord_phone(self):
+        if self.landlord and getattr(self.landlord, "phone_number", None):
+            return str(self.landlord.phone_number).strip()
+        return ""
+
+    @property
+    def landlord_call_url(self):
+        phone = self.landlord_phone
+        if phone:
+            return f"tel:{phone}"
+        return "#"
+
+    @property
+    def landlord_whatsapp_url(self):
+        phone = self.landlord_phone
+        if not phone:
+            return ""
+        digits = "".join(c for c in phone if c.isdigit())
+        if digits.startswith("0") and len(digits) == 10:
+            digits = "233" + digits[1:]
+        elif digits.startswith("233"):
+            pass
+        elif not digits.startswith("233") and len(digits) == 9:
+            digits = "233" + digits
+        from urllib.parse import quote
+        landlord_name = self.landlord.full_name if self.landlord else "Landlord"
+        msg = f"Hello {landlord_name}, I am inquiring about your property \"{self.title}\" (Ref: {self.reference_number}) listed on VacantHommie."
+        return f"https://wa.me/{digits}?text={quote(msg)}"
+
     def __str__(self):
         return f"{self.title} (Landlord: {self.landlord.full_name})"
+
 
 
 class PropertyMedia(BaseModel):
@@ -218,10 +249,14 @@ class LandlordDocument(BaseModel):
 
     class DocumentType(models.TextChoices):
         NATIONAL_ID = "national_id", "National ID / Ghana Card"
-        BUSINESS_REGISTRATION = "business_registration", "Business Registration Certificate"
-        PROOF_OF_ADDRESS = "proof_of_address", "Proof of Address"
         PROPERTY_OWNERSHIP = "property_ownership", "Proof of Property Ownership"
-        OTHER = "other", "Other"
+        SITE_PLAN = "site_plan", "Site Plan / Indenture"
+        LAND_TITLE = "land_title", "Land Title Certificate / Deed"
+        MANAGEMENT_AGREEMENT = "management_agreement", "Power of Attorney / Management Agreement"
+        BUILDING_PERMIT = "building_permit", "Building Permit"
+        BUSINESS_REGISTRATION = "business_registration", "Business Registration Certificate"
+        PROOF_OF_ADDRESS = "proof_of_address", "Proof of Address / Utility Bill"
+        OTHER = "other", "Other Supporting Document"
 
     class VerificationStatus(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -234,7 +269,7 @@ class LandlordDocument(BaseModel):
         related_name="documents",
         limit_choices_to={"role": User.Role.LANDLORD},
     )
-    document_type = models.CharField(max_length=30, choices=DocumentType.choices)
+    document_type = models.CharField(max_length=40, choices=DocumentType.choices)
     file = models.FileField(upload_to="landlords/documents/")
 
     property = models.ForeignKey(
