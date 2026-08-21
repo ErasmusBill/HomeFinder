@@ -20,7 +20,7 @@ def send_activation_email_task(self, user_id):
         token = email_verification_token.make_token(user)
 
         # Construct link (adjust domain/frontend URL as needed)
-        verification_url = f"{settings.FRONTEND_URL}/verify-email/?uid={uid}&token={token}"
+        verification_url = f"{settings.FRONTEND_URL}/account/verify-email/?uid={uid}&token={token}"
 
         subject = "Activate your account"
         message = f"Hi {user.full_name},\n\nPlease click the link below to verify your email address:\n{verification_url}\n\nThank you!"
