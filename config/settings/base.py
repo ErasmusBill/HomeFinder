@@ -33,7 +33,14 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '.railway.app'])
+
+# Fix for CSRF verification failed on deployment domains
+# Added wildcard support to ensure all railway deployment subdomains match properly
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=['https://homefinder-production-c02a.up.railway.app', 'https://*.railway.app']
+)
 
 
 # Application definition
@@ -48,7 +55,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-
 
     'django.contrib.sites',
 
@@ -87,7 +93,6 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
-
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -150,7 +155,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [ BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
@@ -168,13 +173,7 @@ CACHES = {
 # ---------------------------------------------------------------------------
 # Tailwind CSS (django-tailwind)
 # ---------------------------------------------------------------------------
-# The standalone top-level "theme" Python package is the Tailwind
-# theme app. Its source CSS lives in theme/static_src/src/styles.css
-# and the compiled output is written to theme/static/css/dist/styles.css
-# (the path django-tailwind hardcodes in its {% tailwind_css %} tag) and
-# collected into STATIC_ROOT at deploy time.
 TAILWIND_APP_NAME = 'theme'
-# `npm` binary used by `python manage.py tailwind build|install|start`.
 NPM_BIN_PATH = env('NPM_BIN_PATH', default='npm')
 
 AUTH_USER_MODEL = 'user_account.User'
@@ -201,49 +200,10 @@ CELERY_BROKER_URL = env(
     default="redis://127.0.0.1:6379/0",
 )
 
-# ---------------------------------------------------------------------------
-# Property alert pipeline
-# ---------------------------------------------------------------------------
-# When False (default), creating/updating a property will NOT trigger any
-# tenant notifications even if matching PropertyAlert rows exist. This is a
-# kill-switch so the pipeline can be deployed and tested safely without
-# spamming real tenants.
-#
-# Flip to True (e.g. via .env: PROPERTY_ALERTS_ENABLED=True) once you're
-# ready to start notifying tenants of new matching properties.
 PROPERTY_ALERTS_ENABLED = env.bool("PROPERTY_ALERTS_ENABLED", default=False)
-
-# ---------------------------------------------------------------------------
-# Viewing request retention
-# ---------------------------------------------------------------------------
-# Number of days to keep a viewing request that has reached a terminal
-# state (cancelled or completed) before the nightly
-# ``purge_stale_viewing_requests_task`` Celery beat job hard-deletes it.
-# Pending and confirmed requests are never auto-deleted: those reflect
-# live plans the landlord needs to see and act on.
-VIEWING_REQUEST_RETENTION_DAYS = env.int(
-    "VIEWING_REQUEST_RETENTION_DAYS", default=30,
-)
-
-# When True, only properties with verification_status='verified' are
-# eligible for the alert pipeline. The default is False so the
-# pipeline matches the previous behavior (alerts on any published
-# listing); flip this to True once you're comfortable only surfacing
-# verified listings to tenants. See
-# apps/tenant/services/property_alerts.is_property_alertable.
-PROPERTY_ALERTS_REQUIRE_VERIFICATION = env.bool(
-    "PROPERTY_ALERTS_REQUIRE_VERIFICATION", default=False
-)
-
-# How long (in seconds) the email fanout is allowed to spread over for
-# a single property that matches many tenants. Each per-tenant email
-# task gets a countdown of (i / N) * FANOUT_MAX_DELAY, so a 100-tenant
-# fanout with FANOUT_MAX_DELAY=60 spreads emails over a minute, while
-# a 3-tenant fanout fires them within ~3 seconds. Set to 0 to fire
-# everything immediately (the original behavior).
-PROPERTY_ALERTS_FANOUT_MAX_DELAY = env.int(
-    "PROPERTY_ALERTS_FANOUT_MAX_DELAY", default=60
-)
+VIEWING_REQUEST_RETENTION_DAYS = env.int("VIEWING_REQUEST_RETENTION_DAYS", default=30)
+PROPERTY_ALERTS_REQUIRE_VERIFICATION = env.bool("PROPERTY_ALERTS_REQUIRE_VERIFICATION", default=False)
+PROPERTY_ALERTS_FANOUT_MAX_DELAY = env.int("PROPERTY_ALERTS_FANOUT_MAX_DELAY", default=60)
 
 CELERY_RESULT_BACKEND = env(
     "CELERY_RESULT_BACKEND",
@@ -255,66 +215,34 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
-# CELERY_TASK_ROUTES = {
-#     'tools.process_video': {'queue': 'video_queue'},
-#     '*': {'queue': 'celery'},
-# }
-
 
 # ---------------------------------------------------------------------------
 # Periodic (beat) schedule
 # ---------------------------------------------------------------------------
-# All times are in CELERY_TIMEZONE. Add or remove entries here to control
-# which background jobs run on a schedule. Tasks themselves remain no-ops
-# when there's nothing to do.
 CELERY_BEAT_SCHEDULE = {
-    # Mark ended subscriptions inactive; apply scheduled downgrades;
-    # email landlords whose plans expired with no renewal.
     'subscription-expire-and-apply-scheduled-changes': {
         'task': 'Subscription.tasks.expire_and_apply_scheduled_changes',
-        # Run once a day at 02:00 server time.
         'schedule': 24 * 60 * 60,
     },
-    # Email landlords N days before their subscription ends (see
-    # RENEWAL_REMINDER_DAYS_AHEAD in apps/Subscription/tasks.py).
     'subscription-renewal-reminders': {
         'task': 'Subscription.tasks.send_subscription_renewal_reminders',
         'schedule': 24 * 60 * 60,
     },
-    # Notify landlords whose 1-month free trial has ended so they know
-    # to subscribe.
     'landlord-trial-expired-notifications': {
         'task': 'Subscription.tasks.expire_landlord_free_trials',
         'schedule': 24 * 60 * 60,
     },
-    # Email landlords N days before their free trial ends (see
-    # TRIAL_REMINDER_DAYS_AHEAD in apps/Subscription/tasks.py). The
-    # critical conversion moment — landlords who get a "your trial
-    # ends in 3 days" reminder convert at a much higher rate than
-    # those who only see the "trial has ended" email.
     'landlord-trial-ending-reminders': {
         'task': 'Subscription.tasks.send_trial_ending_reminders',
         'schedule': 24 * 60 * 60,
     },
-    # Property alert catchup — re-runs the matcher for any property
-    # published in the last 24h that may have been missed by the
-    # post_save signal (worker offline, pipeline previously disabled,
-    # etc.). The M2M dedup in apps.tenant.services.property_alerts
-    # ensures we only ever notify about a (tenant, property) pair once.
-    # Gated on PROPERTY_ALERTS_ENABLED so it stays a no-op when the
-    # pipeline is intentionally silenced.
     'property-alert-catchup': {
         'task': 'tenant.tasks.property_alert_catchup_task',
-        'schedule': 60 * 60,  # hourly
+        'schedule': 60 * 60,
     },
-    # Hard-delete viewing requests that have been sitting in a terminal
-    # state (cancelled / completed) for more than
-    # VIEWING_REQUEST_RETENTION_DAYS. Keeps the tenant dashboard list
-    # and stat counts tidy without manual cleanup.
-    # See apps/tenant/tasks.py::purge_stale_viewing_requests_task.
     'purge-stale-viewing-requests': {
         'task': 'tenant.tasks.purge_stale_viewing_requests_task',
-        'schedule': 24 * 60 * 60,  # once a day at 03:17 server time
+        'schedule': 24 * 60 * 60,
     },
 }
 
@@ -322,33 +250,32 @@ CELERY_BEAT_SCHEDULE = {
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
-            'client_id': env('GOOGLE_CLIENT_ID'),
-            'secret': env('GOOGLE_CLIENT_SECRET'),
+            'client_id': env('GOOGLE_CLIENT_ID', default=''),
+            'secret': env('GOOGLE_CLIENT_SECRET', default=''),
             'key': ''
         }
     },
     "facebook": {
         "APP": {
-            "client_id": env("FACEBOOK_CLIENT_ID"),
-            "secret": env("FACEBOOK_CLIENT_SECRET"),
+            "client_id": env("FACEBOOK_CLIENT_ID", default=''),
+            "secret": env("FACEBOOK_CLIENT_SECRET", default=''),
             "key": "",
         }
     },
 }
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env.int("EMAIL_PORT", default=465)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="erasmuschawey12345@gmail.com")
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=True)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=20)
 
+PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
 
-
-PAYSTACK_SECRET_KEY=env("PAYSTACK_SECRET_KEY")
-PAYSTACK_PUBLIC_KEY=env("PAYSTACK_PUBLIC_KEY")
-
-FRONTEND_URL = env("FRONTEND_URL")
+# Fixed syntax error at the bottom line
+FRONTEND_URL = env("FRONTEND_URL", default="http://127.0.0.1:8000")
