@@ -1,6 +1,7 @@
-.PHONY: build up down logs migrate showmigrations createsuperuser shell test startapp clean tailwind-install tailwind-build tailwatch
+.PHONY: build up down logs migrate makemigrations showmigrations createsuperuser shell test startapp clean \
+        tailwind-install tailwind-build tailwatch
 
-# Build or rebuild docker images
+# Build or rebuild Docker images
 build:
 	docker compose build
 
@@ -20,11 +21,15 @@ logs:
 migrate:
 	docker compose exec web python manage.py migrate
 
+# Create new Django migrations
+makemigrations:
+	docker compose exec web python manage.py makemigrations
+
 # Show the status of all database migrations
 showmigrations:
 	docker compose exec web python manage.py showmigrations
 
-# Create a new superuser account
+# Create a Django superuser
 createsuperuser:
 	docker compose exec web python manage.py createsuperuser
 
@@ -36,30 +41,33 @@ shell:
 test:
 	docker compose exec web python manage.py test
 
-# Scaffold a new Django app (usage: make startapp name=myapp)
+# Scaffold a new Django app
+# Usage:
+#   make startapp name=properties
 startapp:
 	docker compose exec web python manage.py startapp $(name)
 
-# Stop containers and remove volumes (Warning: resets database data!)
+# Stop containers and remove volumes
+# WARNING: This deletes Docker volumes, including your database volume.
 clean:
 	docker compose down -v
 
-# ---------------------------------------------------------------------------
-# Tailwind CSS (runs locally — Node/npm must be installed on the host)
-# ---------------------------------------------------------------------------
-# One-time install of tailwindcss + @tailwindcss/cli into the theme app's
-# node_modules directory. Re-run only when upgrading the Tailwind version.
+
+# =============================================================================
+# Tailwind CSS
+# =============================================================================
+
+# Install Tailwind dependencies
+# Requires Node.js and npm on the host machine.
 tailwind-install:
 	cd theme/static_src && npm install --no-audit --no-fund
 
-# Compile the production CSS into theme/static/css/dist/styles.css
-# (re-run this any time you add or change Tailwind class names anywhere
-# in the project, or after pulling new template changes).
+# Build Tailwind CSS and collect Django static files
 tailwind-build:
 	python manage.py tailwind build
 	python manage.py collectstatic --noinput
 
-# Watch-mode build — rebuilds the CSS on every template change. Intended
-# for local development. Run alongside `runserver` in another terminal.
+# Run Tailwind in watch/development mode
+# Run this in a separate terminal alongside Django.
 tailwatch:
 	cd theme/static_src && npm run dev

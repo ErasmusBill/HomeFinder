@@ -73,6 +73,7 @@ class Property(BaseModel):
         GUEST_HOUSE = "guest_house", "Guest House"
 
     class PaymentPeriod(models.TextChoices):
+        DAILY = "daily", "Daily"
         MONTHLY = "monthly", "Monthly"
         YEARLY = "yearly", "Yearly"
 
