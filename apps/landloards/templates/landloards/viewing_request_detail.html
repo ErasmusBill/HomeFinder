@@ -39,7 +39,7 @@
 
             {% if viewing_request.status == 'pending' or viewing_request.status == 'confirmed' %}
                 <a href="{% url 'landloards:reschedule_viewing_request' viewing_request.id %}" class="btn-outline-action">
-                    <i class="fa-solid fa-calendar-pen"></i> Propose new time
+                    <i class="fa-solid fa-calendar-plus"></i> Propose new time
                 </a>
             {% endif %}
 
