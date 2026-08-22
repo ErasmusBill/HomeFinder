@@ -185,7 +185,6 @@
                         </a>
                         <a href="{% url 'notifications:list-notifications' %}" class="nav-icon-btn notification-bell" title="Notifications">
                             <i class="fa-regular fa-bell"></i>
-                            <span class="notification-dot">3</span>
                         </a>
                     </div>
 
@@ -198,7 +197,7 @@
                             {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
                                 <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
                             {% else %}
-                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{{ request.user.full_name|default:request.user.email }}">
+                                <span class="top-user-initials">{{ request.user.full_name|default:request.user.email|slice:":2"|upper }}</span>
                             {% endif %}
                             <div class="user-meta-info">
                                 <strong>{{ request.user.full_name|default:request.user.email }}</strong>
@@ -754,6 +753,20 @@
             object-fit: cover;
             flex-shrink: 0;
         }
+        .top-user-initials {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ecfdf5;
+            color: #047857;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            border: 1px solid var(--border-color);
+        }
         .user-meta-info {
             display: flex;
             flex-direction: column;
@@ -1020,9 +1033,11 @@
                 height: 34px;
                 font-size: 13px;
             }
-            .top-user-profile img {
+            .top-user-profile img,
+            .top-user-initials {
                 width: 32px;
                 height: 32px;
+                font-size: 12px;
             }
             .dashboard-content-body {
                 padding: 16px 12px;

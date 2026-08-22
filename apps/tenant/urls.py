@@ -26,4 +26,15 @@ urlpatterns = [
 
     # Tenant viewing their own notifications
     path('my-notifications/', views.my_tenant_notifications_view, name='my-notifications'),
+
+    # ------------------------------------------------------------------ #
+    # Tenant notification actions (all POST only)                       #
+    # ------------------------------------------------------------------ #
+    # Per-row actions
+    path('notifications/<uuid:notification_id>/mark-read/', views.mark_notification_as_read_view, name='mark_notification_read'),
+    path('notifications/<uuid:notification_id>/mark-unread/', views.mark_notification_as_unread_view, name='mark_notification_unread'),
+    path('notifications/<uuid:notification_id>/delete/', views.delete_notification_view, name='delete_notification'),
+    # Bulk actions
+    path('notifications/mark-all-read/', views.mark_all_notifications_as_read_view, name='mark_all_notifications_read'),
+    path('notifications/clear-all/', views.clear_all_notifications_view, name='clear_all_notifications'),
 ]

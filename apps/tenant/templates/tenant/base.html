@@ -171,7 +171,6 @@
                     <!-- Notification Bell -->
                     <a href="{% url 'tenant:my-notifications' %}" class="relative text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors">
                         <i class="fa-regular fa-bell text-lg sm:text-xl"></i>
-                        <span class="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 bg-red-500 text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
                     </a>
 
                     <!-- User Profile Dropdown -->
@@ -189,7 +188,7 @@
                             {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
                                 <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shrink-0">
                             {% else %}
-                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{{ request.user.full_name|default:request.user.email }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                                <span class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm border border-gray-200 shrink-0">{{ request.user.full_name|default:request.user.email|slice:":2"|upper }}</span>
                             {% endif %}
                             <div class="hidden md:block text-left min-w-0">
                                 <h4 class="text-sm font-semibold text-gray-900 leading-tight truncate max-w-[140px]">{{ request.user.full_name|default:request.user.email }}</h4>

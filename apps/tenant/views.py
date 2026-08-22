@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.account.models import User
@@ -215,9 +216,71 @@ def property_views_list_view(request):
     if not tenant_required(request):
         return render(request, "403.html", status=403)
 
-    property_views = get_tenant_property_views(request.user)
-    context = {"property_views": property_views, "views_count": len(property_views)}
+    # ------------------------------------------------------------------ #
+    # Read query-string filters/sort                                    #
+    # ------------------------------------------------------------------ #
+    sort = request.GET.get("sort", "recent")          # recent | price_asc | price_desc
+    region_id = request.GET.get("region") or ""
+    room_type = request.GET.get("room_type") or ""
+    page_num = request.GET.get("page", 1)
 
+    # ------------------------------------------------------------------ #
+    # Build filtered queryset (NOT cached — depends on user input)      #
+    # ------------------------------------------------------------------ #
+    qs = (
+        PropertyView.objects
+        .filter(tenant=request.user)
+        .select_related("property", "property__region", "property__district", "property__area")
+    )
+
+    filters = Q()
+    if region_id:
+        filters &= Q(property__region_id=region_id)
+    if room_type:
+        filters &= Q(property__room_type=room_type)
+    qs = qs.filter(filters)
+
+    if sort == "price_asc":
+        qs = qs.order_by("property__price", "-viewed_at")
+    elif sort == "price_desc":
+        qs = qs.order_by("-property__price", "-viewed_at")
+    else:  # "recent" default
+        qs = qs.order_by("-viewed_at")
+
+    property_views = list(qs)
+
+    # ------------------------------------------------------------------ #
+    # Pagination                                                          #
+    # ------------------------------------------------------------------ #
+    from django.core.paginator import Paginator
+    paginator = Paginator(property_views, 12)
+    try:
+        page_num = int(page_num)
+    except (TypeError, ValueError):
+        page_num = 1
+    page_obj = paginator.get_page(page_num)
+
+    # ------------------------------------------------------------------ #
+    # Facet data: regions, room types                                   #
+    # ------------------------------------------------------------------ #
+    regions = Region.objects.all().order_by("name")
+    room_type_choices = Property.RoomType.choices
+
+    querystring = request.GET.copy()
+    querystring.pop("page", None)
+
+    context = {
+        "property_views": page_obj.object_list,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "views_count": len(property_views),
+        "regions": regions,
+        "room_type_choices": room_type_choices,
+        "current_sort": sort,
+        "current_region": region_id,
+        "current_room_type": room_type,
+        "querystring": querystring.urlencode(),
+    }
     return render(request, "tenant/property_views.html", context)
 
 @login_required
@@ -417,15 +480,32 @@ def viewing_requests_list_create_view(request, property_id=None):
             form.fields["property"].widget = forms.HiddenInput()
         else:
             form = ViewingRequestForm()
-    viewing_requests = get_tenant_viewing_requests(request.user)
+    # ------------------------------------------------------------------ #
+    # Status filter from query string (all | pending | confirmed | completed | cancelled)
+    # ------------------------------------------------------------------ #
+    status_filter = request.GET.get("status", "all")
+
+    qs = (
+        ViewingRequest.objects
+        .filter(tenant=request.user)
+        .select_related("property", "property__region", "property__district", "property__area")
+    )
+
+    if status_filter in ViewingRequest.Status.values:
+        qs = qs.filter(status=status_filter)
+
+    qs = qs.order_by("-preferred_date", "-preferred_time", "-created_at")
+    viewing_requests = list(qs)
 
     # Stat-card counts (read live so the page always shows the current
-    # status breakdown, even after a recent cancel/reschedule).
-    from django.db.models import Count, Q
+    # status breakdown, even after a recent cancel/reschedule). These
+    # stay independent of the active filter so users always see their
+    # real totals.
+    from django.db.models import Count, Q as _Q
     status_breakdown = ViewingRequest.objects.filter(tenant=request.user).aggregate(
-        confirmed_count=Count("id", filter=Q(status=ViewingRequest.Status.CONFIRMED)),
-        pending_count=Count("id", filter=Q(status=ViewingRequest.Status.PENDING)),
-        completed_count=Count("id", filter=Q(status=ViewingRequest.Status.COMPLETED)),
+        confirmed_count=Count("id", filter=_Q(status=ViewingRequest.Status.CONFIRMED)),
+        pending_count=Count("id", filter=_Q(status=ViewingRequest.Status.PENDING)),
+        completed_count=Count("id", filter=_Q(status=ViewingRequest.Status.COMPLETED)),
         total_count=Count("id"),
     )
 
@@ -433,6 +513,8 @@ def viewing_requests_list_create_view(request, property_id=None):
         "form": form,
         "property": property_obj,
         "viewing_requests": viewing_requests,
+        "current_status": status_filter,
+        "status_choices": ViewingRequest.Status.choices,
         **status_breakdown,
     }
     return render(request, "tenant/viewing_requests.html", context)
@@ -610,8 +692,17 @@ def tenant_notifications_detail_view(request, user_id):
     """
     Full-stack view for an admin or landlord to view all notifications
     related to a specific tenant (by recipient, sender, or GFK target).
+
+    Query-string filters:
+        ``status`` — ``all`` (default), ``read``, or ``unread``.
     """
     tenant = get_object_or_404(User, pk=user_id)
+
+    # Read filter (all | read | unread). ``all`` is the default and
+    # preserves backwards compatibility with the original page.
+    status_filter = request.GET.get("status", "all")
+    if status_filter not in ("all", "read", "unread"):
+        status_filter = "all"
 
     # Fetch notification logic
     tenant_type = ContentType.objects.get_for_model(tenant)
@@ -623,9 +714,40 @@ def tenant_notifications_detail_view(request, user_id):
         Q(content_type=tenant_type, object_id=str(tenant.pk))
     ).select_related('user', 'created_by').distinct()
 
+    if status_filter == "read":
+        notifications = notifications.filter(is_read=True)
+    elif status_filter == "unread":
+        notifications = notifications.filter(is_read=False)
+
+    # Order newest-first so the page reads top-down chronologically.
+    notifications = notifications.order_by("-created_at")
+
+    # Live counts (independent of the active filter) so the status
+    # pills always show the real totals.
+    base_qs = Notification.objects.filter(
+        Q(user=user) |
+        Q(created_by=user) |
+        Q(content_type=tenant_type, object_id=str(tenant.pk))
+    ).distinct()
+    from django.db.models import Count, Q as _Q
+    counts = base_qs.aggregate(
+        all_count=Count("id"),
+        read_count=Count("id", filter=_Q(is_read=True)),
+        unread_count=Count("id", filter=_Q(is_read=False)),
+    )
+
+    # Persist current query string so "clear filter" can keep other params.
+    querystring = request.GET.copy()
+    querystring.pop("status", None)
+
     context = {
         'tenant': tenant,
         'notifications': notifications,
+        'current_status': status_filter,
+        'all_count': counts["all_count"],
+        'read_count': counts["read_count"],
+        'unread_count': counts["unread_count"],
+        'querystring': querystring.urlencode(),
     }
 
     return render(request, 'tenant/tenant_notifications_list.html', context)
@@ -635,15 +757,230 @@ def tenant_notifications_detail_view(request, user_id):
 def my_tenant_notifications_view(request):
     """
     Full-stack view for a logged-in tenant to see their own related notifications.
+
+    Query-string filters:
+        ``status`` — ``all`` (default), ``read``, or ``unread``.
+
+    Paginated 20 per page so long notification histories don't render the
+    whole page server-side.
     """
     current_user = request.user
 
-    notifications = Notification.objects.filter(
-        Q(user=current_user) | Q(created_by=current_user)
-    ).select_related('user', 'created_by').distinct()
+    status_filter = request.GET.get("status", "all")
+    if status_filter not in ("all", "read", "unread"):
+        status_filter = "all"
+
+    # Tenants only see notifications addressed TO them. We deliberately
+    # don't include ``created_by=current_user`` here because tenants don't
+    # author notifications in this app — that branch was leftover from
+    # the landlord logic and was inflating the count with self-references.
+    base_qs = Notification.objects.filter(user=current_user).select_related('user', 'created_by')
+
+    # Apply the read-state filter for the displayed page.
+    if status_filter == "read":
+        page_qs = base_qs.filter(is_read=True)
+    elif status_filter == "unread":
+        page_qs = base_qs.filter(is_read=False)
+    else:
+        page_qs = base_qs.all()
+
+    page_qs = page_qs.order_by("-created_at")
+
+    # Pagination (20 per page).
+    from django.core.paginator import Paginator
+    paginator = Paginator(page_qs, 20)
+    try:
+        page_num = int(request.GET.get("page", 1))
+    except (TypeError, ValueError):
+        page_num = 1
+    if page_num < 1:
+        page_num = 1
+    if page_num > paginator.num_pages and paginator.num_pages > 0:
+        page_num = paginator.num_pages
+    page_obj = paginator.get_page(page_num)
+
+    # Counts stay on the unfiltered queryset so the tab pills always
+    # show the real totals, regardless of which tab is active.
+    from django.db.models import Count
+    counts = base_qs.aggregate(
+        all_count=Count("id"),
+        read_count=Count("id", filter=Q(is_read=True)),
+        unread_count=Count("id", filter=Q(is_read=False)),
+    )
+
+    # Preserve non-status params (page) when toggling the filter.
+    querystring = request.GET.copy()
+    querystring.pop("status", None)
+    querystring.pop("page", None)
 
     context = {
-        'notifications': notifications,
+        'notifications': page_obj.object_list,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'current_status': status_filter,
+        'all_count': counts["all_count"],
+        'read_count': counts["read_count"],
+        'unread_count': counts["unread_count"],
+        'querystring': querystring.urlencode(),
     }
 
     return render(request, 'tenant/my_notifications.html', context)
+
+
+# ---------------------------------------------------------------------------
+# Tenant notification actions (mark read / mark unread / delete / clear all)
+# ---------------------------------------------------------------------------
+# All actions below are POST-only and resolve the notification through a
+# tenant-scoped queryset so a tenant can never read/delete someone else's
+# notification just by guessing the UUID in the URL.
+
+def _tenant_notification_qs(user):
+    """Notifications belonging to this tenant (as recipient)."""
+    return Notification.objects.filter(user=user)
+
+
+def _redirect_to_my_notifications(request):
+    """
+    Send the user back to ``my-notifications`` while preserving the
+    active status filter + page so they land where they were.
+    """
+    from django.urls import reverse
+    params = []
+    for key in ("status", "page"):
+        value = request.POST.get(f"return_{key}") or request.GET.get(key)
+        if value:
+            # Constrain to known-safe values before interpolating into
+            # the redirect URL — avoids reflecting arbitrary query string
+            # data back into the Location header.
+            if key == "status" and value not in ("all", "read", "unread"):
+                continue
+            if key == "page":
+                try:
+                    int(value)
+                except (TypeError, ValueError):
+                    continue
+            params.append(f"{key}={value}")
+    url = reverse("tenant:my-notifications")
+    if params:
+        return redirect(f"{url}?{'&'.join(params)}")
+    return redirect(url)
+
+
+@login_required
+@require_POST
+def mark_notification_as_read_view(request, notification_id):
+    """
+    Mark a single tenant-owned notification as read. Sets ``read_at`` so
+    the timestamp is preserved on the row.
+    """
+    if not tenant_required(request):
+        return render(request, "403.html", status=403)
+
+    notification = get_object_or_404(
+        _tenant_notification_qs(request.user),
+        pk=notification_id,
+    )
+
+    if not notification.is_read:
+        notification.is_read = True
+        notification.read_at = timezone.now()
+        notification.save(update_fields=["is_read", "read_at", "updated_at"])
+        messages.success(
+            request,
+            f'Notification "{notification.title}" marked as read.',
+        )
+    else:
+        messages.info(request, "Notification was already marked as read.")
+
+    return _redirect_to_my_notifications(request)
+
+
+@login_required
+@require_POST
+def mark_notification_as_unread_view(request, notification_id):
+    """Revert a single tenant-owned notification back to the unread state."""
+    if not tenant_required(request):
+        return render(request, "403.html", status=403)
+
+    notification = get_object_or_404(
+        _tenant_notification_qs(request.user),
+        pk=notification_id,
+    )
+
+    if notification.is_read:
+        notification.is_read = False
+        notification.read_at = None
+        notification.save(update_fields=["is_read", "read_at", "updated_at"])
+        messages.success(
+            request,
+            f'Notification "{notification.title}" marked as unread.',
+        )
+    else:
+        messages.info(request, "Notification was already unread.")
+
+    return _redirect_to_my_notifications(request)
+
+
+@login_required
+@require_POST
+def mark_all_notifications_as_read_view(request):
+    """Bulk-mark every unread notification belonging to this tenant as read."""
+    if not tenant_required(request):
+        return render(request, "403.html", status=403)
+
+    qs = _tenant_notification_qs(request.user).filter(is_read=False)
+    count = qs.count()
+    if count:
+        now = timezone.now()
+        qs.update(is_read=True, read_at=now, updated_at=now)
+        messages.success(
+            request,
+            f'Marked {count} notification{"s" if count != 1 else ""} as read.',
+        )
+    else:
+        messages.info(request, "No unread notifications to mark.")
+
+    return _redirect_to_my_notifications(request)
+
+
+@login_required
+@require_POST
+def delete_notification_view(request, notification_id):
+    """Permanently delete a single tenant-owned notification."""
+    if not tenant_required(request):
+        return render(request, "403.html", status=403)
+
+    notification = get_object_or_404(
+        _tenant_notification_qs(request.user),
+        pk=notification_id,
+    )
+    title = notification.title
+    notification.delete()
+    messages.success(request, f'Notification "{title}" deleted.')
+
+    return _redirect_to_my_notifications(request)
+
+
+@login_required
+@require_POST
+def clear_all_notifications_view(request):
+    """
+    Bulk-delete every notification belonging to this tenant (received).
+    Distinct from "delete one" — used when the tenant wants to wipe the
+    inbox entirely.
+    """
+    if not tenant_required(request):
+        return render(request, "403.html", status=403)
+
+    qs = _tenant_notification_qs(request.user)
+    count = qs.count()
+    if count:
+        qs.delete()
+        messages.success(
+            request,
+            f'Cleared {count} notification{"s" if count != 1 else ""}.',
+        )
+    else:
+        messages.info(request, "No notifications to clear.")
+
+    return _redirect_to_my_notifications(request)

@@ -18,10 +18,13 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <button class="px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs cursor-pointer">
-                <i class="fa-regular fa-trash-can"></i> Clear All Saved
-            </button>
-            <a href="#" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs">
+            <form method="POST" action="{% url 'tenant:clear_saved_properties' %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs cursor-pointer">
+                    <i class="fa-regular fa-trash-can"></i> Clear All Saved
+                </button>
+            </form>
+            <a href="{% url 'home_finder:list_properties' %}" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 transition-colors shadow-xs">
                 <i class="fa-solid fa-magnifying-glass"></i> Browse Properties
             </a>
         </div>
@@ -29,65 +32,79 @@
 
     <!-- Filters & Sorting Bar -->
     <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-3 flex-1">
+        <form method="GET" id="savedPropertiesFilters" class="flex flex-wrap items-center gap-3 flex-1">
             <!-- Sort By -->
             <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
                 <span class="text-gray-500 text-xs font-medium">Sort by:</span>
-                <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-                    <option>Recently Saved</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
+                <select name="sort" onchange="this.form.submit()"
+                        class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                    <option value="recent"     {% if current_sort == "recent"     %}selected{% endif %}>Recently Saved</option>
+                    <option value="price_asc"  {% if current_sort == "price_asc"  %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_desc" {% if current_sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
                 </select>
             </div>
 
             <!-- Filter By Region -->
             <div class="bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
-                <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-                    <option>All Regions</option>
-                    <option>Greater Accra</option>
-                    <option>Ashanti</option>
+                <select name="region" onchange="this.form.submit()"
+                        class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                    <option value="">All Regions</option>
+                    {% for r in regions %}
+                        <option value="{{ r.id }}" {% if current_region|stringformat:"s" == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <!-- Filter By District -->
             <div class="bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
-                <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-                    <option>All Districts</option>
-                    <option>Accra Metropolitan</option>
-                    <option>East Legon</option>
+                <select name="district" onchange="this.form.submit()"
+                        class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                    <option value="">All Districts</option>
+                    {% for d in districts %}
+                        <option value="{{ d.id }}" {% if current_district|stringformat:"s" == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <!-- Filter By Room Type -->
             <div class="bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
-                <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-                    <option>All Room Types</option>
-                    <option>1 Bedroom</option>
-                    <option>2 Bedroom</option>
-                    <option>3 Bedroom</option>
-                    <option>House</option>
+                <select name="room_type" onchange="this.form.submit()"
+                        class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+                    <option value="">All Room Types</option>
+                    {% for value, label in room_type_choices %}
+                        <option value="{{ value }}" {% if current_room_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
-            <button class="px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl flex items-center gap-2 transition-colors cursor-pointer">
-                <i class="fa-solid fa-sliders text-xs text-emerald-600"></i> Filters
-            </button>
-        </div>
+            {% if current_sort != "recent" or current_region or current_district or current_room_type %}
+                <a href="{% url 'tenant:saved_properties_list' %}"
+                   class="px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors">
+                    <i class="fa-solid fa-xmark text-[10px]"></i> Clear
+                </a>
+            {% endif %}
+        </form>
 
-        <!-- View Layout Toggle -->
+        <!-- View Layout Toggle (uses ?view=grid|list so the chosen layout persists across pagination) -->
         <div class="flex items-center gap-1 border border-gray-200 p-1 rounded-xl bg-gray-50">
-            <button class="p-2 rounded-lg bg-white text-emerald-600 shadow-xs cursor-pointer"><i class="fa-solid fa-grip text-xs"></i></button>
-            <button class="p-2 rounded-lg text-gray-400 hover:text-gray-600 cursor-pointer"><i class="fa-solid fa-list text-xs"></i></button>
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}view=grid"
+               class="p-2 rounded-lg {% if current_view == 'grid' %}bg-white text-emerald-600 shadow-xs{% else %}text-gray-400 hover:text-gray-600{% endif %}">
+                <i class="fa-solid fa-grip text-xs"></i>
+            </a>
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}view=list"
+               class="p-2 rounded-lg {% if current_view == 'list' %}bg-white text-emerald-600 shadow-xs{% else %}text-gray-400 hover:text-gray-600{% endif %}">
+                <i class="fa-solid fa-list text-xs"></i>
+            </a>
         </div>
     </div>
 
     <!-- Results Count Heading -->
     <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-gray-700">{{ saved_count|default:12 }} saved properties</h2>
+        <h2 class="text-sm font-bold text-gray-700">{{ saved_count|default:0 }} saved properties</h2>
     </div>
 
     <!-- Properties Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="{% if current_view == 'list' %}flex flex-col gap-4{% else %}grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6{% endif %}">
         {% for item in saved_properties %}
         <!-- Dynamic Saved Property Item -->
         <div class="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
@@ -139,20 +156,74 @@
         </div>
 
 
+        {% empty %}
+        <!-- Empty state when filters return nothing -->
+        <div class="col-span-full flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-100 rounded-3xl shadow-xs">
+            <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mb-5">
+                <i class="fa-regular fa-heart"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                {% if current_region or current_district or current_room_type or current_sort != "recent" %}
+                    No saved properties match your filters
+                {% else %}
+                    You haven't saved any properties yet
+                {% endif %}
+            </h3>
+            <p class="text-sm text-gray-500 max-w-md mb-6">
+                {% if current_region or current_district or current_room_type or current_sort != "recent" %}
+                    Try adjusting or clearing your filters to see all your saved properties.
+                {% else %}
+                    Tap the heart icon on a property to add it to your saved list.
+                {% endif %}
+            </p>
+            {% if current_region or current_district or current_room_type or current_sort != "recent" %}
+                <a href="{% url 'tenant:saved_properties_list' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                    <i class="fa-solid fa-xmark text-xs"></i> Clear filters
+                </a>
+            {% else %}
+                <a href="{% url 'home_finder:list_properties' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i> Browse Properties
+                </a>
+            {% endif %}
+        </div>
         {% endfor %}
     </div>
 
     <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
     <div class="flex items-center justify-center gap-2 pt-4">
-        <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
-            <i class="fa-solid fa-chevron-left text-xs"></i>
-        </button>
-        <button class="w-10 h-10 rounded-xl bg-emerald-700 text-white font-semibold flex items-center justify-center shadow-xs">1</button>
-        <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-semibold flex items-center justify-center transition-colors shadow-xs">2</button>
-        <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
-            <i class="fa-solid fa-chevron-right text-xs"></i>
-        </button>
+        {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </a>
+        {% else %}
+            <span class="w-10 h-10 rounded-xl border border-gray-100 bg-gray-50 text-gray-300 flex items-center justify-center cursor-not-allowed">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </span>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="w-10 h-10 rounded-xl bg-emerald-700 text-white font-semibold flex items-center justify-center shadow-xs">{{ num }}</span>
+            {% else %}
+                <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+                   class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-semibold flex items-center justify-center transition-colors shadow-xs">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </a>
+        {% else %}
+            <span class="w-10 h-10 rounded-xl border border-gray-100 bg-gray-50 text-gray-300 flex items-center justify-center cursor-not-allowed">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </span>
+        {% endif %}
     </div>
+    {% endif %}
 
 </div>
 {% endblock %}

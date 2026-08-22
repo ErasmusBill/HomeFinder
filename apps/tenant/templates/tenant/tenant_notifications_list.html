@@ -18,6 +18,30 @@
         </a>
     </div>
 
+    <!-- Status Filter Pills (GET form so the chosen filter is bookmarkable) -->
+    <div class="filter-bar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-muted, #5a6478); font-weight: 600; margin-right: 4px;">Filter:</span>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=all"
+           class="status-filter-pill {% if current_status == 'all' %}active{% endif %}">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All <span class="pill-count">({{ all_count|default:0 }})</span>
+        </a>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=unread"
+           class="status-filter-pill {% if current_status == 'unread' %}active{% endif %}">
+            <i class="fa-solid fa-circle-dot" aria-hidden="true"></i> Unread <span class="pill-count">({{ unread_count|default:0 }})</span>
+        </a>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=read"
+           class="status-filter-pill {% if current_status == 'read' %}active{% endif %}">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Read <span class="pill-count">({{ read_count|default:0 }})</span>
+        </a>
+        {% if current_status != "all" %}
+            <a href="?{% if querystring %}{{ querystring }}{% endif %}"
+               class="status-filter-pill clear"
+               title="Clear filter">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
+            </a>
+        {% endif %}
+    </div>
+
     <div class="form-card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive">
             <table class="table align-middle mb-0" style="width: 100%; border-collapse: collapse;">
@@ -59,8 +83,28 @@
                                 <div style="font-size: 2rem; margin-bottom: 12px; color: #cbd5e1;">
                                     <i class="fa-regular fa-bell-slash" aria-hidden="true"></i>
                                 </div>
-                                <strong style="display: block; font-size: 0.95rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">No notifications found</strong>
-                                <p style="font-size: 0.85rem; margin: 0;">No notifications are currently linked to this tenant.</p>
+                                <strong style="display: block; font-size: 0.95rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">
+                                    {% if current_status == "read" %}
+                                        No read notifications
+                                    {% elif current_status == "unread" %}
+                                        No unread notifications
+                                    {% else %}
+                                        No notifications found
+                                    {% endif %}
+                                </strong>
+                                <p style="font-size: 0.85rem; margin: 0;">
+                                    {% if current_status != "all" %}
+                                        Try a different status filter, or clear it to see all notifications.
+                                    {% else %}
+                                        No notifications are currently linked to this tenant.
+                                    {% endif %}
+                                </p>
+                                {% if current_status != "all" %}
+                                    <a href="{% url 'tenant:tenant-notifications' tenant.pk %}"
+                                       style="display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 8px 14px; background: var(--primary, #1f8a4c); color: #fff; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                                        <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear filter
+                                    </a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -139,6 +183,43 @@
         background: #eff6ff;
         color: #1d4ed8;
         border: 1px solid #bfdbfe;
+    }
+    .status-filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: #fff;
+        color: var(--text-muted, #5a6478);
+        border: 1px solid var(--border-color, #e9ebef);
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .status-filter-pill:hover {
+        background: var(--bg-light, #f7f8fa);
+        color: var(--text-dark, #14213d);
+    }
+    .status-filter-pill.active {
+        background: var(--primary, #1f8a4c);
+        color: #fff;
+        border-color: var(--primary, #1f8a4c);
+    }
+    .status-filter-pill.active .pill-count {
+        color: rgba(255,255,255,0.85);
+    }
+    .status-filter-pill .pill-count {
+        font-weight: 500;
+        opacity: 0.85;
+    }
+    .status-filter-pill.clear {
+        color: #b91c1c;
+        border-color: #fecaca;
+    }
+    .status-filter-pill.clear:hover {
+        background: #fef2f2;
     }
     .btn {
         display: inline-flex;

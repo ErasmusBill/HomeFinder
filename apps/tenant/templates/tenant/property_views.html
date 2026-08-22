@@ -36,20 +36,52 @@
   <!-- Sorting & Layout Controls Bar -->
   <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between gap-4">
     <div class="text-sm font-bold text-gray-700">
-      {{ views_count|default:24 }} properties
+      {{ views_count }} properties
     </div>
 
     <div class="flex items-center gap-4">
-      <!-- Sort By -->
-      <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
-        <span class="text-gray-500 text-xs font-medium">Sort by:</span>
-        <select class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
-          <option>Most Recent</option>
-          <option>Oldest</option>
-          <option>Price: Low to High</option>
-          <option>Price: High to Low</option>
-        </select>
-      </div>
+      <!-- Filters & Sort (single GET form so all controls preserve state) -->
+      <form method="GET" id="propertyViewsFilters" class="flex flex-wrap items-center gap-3">
+        <!-- Sort By -->
+        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
+          <span class="text-gray-500 text-xs font-medium">Sort by:</span>
+          <select name="sort" onchange="this.form.submit()"
+                  class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+            <option value="recent"     {% if current_sort == "recent"     %}selected{% endif %}>Most Recent</option>
+            <option value="price_asc"  {% if current_sort == "price_asc"  %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc" {% if current_sort == "price_desc" %}selected{% endif %}>Price: High to Low</option>
+          </select>
+        </div>
+
+        <!-- Filter By Region -->
+        <div class="bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
+          <select name="region" onchange="this.form.submit()"
+                  class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+            <option value="">All Regions</option>
+            {% for r in regions %}
+              <option value="{{ r.id }}" {% if current_region|stringformat:"s" == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Filter By Room Type -->
+        <div class="bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl text-sm">
+          <select name="room_type" onchange="this.form.submit()"
+                  class="bg-transparent font-medium text-gray-800 focus:outline-none cursor-pointer">
+            <option value="">All Room Types</option>
+            {% for value, label in room_type_choices %}
+              <option value="{{ value }}" {% if current_room_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if current_region or current_room_type or current_sort != "recent" %}
+          <a href="{% url 'tenant:property_views' %}"
+             class="px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors">
+            <i class="fa-solid fa-xmark text-[10px]"></i> Clear
+          </a>
+        {% endif %}
+      </form>
 
       <!-- View Layout Toggle -->
       <div class="flex items-center gap-1 border border-gray-200 p-1 rounded-xl bg-gray-50">
@@ -74,13 +106,9 @@
               <img src="{{ item.property.media.first.file.url }}"
                    alt="{{ item.property.title }}"
                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            {% else %}
-              <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=600"
-                   alt="Property"
-                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
             {% endif %}
 
-            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed recently</span>
+            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed {{ item.viewed_at|timesince }} ago</span>
 
             <!-- Toggle Save Button -->
             <form method="POST" action="{% url 'tenant:toggle_save_property' item.property.id %}">
@@ -123,153 +151,57 @@
         </div>
       </div>
     {% empty %}
-      <!-- Static Fallback Mock Cards matching the image design if context list is empty -->
-      <div class="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
-        <div>
-          <div class="relative h-48 overflow-hidden bg-gray-100">
-            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=600"
-                 alt="Apartment"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed 15 min ago</span>
-            <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-red-500 shadow-xs">
-              <i class="fa-solid fa-heart text-xs"></i>
-            </button>
-          </div>
-          <div class="p-4 space-y-2">
-            <div class="flex items-baseline justify-between">
-              <span class="text-base font-bold text-emerald-600">GH₵ 2,500 <span class="text-xs font-normal text-gray-500">/month</span></span>
-            </div>
-            <h4 class="font-semibold text-gray-900 text-sm truncate">2 Bedroom Apartment</h4>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i class="fa-solid fa-location-dot text-gray-400"></i> East Legon, Accra
-            </p>
-            <div class="pt-2 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-500">
-              <span><i class="fa-solid fa-bed mr-1 text-gray-400"></i>2</span>
-              <span><i class="fa-solid fa-bath mr-1 text-gray-400"></i>2</span>
-              <span><i class="fa-solid fa-building mr-1 text-gray-400"></i>Apartment</span>
-            </div>
-          </div>
+      <!-- No recently viewed properties yet -->
+      <div class="col-span-full flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-100 rounded-3xl shadow-xs">
+        <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mb-5">
+          <i class="fa-regular fa-clock"></i>
         </div>
-        <div class="p-4 pt-0">
-          <a href="#" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
-            View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
-          </a>
-        </div>
-      </div>
-
-      <div class="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
-        <div>
-          <div class="relative h-48 overflow-hidden bg-gray-100">
-            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600"
-                 alt="House"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed 45 min ago</span>
-            <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-red-500 shadow-xs">
-              <i class="fa-solid fa-heart text-xs"></i>
-            </button>
-          </div>
-          <div class="p-4 space-y-2">
-            <div class="flex items-baseline justify-between">
-              <span class="text-base font-bold text-emerald-600">GH₵ 3,000 <span class="text-xs font-normal text-gray-500">/month</span></span>
-            </div>
-            <h4 class="font-semibold text-gray-900 text-sm truncate">3 Bedroom House</h4>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i class="fa-solid fa-location-dot text-gray-400"></i> Adjirringanor, Accra
-            </p>
-            <div class="pt-2 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-500">
-              <span><i class="fa-solid fa-bed mr-1 text-gray-400"></i>3</span>
-              <span><i class="fa-solid fa-bath mr-1 text-gray-400"></i>3</span>
-              <span><i class="fa-solid fa-building mr-1 text-gray-400"></i>House</span>
-            </div>
-          </div>
-        </div>
-        <div class="p-4 pt-0">
-          <a href="#" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
-            View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
-          </a>
-        </div>
-      </div>
-
-      <div class="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
-        <div>
-          <div class="relative h-48 overflow-hidden bg-gray-100">
-            <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=600"
-                 alt="Apartment"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed 2 hrs ago</span>
-            <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-red-500 shadow-xs">
-              <i class="fa-solid fa-heart text-xs"></i>
-            </button>
-          </div>
-          <div class="p-4 space-y-2">
-            <div class="flex items-baseline justify-between">
-              <span class="text-base font-bold text-emerald-600">GH₵ 2,200 <span class="text-xs font-normal text-gray-500">/month</span></span>
-            </div>
-            <h4 class="font-semibold text-gray-900 text-sm truncate">2 Bedroom Apartment</h4>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i class="fa-solid fa-location-dot text-gray-400"></i> Cantonments, Accra
-            </p>
-            <div class="pt-2 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-500">
-              <span><i class="fa-solid fa-bed mr-1 text-gray-400"></i>2</span>
-              <span><i class="fa-solid fa-bath mr-1 text-gray-400"></i>2</span>
-              <span><i class="fa-solid fa-building mr-1 text-gray-400"></i>Apartment</span>
-            </div>
-          </div>
-        </div>
-        <div class="p-4 pt-0">
-          <a href="#" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
-            View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
-          </a>
-        </div>
-      </div>
-
-      <div class="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between">
-        <div>
-          <div class="relative h-48 overflow-hidden bg-gray-100">
-            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=600"
-                 alt="Studio"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            <span class="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-medium px-2.5 py-1 rounded-full">Viewed 4 hrs ago</span>
-            <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-red-500 shadow-xs">
-              <i class="fa-solid fa-heart text-xs"></i>
-            </button>
-          </div>
-          <div class="p-4 space-y-2">
-            <div class="flex items-baseline justify-between">
-              <span class="text-base font-bold text-emerald-600">GH₵ 1,800 <span class="text-xs font-normal text-gray-500">/month</span></span>
-            </div>
-            <h4 class="font-semibold text-gray-900 text-sm truncate">1 Bedroom Studio</h4>
-            <p class="text-xs text-gray-500 flex items-center gap-1">
-              <i class="fa-solid fa-location-dot text-gray-400"></i> Osu, Accra
-            </p>
-            <div class="pt-2 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-500">
-              <span><i class="fa-solid fa-bed mr-1 text-gray-400"></i>1</span>
-              <span><i class="fa-solid fa-bath mr-1 text-gray-400"></i>1</span>
-              <span><i class="fa-solid fa-building mr-1 text-gray-400"></i>Studio</span>
-            </div>
-          </div>
-        </div>
-        <div class="p-4 pt-0">
-          <a href="#" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors">
-            View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
-          </a>
-        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">No recently viewed properties</h3>
+        <p class="text-sm text-gray-500 max-w-md mb-6">
+          You haven't viewed any properties yet. Once you browse and open a property, it will appear here for easy access.
+        </p>
+        <a href="{% url 'home_finder:list_properties' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i> Browse Properties
+        </a>
       </div>
     {% endfor %}
   </div>
 
   <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
   <div class="flex items-center justify-center gap-2 pt-4">
-    <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
-      <i class="fa-solid fa-chevron-left text-xs"></i>
-    </button>
-    <button class="w-10 h-10 rounded-xl bg-emerald-700 text-white font-semibold flex items-center justify-center shadow-xs">1</button>
-    <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-semibold flex items-center justify-center transition-colors shadow-xs">2</button>
-    <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-semibold flex items-center justify-center transition-colors shadow-xs">3</button>
-    <button class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
-      <i class="fa-solid fa-chevron-right text-xs"></i>
-    </button>
+    {% if page_obj.has_previous %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+      </a>
+    {% else %}
+      <span class="w-10 h-10 rounded-xl border border-gray-100 bg-gray-50 text-gray-300 flex items-center justify-center cursor-not-allowed">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+      </span>
+    {% endif %}
+
+    {% for num in paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="w-10 h-10 rounded-xl bg-emerald-700 text-white font-semibold flex items-center justify-center shadow-xs">{{ num }}</span>
+      {% else %}
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ num }}"
+           class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-semibold flex items-center justify-center transition-colors shadow-xs">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+         class="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center transition-colors shadow-xs">
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </a>
+    {% else %}
+      <span class="w-10 h-10 rounded-xl border border-gray-100 bg-gray-50 text-gray-300 flex items-center justify-center cursor-not-allowed">
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </span>
+    {% endif %}
   </div>
+  {% endif %}
 
 </div>
 {% endblock %}
