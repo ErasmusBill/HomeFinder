@@ -14,22 +14,9 @@
         </div>
 
         <div class="onboarding-steps-grid">
-            <!-- Step 1 -->
+            <!-- Step 1: Amenities (locations are pre-populated by admin) -->
             <div class="onboarding-step-card completed">
                 <div class="step-number-badge">1</div>
-                <div class="step-icon-circle green">
-                    <i class="fa-solid fa-location-dot"></i>
-                </div>
-                <h3>Add Locations</h3>
-                <p>Add region, district, town and areas.</p>
-                <a href="{% url 'locations:list_locations' %}" class="btn-step-action outlined">Add Locations</a>
-            </div>
-
-            <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-
-            <!-- Step 2 -->
-            <div class="onboarding-step-card completed">
-                <div class="step-number-badge">2</div>
                 <div class="step-icon-circle green">
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
@@ -44,9 +31,9 @@
 
             <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
 
-            <!-- Step 3 -->
+            <!-- Step 2 -->
             <div class="onboarding-step-card">
-                <div class="step-number-badge">3</div>
+                <div class="step-number-badge">2</div>
                 <div class="step-icon-circle">
                     <i class="fa-solid fa-building"></i>
                 </div>
@@ -61,7 +48,7 @@
 
             <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
 
-            <!-- Step 4: Verification -->
+            <!-- Step 3: Verification -->
             {% if identity_verified %}
                 <div class="onboarding-step-card completed">
                     <div class="step-number-badge"><i class="fa-solid fa-check"></i></div>
@@ -74,7 +61,7 @@
                 </div>
             {% elif has_identity_doc %}
                 <div class="onboarding-step-card">
-                    <div class="step-number-badge">4</div>
+                    <div class="step-number-badge">3</div>
                     <div class="step-icon-circle" style="background: #fffbeb; color: #f59e0b;">
                         <i class="fa-solid fa-clock"></i>
                     </div>
@@ -84,7 +71,7 @@
                 </div>
             {% else %}
                 <div class="onboarding-step-card">
-                    <div class="step-number-badge">4</div>
+                    <div class="step-number-badge">3</div>
                     <div class="step-icon-circle">
                         <i class="fa-solid fa-id-card"></i>
                     </div>
@@ -126,96 +113,6 @@
 
         <!-- Left Side Column: Summaries -->
         <div class="dashboard-col-left">
-
-            <!-- Locations Summary Widget -->
-            <div class="dashboard-card-box">
-                <div class="card-header-flex">
-                    <h3>Locations Summary</h3>
-                    <a href="{% url 'locations:list_locations' %}" class="header-action-link">Manage Locations</a>
-                </div>
-
-                <div class="summary-metrics-row">
-                    <div class="summary-metric-box">
-                        <div class="metric-icon green"><i class="fa-solid fa-location-dot"></i></div>
-                        <div>
-                            <span class="label">Regions</span>
-                            <h4>{{ total_regions }}</h4>
-                            <a href="{% url 'locations:list_locations' %}">View all regions</a>
-                        </div>
-                    </div>
-                    <div class="summary-metric-box">
-                        <div class="metric-icon orange"><i class="fa-solid fa-map"></i></div>
-                        <div>
-                            <span class="label">Districts</span>
-                            <h4>{{ total_districts }}</h4>
-                            <a href="{% url 'locations:list_locations' %}">View all districts</a>
-                        </div>
-                    </div>
-                    <div class="summary-metric-box">
-                        <div class="metric-icon blue"><i class="fa-solid fa-city"></i></div>
-                        <div>
-                            <span class="label">Towns</span>
-                            <h4>{{ total_towns }}</h4>
-                            <a href="{% url 'locations:list_locations' %}">View all towns</a>
-                        </div>
-                    </div>
-                    <div class="summary-metric-box">
-                        <div class="metric-icon purple"><i class="fa-solid fa-map-pin"></i></div>
-                        <div>
-                            <span class="label">Areas</span>
-                            <h4>{{ total_areas }}</h4>
-                            <a href="{% url 'locations:list_locations' %}">View all areas</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="recent-table-section">
-                    <div class="recent-table-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-main);">Locations Explorer</h4>
-                        <span class="badge-pill green" style="font-size: 11px;">Total Areas: {{ total_areas }}</span>
-                    </div>
-
-                    {% for loc in recent_locations %}
-                    <div class="recent-location-row">
-                        <div class="loc-left">
-                            <i class="fa-solid fa-location-dot text-green"></i>
-                            <div>
-                                <strong>{{ loc.name }}</strong>
-                                <span>{{ loc.town.name }}, {{ loc.town.district.region.name }}</span>
-                            </div>
-                        </div>
-                        <span class="date-tag">{{ loc.created_at|date:"M d, Y" }}</span>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted" style="font-size: 12px; padding: 10px 0;">No locations found in database.</p>
-                    {% endfor %}
-
-                    <!-- Dashboard Location Pagination Controls -->
-                    {% if recent_locations.paginator.num_pages > 1 %}
-                    <div class="dashboard-loc-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 12px;">
-                        <span class="text-muted">Page {{ recent_locations.number }} of {{ recent_locations.paginator.num_pages }}</span>
-                        <div style="display: flex; gap: 6px;">
-                            {% if recent_locations.has_previous %}
-                                <a href="?loc_page={{ recent_locations.previous_page_number }}" class="dash-page-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i> Prev</a>
-                            {% else %}
-                                <span class="dash-page-btn disabled"><i class="fa-solid fa-chevron-left"></i> Prev</span>
-                            {% endif %}
-
-                            {% if recent_locations.has_next %}
-                                <a href="?loc_page={{ recent_locations.next_page_number }}" class="dash-page-btn" title="Next Page">Next <i class="fa-solid fa-chevron-right"></i></a>
-                            {% else %}
-                                <span class="dash-page-btn disabled">Next <i class="fa-solid fa-chevron-right"></i></span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="card-footer-action">
-                    <a href="{% url 'locations:list_locations' %}">Manage Full Hierarchy <i class="fa-solid fa-arrow-right"></i></a>
-                </div>
-            </div>
-
 
             <!-- Amenities Summary Widget -->
             <div class="dashboard-card-box">
@@ -309,11 +206,6 @@
             <div class="dashboard-card-box">
                 <h3>Quick Actions</h3>
                 <div class="quick-actions-list">
-                    <a href="{% url 'locations:list_locations' %}" class="quick-action-row">
-                        <div class="action-icon green"><i class="fa-solid fa-location-dot"></i></div>
-                        <div><strong>Add New Location</strong><span>Add region, district, town or area</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
                     {% if landlord_access.is_suspended %}
                         <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
                             <div class="action-icon orange"><i class="fa-solid fa-lock"></i></div>
@@ -391,7 +283,7 @@
 }
 .onboarding-steps-grid {
     display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
     align-items: center;
     gap: 12px;
 }

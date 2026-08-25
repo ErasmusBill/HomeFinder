@@ -1,7 +1,7 @@
 {% extends 'landloards/landlord_base.html' %}
 {% load static %}
 
-{% block title %}Add New Location Hierarchy - VacantHommie{% endblock %}
+{% block title %}Browse Locations - VacantHommie{% endblock %}
 
 {% block content %}
 <div class="locations-management-wrapper">
@@ -9,122 +9,9 @@
     <!-- Page Header Row -->
     <div class="page-header-row">
         <div class="header-titles">
-            <h1>Add Complete Location Hierarchy</h1>
-            <p>Fill in one field per level to create a Region, District, Town and Area together, or use "Add separately" if the parent already exists.</p>
+            <h1>Browse Locations</h1>
+            <p>Browse the available regions, districts, towns, and areas. Locations are managed by the VacantHommie team — pick the right one when creating your property listing.</p>
         </div>
-        <div class="header-actions">
-            <a href="{% url 'locations:list_locations' %}" class="btn-secondary-action">
-                <i class="fa-solid fa-list"></i> View All Locations
-            </a>
-        </div>
-    </div>
-
-    <!-- Form Container Box -->
-    <div class="dashboard-card-box">
-        <form method="POST" class="location-form" id="hierarchy-form">
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-                <div class="form-error-banner">
-                    <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <!-- Helper banner explaining how the flow works -->
-            <div class="info-banner">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>Steps flow top to bottom: a Region contains Districts, a District contains Towns, and a Town contains Areas. Only the top field is required — leave the rest blank if you're just adding a Region.</span>
-            </div>
-
-            <div class="form-grid">
-
-                <!-- Region Section Card -->
-                <div class="form-section-group">
-                    <div class="card-header-row">
-                        <h3><span class="step-badge">1</span> Region Information</h3>
-                        <a href="{% url 'locations:create_region' %}" class="manage-separately-link" title="Create a Region on its own page">
-                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </a>
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ form.region_name.id_for_label }}">Region Name <span class="required-star">*</span></label>
-                        {{ form.region_name }}
-                        {% if form.region_name.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.region_name.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">e.g., Greater Accra, Ashanti</small>
-                    </div>
-                </div>
-
-                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
-
-                <!-- District Section Card -->
-                <div class="form-section-group">
-                    <div class="card-header-row">
-                        <h3><span class="step-badge">2</span> District Information</h3>
-                        <a href="{% url 'locations:add_district' %}" class="manage-separately-link" title="Add a District under an existing Region">
-                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </a>
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ form.district_name.id_for_label }}">District Name <span class="optional-tag">optional</span></label>
-                        {{ form.district_name }}
-                        {% if form.district_name.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.district_name.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">e.g., Accra Metropolitan, Kumasi Metropolitan</small>
-                    </div>
-                </div>
-
-                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
-
-                <!-- Town Section Card -->
-                <div class="form-section-group">
-                    <div class="card-header-row">
-                        <h3><span class="step-badge">3</span> Town Information</h3>
-                        <a href="{% url 'locations:add_town' %}" class="manage-separately-link" title="Add a Town under an existing District">
-                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </a>
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ form.town_name.id_for_label }}">Town Name <span class="optional-tag">optional</span></label>
-                        {{ form.town_name }}
-                        {% if form.town_name.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.town_name.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">e.g., Accra, Tema, Kumasi</small>
-                    </div>
-                </div>
-
-                <div class="flow-connector" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
-
-                <!-- Area Section Card -->
-                <div class="form-section-group">
-                    <div class="card-header-row">
-                        <h3><span class="step-badge">4</span> Area / Neighborhood</h3>
-                        <a href="{% url 'locations:add_area' %}" class="manage-separately-link" title="Add an Area under an existing Town">
-                            Add separately <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </a>
-                    </div>
-                    <div class="form-group">
-                        <label for="{{ form.area_name.id_for_label }}">Area Name <span class="optional-tag">optional</span></label>
-                        {{ form.area_name }}
-                        {% if form.area_name.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.area_name.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">e.g., Osu, East Legon, Bantama</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Actions Submission Footer -->
-            <div class="form-actions-footer">
-                <a href="{% url 'locations:list_locations' %}" class="btn-cancel">Cancel</a>
-                <button type="submit" class="btn-primary-action">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Full Hierarchy
-                </button>
-            </div>
-        </form>
     </div>
 
     <!-- Existing Locations Table Section (Beneath Cards) -->
@@ -205,9 +92,8 @@
             <table class="styled-location-table" id="locations-table">
                 <thead>
                     <tr>
-                        <th style="width: 22%;">Region</th>
-                        <th style="width: 66%;">Districts / Towns / Areas Hierarchy</th>
-                        <th style="width: 12%;" class="text-right">Actions</th>
+                        <th style="width: 25%;">Region</th>
+                        <th style="width: 75%;">Districts / Towns / Areas Hierarchy</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -244,26 +130,16 @@
                                     {% endfor %}
                                 </div>
                             </td>
-                            <td class="text-right actions-cell">
-                                <!-- Update / Edit Region Button -->
-                                <a href="{% url 'locations:update_region' region.id %}" class="btn-action-icon btn-edit" title="Edit Region">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <!-- Delete Region Button -->
-                                <a href="{% url 'locations:delete_region' region.id %}" class="btn-action-icon btn-delete" title="Delete Region" data-region-name="{{ region.name }}">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </a>
-                            </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center py-5 text-muted">
+                            <td colspan="2" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-map-location-dot" style="font-size: 36px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
                                 {% if search_query %}
                                     No location hierarchies match your search "<strong>{{ search_query }}</strong>".
                                     <br><a href="{% url 'locations:list_locations' %}" style="color: var(--primary-green); font-weight: 600; text-decoration: underline; margin-top: 8px; display: inline-block;">Clear Search Filter</a>
                                 {% else %}
-                                    No location records found. Use the form above to create regions, districts, towns, and areas.
+                                    No locations are currently available. Please contact the VacantHommie team so they can add your region.
                                 {% endif %}
                             </td>
                         </tr>
@@ -918,19 +794,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Confirm before deleting a region and everything nested under it
-    document.querySelectorAll('.btn-delete').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-            var name = btn.getAttribute('data-region-name') || 'this region';
-            var confirmed = window.confirm(
-                'Delete "' + name + '"? This will also remove all districts, towns and areas under it. This cannot be undone.'
-            );
-            if (!confirmed) {
-                e.preventDefault();
-            }
-        });
-    });
-
     // Live client-side search across region / district / town / area names
     var searchInput = document.getElementById('location-search-input');
     var rows = document.querySelectorAll('#locations-table .location-row');

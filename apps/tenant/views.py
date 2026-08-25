@@ -42,14 +42,9 @@ def tenant_dashboard_view(request):
 
     upcoming_viewings = [viewing for viewing in viewing_requests if viewing.status in [ViewingRequest.Status.PENDING, ViewingRequest.Status.CONFIRMED]][:3]
 
-    # First name for the greeting (split full_name on the first whitespace).
     full_name = (tenant.full_name or "").strip()
     first_name = full_name.split(" ", 1)[0] if full_name else "there"
 
-    # "Active Search" region label: prefer the most recent active alert's
-    # region/district, otherwise fall back to the most recently saved
-    # property's location. If nothing exists yet, fall back to None and
-    # the template will hide the chip gracefully.
     active_search_label = None
     if property_alerts:
         latest_alert = property_alerts[0]
@@ -68,19 +63,15 @@ def saved_properties_list_view(request):
     if not tenant_required(request):
         return render(request, "403.html", status=403)
 
-    # ------------------------------------------------------------------ #
-    # Read query-string filters/sort/layout                             #
-    # ------------------------------------------------------------------ #
-    sort = request.GET.get("sort", "recent")               # recent | price_asc | price_desc
+
+    sort = request.GET.get("sort", "recent")
     region_id = request.GET.get("region") or ""
     district_id = request.GET.get("district") or ""
     room_type = request.GET.get("room_type") or ""
-    view_layout = request.GET.get("view", "grid")         # grid | list
+    view_layout = request.GET.get("view", "grid")
     page_num = request.GET.get("page", 1)
 
-    # ------------------------------------------------------------------ #
-    # Build the filtered queryset (NOT cached — depends on user input)   #
-    # ------------------------------------------------------------------ #
+
     qs = (
         SavedProperty.objects
         .filter(tenant=request.user)
@@ -90,7 +81,6 @@ def saved_properties_list_view(request):
     property_filters = Q()
     if region_id:
         property_filters &= Q(property__region_id=region_id)
-        # If a region is chosen, narrow districts to those in that region.
         districts_qs = District.objects.filter(region_id=region_id)
     else:
         districts_qs = District.objects.all()
@@ -103,8 +93,7 @@ def saved_properties_list_view(request):
 
     qs = qs.filter(property_filters)
 
-    # Apply sort. We always keep a deterministic tiebreaker on created_at
-    # so pagination is stable when prices match.
+
     if sort == "price_asc":
         qs = qs.order_by("property__price", "-created_at")
     elif sort == "price_desc":
@@ -114,9 +103,7 @@ def saved_properties_list_view(request):
 
     saved_properties = list(qs)
 
-    # ------------------------------------------------------------------ #
-    # Pagination                                                         #
-    # ------------------------------------------------------------------ #
+
     from django.core.paginator import Paginator
     paginator = Paginator(saved_properties, 12)  # 12 cards per page
     try:
@@ -130,14 +117,10 @@ def saved_properties_list_view(request):
 
     page_obj = paginator.get_page(page_num)
 
-    # ------------------------------------------------------------------ #
-    # Facet data: regions, districts (region-filtered), room types        #
-    # ------------------------------------------------------------------ #
     regions = Region.objects.all().order_by("name")
     room_type_choices = Property.RoomType.choices
 
-    # Count of saved properties (ignores current filters) for the header
-    # subtitle.
+
     total_saved_count = SavedProperty.objects.filter(tenant=request.user).count()
 
     # Persist current query string so pagination / clear-all can keep state.

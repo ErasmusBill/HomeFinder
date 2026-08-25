@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.common.cache import invalidate_locations_cache
-from .forms import AreaForm, DistrictForm, RegionForm, TownForm, LocationHierarchyForm
+from .forms import AreaForm, DistrictForm, RegionForm, TownForm
 from .models import Area, District, Region, Town
 from .selectors import get_all_locations
 
@@ -266,36 +266,15 @@ def update_area(request, area_id: str):
 
 
 def list_locations(request):
+    """
+    Read-only listing of the location hierarchy (regions → districts → towns → areas).
+
+    Landlords browse this page to see which locations are available to attach
+    to a property. Creating / editing / deleting locations is no longer
+    supported through this view — locations are seeded by the VacantHommie
+    team.
+    """
     _clear_location_sessions(request)
-
-    if request.method == 'POST':
-        form = LocationHierarchyForm(request.POST)
-        if form.is_valid():
-            region_name = form.cleaned_data['region_name'].strip()
-            district_name = form.cleaned_data.get('district_name', '').strip()
-            town_name = form.cleaned_data.get('town_name', '').strip()
-            area_name = form.cleaned_data.get('area_name', '').strip()
-
-            region, _ = Region.objects.get_or_create(name=region_name)
-
-            district = None
-            if district_name:
-                district, _ = District.objects.get_or_create(region=region, name=district_name)
-
-            town = None
-            if town_name and district:
-                town, _ = Town.objects.get_or_create(district=district, name=town_name)
-
-            if area_name and town:
-                Area.objects.get_or_create(town=town, name=area_name)
-
-            _invalidate_location_cache()
-            messages.success(request, f'Location hierarchy under "{region_name}" saved successfully!')
-            return redirect('locations:list_locations')
-        else:
-            messages.error(request, 'Error saving location hierarchy. Please check the inputs.')
-    else:
-        form = LocationHierarchyForm()
 
     search_query = request.GET.get('q', '').strip()
 
@@ -329,7 +308,6 @@ def list_locations(request):
     total_areas = Area.objects.count()
 
     context = {
-        'form': form,
         'locations': page_obj,
         'search_query': search_query,
         'per_page': per_page,

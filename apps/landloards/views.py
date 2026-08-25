@@ -37,7 +37,6 @@ from apps.landloards.tasks import (
     notify_landlord_document_reviewed_task,
     notify_landlord_property_verified_task,
 )
-from apps.locations.models import Region, District, Town, Area
 from apps.Subscription.models import LandlordSubscription, SubscriptionPlan
 from apps.Subscription.guards import subscription_required
 from apps.tenant.models import ViewingRequest
@@ -457,19 +456,6 @@ def landlords_dashboard(request):
     total_properties = properties_qs.count()
     total_views = properties_qs.aggregate(total_views=Sum('views_count'))['total_views'] or 0
 
-    # Locations summary breakdown counts
-    total_regions = Region.objects.count()
-    total_districts = District.objects.count()
-    total_towns = Town.objects.count()
-    total_areas = Area.objects.count()
-
-    # Paginated locations for dashboard widget
-    all_recent_locations_qs = Area.objects.select_related('town__district__region').order_by('-created_at')
-    loc_paginator = Paginator(all_recent_locations_qs, 4)
-    loc_page = request.GET.get('loc_page', 1)
-    recent_locations = loc_paginator.get_page(loc_page)
-
-
     total_amenities = Amenity.objects.count()
     popular_amenities = Amenity.objects.annotate(
         property_count=Count('properties')
@@ -508,11 +494,6 @@ def landlords_dashboard(request):
     context = {
         "total_properties": total_properties,
         "total_views": total_views,
-        "total_regions": total_regions,
-        "total_districts": total_districts,
-        "total_towns": total_towns,
-        "total_areas": total_areas,
-        "recent_locations": recent_locations,
         "total_amenities": total_amenities,
         "most_added_amenity": most_added_amenity,
         "popular_amenities": popular_amenities,

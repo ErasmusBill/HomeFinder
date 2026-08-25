@@ -43,7 +43,7 @@
                 <ul class="sidebar-menu-list">
                     <li>
                         <a href="{% url 'locations:list_locations' %}" class="sidebar-item {% if request.resolver_match.namespace == 'locations' %}active{% endif %}">
-                            <i class="fa-solid fa-location-dot"></i> Locations
+                            <i class="fa-solid fa-location-dot"></i> Browse Locations
                         </a>
                     </li>
                     <li>
@@ -56,7 +56,7 @@
                 <!-- Setup Alert Banner Box inside Sidebar -->
                 <div class="sidebar-setup-alert">
                     <div class="alert-title"><i class="fa-solid fa-triangle-exclamation"></i> Complete Setup First</div>
-                    <p>Add locations and amenities first before creating your property.</p>
+                    <p>Add amenities and verify your identity before creating your property.</p>
                     <a href="{% url 'landloards:landloards_dashboard'%}" class="btn-setup-guide"><i class="fa-solid fa-book-open"></i> View Setup Guide</a>
                 </div>
 

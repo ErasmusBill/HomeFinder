@@ -56,12 +56,24 @@
                             <!-- Cover Image Field -->
                             <div class="form-group">
                                 <label for="{{ form.cover_image.id_for_label }}">Cover Image <span class="required-star">*</span></label>
-                                <div class="file-upload-dropzone" id="dropzone-box">
-                                    {{ form.cover_image }}
-                                    <div class="dropzone-mock-content">
-                                        <i class="fa-solid fa-cloud-arrow-up text-green"></i>
-                                        <span>Click to upload or drag and drop</span>
-                                        <small>JPG, PNG or WEBP (Max. 5MB)</small>
+                                <div class="file-upload-shell">
+                                    <div class="file-upload-dropzone" id="dropzone-box" data-preview-target="cover-preview">
+                                        {{ form.cover_image }}
+                                        <button type="button" class="cover-preview-replace" id="cover-replace-btn">
+                                            <i class="fa-solid fa-rotate"></i> Replace
+                                        </button>
+                                        <div class="dropzone-mock-content" id="dropzone-mock">
+                                            <i class="fa-solid fa-cloud-arrow-up text-green"></i>
+                                            <span>Click to upload or drag and drop</span>
+                                            <small>JPG, PNG or WEBP (Max. 5MB)</small>
+                                        </div>
+                                        <div class="cover-preview-box" id="cover-preview" aria-live="polite">
+                                            <img class="cover-preview-thumb" id="cover-preview-thumb" alt="Cover image preview" />
+                                            <div class="cover-preview-meta">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span id="cover-preview-name">Image uploaded</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 {% if form.cover_image.errors %}
@@ -114,6 +126,14 @@
                                                 <label>Media File</label>
                                                 {{ mform.file }}
                                                 {% if mform.file.errors %}<span class="error-msg">{{ mform.file.errors.0 }}</span>{% endif %}
+                                                <div class="file-preview-inline" data-file-preview>
+                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
+                                                    <div class="file-preview-info">
+                                                        <span class="file-preview-filename" data-file-name></span>
+                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="form-group">
                                                 <label>Media Type</label>
@@ -157,6 +177,14 @@
                                         <div class="form-group">
                                             <label>Media File</label>
                                             {{ media_formset.empty_form.file }}
+                                            <div class="file-preview-inline" data-file-preview>
+                                                <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
+                                                <div class="file-preview-info">
+                                                    <span class="file-preview-filename" data-file-name></span>
+                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Media Type</label>
@@ -344,6 +372,14 @@
                                                 {{ dform.file }}
                                                 {% if dform.file.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.file.errors.0 }}</span>{% endif %}
                                                 <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                                <div class="file-preview-inline" data-file-preview>
+                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
+                                                    <div class="file-preview-info">
+                                                        <span class="file-preview-filename" data-file-name></span>
+                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -374,6 +410,14 @@
                                             <label>Upload File (PDF / Image)</label>
                                             {{ doc_formset.empty_form.file }}
                                             <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                            <div class="file-preview-inline" data-file-preview>
+                                                <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
+                                                <div class="file-preview-info">
+                                                    <span class="file-preview-filename" data-file-name></span>
+                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1490,6 +1534,185 @@
     color: var(--text-muted);
 }
 
+/* ---------- File upload previews (cover, media, docs) ---------- */
+
+.file-upload-shell {
+    position: relative;
+}
+
+.file-upload-shell input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Hide Django's default "Currently:" link, "Clear" checkbox + label
+   inside the cover image dropzone so our custom JS preview is the
+   only thing the user sees for the current/saved cover. */
+.file-upload-dropzone > a,
+.file-upload-dropzone > label,
+.file-upload-dropzone > input[type="checkbox"] {
+    display: none !important;
+}
+
+/* Hide Django's default "Currently:" link and "Clear" checkbox/label
+   inside media and document formset rows. Our JS preview box replaces
+   this default widget text. We must NOT hide the actual file input. */
+.media-form-row a[href],
+.media-form-row label[for$="-clear_id"],
+.media-form-row input[type="checkbox"][name$="-clear"],
+.doc-form-row a[href],
+.doc-form-row label[for$="-clear_id"],
+.doc-form-row input[type="checkbox"][name$="-clear"] {
+    display: none !important;
+}
+
+/* Cover image dropzone states */
+.file-upload-dropzone.is-uploaded {
+    border-style: solid;
+    border-color: var(--primary-green);
+    background: var(--primary-green-light);
+    padding: 14px;
+}
+
+.file-upload-dropzone .dropzone-mock-content.is-hidden {
+    display: none;
+}
+
+/* Cover preview (large) */
+.cover-preview-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.cover-preview-box.is-visible {
+    display: flex;
+}
+
+.cover-preview-thumb {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--primary-green);
+    background: #fff;
+}
+
+.cover-preview-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--primary-green-dark);
+    font-weight: 600;
+    pointer-events: auto;
+}
+
+.cover-preview-meta i {
+    font-size: 16px;
+    color: var(--primary-green);
+}
+
+.cover-preview-replace {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    background: rgba(255,255,255,0.95);
+    border: 1.5px solid var(--primary-green);
+    color: var(--primary-green-dark);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-upload-shell:hover .cover-preview-replace,
+.file-upload-dropzone.is-uploaded .cover-preview-replace {
+    display: inline-flex;
+}
+
+/* Inline file preview for media + doc rows */
+.file-preview-inline {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--primary-green-light);
+    border: 1.5px solid var(--primary-green);
+    border-radius: var(--radius-sm);
+}
+
+.file-preview-inline.is-visible {
+    display: flex;
+}
+
+.file-preview-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.file-preview-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+    color: var(--primary-green-dark);
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.file-preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.file-preview-filename {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-preview-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--primary-green-dark);
+    font-weight: 600;
+}
+
+.file-preview-status i {
+    color: var(--primary-green);
+}
+
 /* ---------- Document & Identity Box Styling ---------- */
 
 .identity-verification-box {
@@ -1839,6 +2062,216 @@ document.addEventListener('DOMContentLoaded', function () {
             wrapperDiv.innerHTML = newRowHtml;
             docFormsetWrapper.appendChild(wrapperDiv.firstElementChild);
             totalDocsInput.value = formCount + 1;
+        });
+    }
+
+    // ----- File upload previews (cover, media, docs) -----
+    function isImageFile(file) {
+        if (!file || !file.type) return false;
+        return file.type.indexOf('image/') === 0;
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return '';
+        var units = ['B', 'KB', 'MB', 'GB'];
+        var i = 0;
+        var n = bytes;
+        while (n >= 1024 && i < units.length - 1) { n = n / 1024; i++; }
+        return (i === 0 ? n : n.toFixed(1)) + ' ' + units[i];
+    }
+
+    function setCoverPreviewFromFile(file) {
+        var dz = document.getElementById('dropzone-box');
+        var mock = document.getElementById('dropzone-mock');
+        var previewBox = document.getElementById('cover-preview');
+        var previewThumb = document.getElementById('cover-preview-thumb');
+        var previewName = document.getElementById('cover-preview-name');
+        if (!dz || !previewBox || !previewThumb) return;
+
+        if (!file) {
+            dz.classList.remove('is-uploaded');
+            if (mock) mock.classList.remove('is-hidden');
+            previewBox.classList.remove('is-visible');
+            previewThumb.removeAttribute('src');
+            if (previewName) previewName.textContent = 'Image uploaded';
+            return;
+        }
+
+        dz.classList.add('is-uploaded');
+        if (mock) mock.classList.add('is-hidden');
+        previewBox.classList.add('is-visible');
+        if (previewName) previewName.textContent = file.name + ' • ' + formatBytes(file.size);
+
+        if (isImageFile(file)) {
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+                previewThumb.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Non-image cover: still confirm, but no thumbnail
+            previewThumb.removeAttribute('src');
+        }
+    }
+
+    function setCoverPreviewFromUrl(url, name) {
+        var dz = document.getElementById('dropzone-box');
+        var mock = document.getElementById('dropzone-mock');
+        var previewBox = document.getElementById('cover-preview');
+        var previewThumb = document.getElementById('cover-preview-thumb');
+        var previewName = document.getElementById('cover-preview-name');
+        if (!dz || !previewBox || !url) return;
+        dz.classList.add('is-uploaded');
+        if (mock) mock.classList.add('is-hidden');
+        previewBox.classList.add('is-visible');
+        previewThumb.src = url;
+        if (previewName) previewName.textContent = (name || 'Current cover image') + ' • Saved';
+    }
+
+    // Wire up cover image input
+    var coverInput = document.getElementById('{{ form.cover_image.id_for_label }}');
+    if (coverInput) {
+        coverInput.addEventListener('change', function () {
+            var file = coverInput.files && coverInput.files[0];
+            setCoverPreviewFromFile(file);
+        });
+    }
+
+    // Cover "Replace" button — clicking it focuses the hidden file input
+    var coverReplaceBtn = document.getElementById('cover-replace-btn');
+    if (coverReplaceBtn && coverInput) {
+        coverReplaceBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            coverInput.click();
+        });
+    }
+
+    // If a cover image is already saved (edit mode), prefill the preview
+    (function showExistingCover() {
+        var dz = document.getElementById('dropzone-box');
+        if (!dz) return;
+        var existingLink = dz.querySelector('a');
+        if (existingLink && existingLink.href) {
+            var fileName = (existingLink.textContent || existingLink.getAttribute('title') || 'Current cover image').trim();
+            setCoverPreviewFromUrl(existingLink.href, fileName);
+        } else {
+            // Render a ClearableFileInput's currently-saved file
+            var initialFile = (coverInput && coverInput.dataset && coverInput.dataset.initial) || '';
+            // Try Django's clearable file input: look for the "Currently:" label
+            var currentText = dz.textContent || '';
+            if (currentText && currentText.toLowerCase().indexOf('currently') !== -1) {
+                // Use Django's URL by reading the link adjacent to "Currently:"
+                var anchors = dz.querySelectorAll('a');
+                for (var i = 0; i < anchors.length; i++) {
+                    var a = anchors[i];
+                    if (a.href && /\.(jpe?g|png|webp|gif|bmp)$/i.test(a.href)) {
+                        setCoverPreviewFromUrl(a.href, a.textContent || a.title || 'Current cover image');
+                        break;
+                    }
+                }
+            }
+        }
+    })();
+
+    // Wire up an inline file preview box to a file input
+    function attachInlinePreview(fileInput) {
+        if (!fileInput) return;
+        var formGroup = fileInput.closest('.form-group');
+        if (!formGroup) return;
+        var preview = formGroup.querySelector('[data-file-preview]');
+        if (!preview) return;
+
+        function showInline(file) {
+            var thumb = preview.querySelector('[data-file-thumb]');
+            var icon = preview.querySelector('[data-file-icon]');
+            var nameEl = preview.querySelector('[data-file-name]');
+            var statusEl = preview.querySelector('[data-file-status]');
+            if (!file) {
+                preview.classList.remove('is-visible');
+                if (thumb) thumb.removeAttribute('src');
+                return;
+            }
+            preview.classList.add('is-visible');
+            if (nameEl) nameEl.textContent = file.name + ' • ' + formatBytes(file.size);
+            if (statusEl) statusEl.textContent = 'Uploaded';
+
+            if (isImageFile(file) && thumb) {
+                if (icon) icon.style.display = 'none';
+                thumb.style.display = 'block';
+                var reader = new FileReader();
+                reader.onload = function (ev) { thumb.src = ev.target.result; };
+                reader.readAsDataURL(file);
+            } else {
+                if (thumb) { thumb.removeAttribute('src'); thumb.style.display = 'none'; }
+                if (icon) icon.style.display = 'flex';
+            }
+        }
+
+        function showInlineFromUrl(url, name) {
+            var thumb = preview.querySelector('[data-file-thumb]');
+            var icon = preview.querySelector('[data-file-icon]');
+            var nameEl = preview.querySelector('[data-file-name]');
+            var statusEl = preview.querySelector('[data-file-status]');
+            if (!url) {
+                preview.classList.remove('is-visible');
+                return;
+            }
+            preview.classList.add('is-visible');
+            if (nameEl) nameEl.textContent = (name || 'Current file') + ' • Saved';
+            if (statusEl) statusEl.textContent = 'Currently uploaded';
+            var isImage = /\.(jpe?g|png|webp|gif|bmp)$/i.test(url);
+            if (isImage && thumb) {
+                if (icon) icon.style.display = 'none';
+                thumb.style.display = 'block';
+                thumb.src = url;
+            } else {
+                if (thumb) { thumb.removeAttribute('src'); thumb.style.display = 'none'; }
+                if (icon) icon.style.display = 'flex';
+            }
+        }
+
+        fileInput.addEventListener('change', function () {
+            var file = fileInput.files && fileInput.files[0];
+            showInline(file);
+        });
+
+        // If Django rendered a "Currently: <a>filename</a>" link, use it
+        var anchors = fileInput.parentElement ? fileInput.parentElement.querySelectorAll('a') : [];
+        for (var i = 0; i < anchors.length; i++) {
+            var a = anchors[i];
+            if (a && a.href) {
+                showInlineFromUrl(a.href, a.textContent || a.title || '');
+                break;
+            }
+        }
+    }
+
+    // Attach inline previews to every existing media and doc file input
+    function attachAllInlinePreviews(root) {
+        var scope = root || document;
+        var inputs = scope.querySelectorAll('input[type="file"][name*="file"]');
+        for (var i = 0; i < inputs.length; i++) {
+            // Skip cover (handled separately) and anything outside media/docs
+            var inMediaRow = !!inputs[i].closest('.media-form-row');
+            var inDocRow = !!inputs[i].closest('.doc-form-row');
+            if (inMediaRow || inDocRow) {
+                attachInlinePreview(inputs[i]);
+            }
+        }
+    }
+    attachAllInlinePreviews();
+
+    // Re-attach previews whenever a new media/doc row is cloned in
+    if (addMoreMediaBtn && mediaFormsetWrapper) {
+        addMoreMediaBtn.addEventListener('click', function () {
+            // Wait for the new row to be inserted
+            setTimeout(function () { attachAllInlinePreviews(mediaFormsetWrapper); }, 0);
+        });
+    }
+    if (addMoreDocsBtn && docFormsetWrapper) {
+        addMoreDocsBtn.addEventListener('click', function () {
+            setTimeout(function () { attachAllInlinePreviews(docFormsetWrapper); }, 0);
         });
     }
 });
