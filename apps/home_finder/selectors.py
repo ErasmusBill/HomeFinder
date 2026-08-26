@@ -133,10 +133,38 @@ def get_filtered_properties_count(filters):
 
 
 def get_property_by_slug(slug):
+    """
+    Fetch a single property by slug for the public detail page.
+
+    IMPORTANT: The detail page is gated ONLY on the property's own status
+    flags (publication_status, verification_status, is_available). It does
+    NOT require landlord-doc verification — that's a "trustworthiness"
+    signal that belongs to listings/featured feeds, not to a direct
+    visit to a known published URL.
+
+    Without this relaxation, a property that exists in the DB and shows
+    up on `/properties/` (which deliberately bypasses the doc gate) would
+    404 when opened directly — confusing for landlords and SEO crawlers.
+    """
     cache_key = _property_cache_key("slug", slug)
     property_obj = cache.get(cache_key)
     if property_obj is None:
-        property_obj = get_object_or_404(_property_queryset(), slug=slug)
+        property_obj = get_object_or_404(
+            Property.objects.select_related(
+                "region",
+                "district",
+                "town",
+                "area",
+                "landlord",
+            ).prefetch_related(
+                "amenities",
+                "media",
+            ),
+            slug=slug,
+            publication_status=Property.PublicationStatus.PUBLISHED,
+            verification_status=Property.VerificationStatus.VERIFIED,
+            is_available=True,
+        )
         cache.set(cache_key, property_obj, CACHE_TTL)
     return property_obj
 

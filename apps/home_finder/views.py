@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404
 from django.views.decorators.http import require_POST
 
 from django.core.paginator import Paginator
@@ -411,13 +412,11 @@ def express_property_interest(request, slug):
         messages.error(request, "Only tenant accounts can register interest in a property.")
         return redirect('home_finder:property_detail', slug=slug)
 
-    property_obj = get_object_or_404(
-        Property,
-        slug=slug,
-        publication_status=Property.PublicationStatus.PUBLISHED,
-        verification_status=Property.VerificationStatus.VERIFIED,
-        is_available=True,
-    )
+    # Use the same loose gate as the detail page (property's own status
+    # flags only — no landlord-doc verification requirement).
+    property_obj = get_property_by_slug(slug=slug)
+    if property_obj is None:
+        raise Http404("Property not found or not currently available.")
     _, created = PropertyInterest.objects.get_or_create(
         property=property_obj,
         tenant=request.user,
