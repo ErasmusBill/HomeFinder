@@ -1,183 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
 
-{% block title %}Viewing Request - {{ viewing_request.property.title }}{% endblock %}
-
-{% block content %}
-<div class="vr-detail-container">
-
-    <!-- Page Header -->
-    <div class="page-header-flex">
-        <div>
-            <div class="breadcrumb-trail">
-                <a href="{% url 'landloards:viewing_requests' %}">Viewing Requests</a>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span>Details</span>
-            </div>
-            <div class="title-with-badges">
-                <h1 class="page-title">{{ viewing_request.property.title }}</h1>
-                {% if viewing_request.status == 'pending' %}
-                    <span class="status-badge pending"><span class="dot"></span> Pending</span>
-                {% elif viewing_request.status == 'confirmed' %}
-                    <span class="status-badge confirmed"><i class="fa-solid fa-check"></i> Confirmed</span>
-                {% elif viewing_request.status == 'completed' %}
-                    <span class="status-badge completed"><i class="fa-solid fa-flag-checkered"></i> Completed</span>
-                {% elif viewing_request.status == 'cancelled' %}
-                    <span class="status-badge cancelled"><span class="dot"></span> Cancelled</span>
-                {% endif %}
-            </div>
-            <p class="page-subtitle">
-                <i class="fa-regular fa-calendar"></i>
-                Requested for {{ viewing_request.preferred_date|date:"l, F j, Y" }}
-                at {{ viewing_request.preferred_time|time:"g:i A" }}
-            </p>
-        </div>
-
-        <div class="header-action-buttons">
-            <a href="{% url 'landloards:viewing_requests' %}" class="btn-outline-action">
-                <i class="fa-solid fa-arrow-left"></i> Back to inbox
-            </a>
-
-            {% if viewing_request.status == 'pending' or viewing_request.status == 'confirmed' %}
-                <a href="{% url 'landloards:reschedule_viewing_request' viewing_request.id %}" class="btn-outline-action">
-                    <i class="fa-solid fa-calendar-plus"></i> Propose new time
-                </a>
-            {% endif %}
-
-            {% if viewing_request.status == 'pending' %}
-                <form action="{% url 'landloards:confirm_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-primary-green"
-                            onclick="return confirm('Confirm this viewing request?');">
-                        <i class="fa-solid fa-check"></i> Confirm
-                    </button>
-                </form>
-            {% endif %}
-
-            {% if viewing_request.status == 'confirmed' %}
-                <form action="{% url 'landloards:complete_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-primary-green"
-                            onclick="return confirm('Mark this viewing as completed?');">
-                        <i class="fa-solid fa-flag-checkered"></i> Mark completed
-                    </button>
-                </form>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Main Grid -->
-    <div class="vr-detail-grid">
-
-        <!-- LEFT: Tenant & Request -->
-        <div class="vr-detail-left">
-
-            <!-- Tenant card -->
-            <div class="vr-detail-card">
-                <h3 class="vr-card-title"><i class="fa-solid fa-user"></i> {% if viewing_request.is_guest %}Guest Requester{% else %}Tenant{% endif %}</h3>
-                <div class="vr-tenant-block">
-                    <div class="vr-tenant-avatar-lg" {% if viewing_request.is_guest %}style="background: #e0f2fe; color: #0369a1;"{% endif %}>
-                        {{ viewing_request.requester_name|slice:":1"|upper }}
-                    </div>
-                    <div class="vr-tenant-info">
-                        <strong>
-                            {{ viewing_request.requester_name }}
-                            {% if viewing_request.is_guest %}
-                                <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle;">Guest</span>
-                            {% endif %}
-                        </strong>
-                        {% if viewing_request.requester_email %}
-                            <span><i class="fa-regular fa-envelope"></i> {{ viewing_request.requester_email }}</span>
-                        {% endif %}
-                        {% if viewing_request.requester_phone %}
-                            <span><i class="fa-solid fa-phone"></i> {{ viewing_request.requester_phone }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Request details card -->
-            <div class="vr-detail-card">
-                <h3 class="vr-card-title"><i class="fa-regular fa-calendar-check"></i> Request Details</h3>
-
-                <div class="vr-info-row">
-                    <span class="vr-info-label">Requested date</span>
-                    <span class="vr-info-value">{{ viewing_request.preferred_date|date:"l, F j, Y" }}</span>
-                </div>
-                <div class="vr-info-row">
-                    <span class="vr-info-label">Requested time</span>
-                    <span class="vr-info-value">{{ viewing_request.preferred_time|time:"g:i A" }}</span>
-                </div>
-                <div class="vr-info-row">
-                    <span class="vr-info-label">Submitted on</span>
-                    <span class="vr-info-value">{{ viewing_request.created_at|date:"M j, Y \a\t g:i A" }}</span>
-                </div>
-
-                {% if viewing_request.notes %}
-                <div class="vr-notes-block">
-                    <span class="vr-info-label">Tenant notes</span>
-                    <p>{{ viewing_request.notes|linebreaksbr }}</p>
-                </div>
-                {% endif %}
-            </div>
-
-            {% if viewing_request.status == 'pending' %}
-            <!-- Decline card -->
-            <div class="vr-detail-card danger-zone">
-                <h3 class="vr-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Decline this request</h3>
-                <p class="vr-danger-help">
-                    Declining will cancel the request and notify the tenant that you can't accommodate this viewing.
-                </p>
-                <form action="{% url 'landloards:decline_viewing_request' viewing_request.id %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-danger-outline"
-                            onclick="return confirm('Decline this viewing request? The tenant will be notified.');">
-                        <i class="fa-solid fa-xmark"></i> Decline viewing request
-                    </button>
-                </form>
-            </div>
-            {% endif %}
-
-        </div>
-
-        <!-- RIGHT: Property -->
-        <div class="vr-detail-right">
-            <div class="vr-detail-card">
-                <h3 class="vr-card-title"><i class="fa-solid fa-house"></i> Property</h3>
-                <div class="vr-property-block">
-                    {% if viewing_request.property.cover_image %}
-                        <img src="{{ viewing_request.property.cover_image.url }}"
-                             alt="{{ viewing_request.property.title }}"
-                             class="vr-property-image">
-                    {% else %}
-                        <div class="vr-property-image vr-property-image-placeholder">
-                            <i class="fa-solid fa-house"></i>
-                        </div>
-                    {% endif %}
-
-                    <div class="vr-property-text">
-                        <strong>{{ viewing_request.property.title }}</strong>
-                        <span><i class="fa-solid fa-location-dot"></i>
-                            {{ viewing_request.property.area.name }},
-                            {{ viewing_request.property.town.name }}
-                        </span>
-                        <span class="vr-property-price">
-                            GHS {{ viewing_request.property.price|floatformat:0 }}
-                            <small>/ {{ viewing_request.property.get_payment_period_display }}</small>
-                        </span>
-                        <a href="{% url 'landloards:property_detail' viewing_request.property.slug %}"
-                           class="btn-outline-action btn-small">
-                            <i class="fa-solid fa-eye"></i> View property
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
+{% block extra_head %}
 <style>
     .vr-detail-container {
         display: flex;
@@ -446,3 +269,181 @@
     .status-badge.cancelled .dot { background: #dc2626; }
 </style>
 {% endblock %}
+
+{% block title %}Viewing Request - {{ viewing_request.property.title }}{% endblock %}
+
+{% block content %}
+<div class="vr-detail-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <div class="breadcrumb-trail">
+                <a href="{% url 'landloards:viewing_requests' %}">Viewing Requests</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span>Details</span>
+            </div>
+            <div class="title-with-badges">
+                <h1 class="page-title">{{ viewing_request.property.title }}</h1>
+                {% if viewing_request.status == 'pending' %}
+                    <span class="status-badge pending"><span class="dot"></span> Pending</span>
+                {% elif viewing_request.status == 'confirmed' %}
+                    <span class="status-badge confirmed"><i class="fa-solid fa-check"></i> Confirmed</span>
+                {% elif viewing_request.status == 'completed' %}
+                    <span class="status-badge completed"><i class="fa-solid fa-flag-checkered"></i> Completed</span>
+                {% elif viewing_request.status == 'cancelled' %}
+                    <span class="status-badge cancelled"><span class="dot"></span> Cancelled</span>
+                {% endif %}
+            </div>
+            <p class="page-subtitle">
+                <i class="fa-regular fa-calendar"></i>
+                Requested for {{ viewing_request.preferred_date|date:"l, F j, Y" }}
+                at {{ viewing_request.preferred_time|time:"g:i A" }}
+            </p>
+        </div>
+
+        <div class="header-action-buttons">
+            <a href="{% url 'landloards:viewing_requests' %}" class="btn-outline-action">
+                <i class="fa-solid fa-arrow-left"></i> Back to inbox
+            </a>
+
+            {% if viewing_request.status == 'pending' or viewing_request.status == 'confirmed' %}
+                <a href="{% url 'landloards:reschedule_viewing_request' viewing_request.id %}" class="btn-outline-action">
+                    <i class="fa-solid fa-calendar-plus"></i> Propose new time
+                </a>
+            {% endif %}
+
+            {% if viewing_request.status == 'pending' %}
+                <form action="{% url 'landloards:confirm_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary-green"
+                            onclick="return confirm('Confirm this viewing request?');">
+                        <i class="fa-solid fa-check"></i> Confirm
+                    </button>
+                </form>
+            {% endif %}
+
+            {% if viewing_request.status == 'confirmed' %}
+                <form action="{% url 'landloards:complete_viewing_request' viewing_request.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary-green"
+                            onclick="return confirm('Mark this viewing as completed?');">
+                        <i class="fa-solid fa-flag-checkered"></i> Mark completed
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="vr-detail-grid">
+
+        <!-- LEFT: Tenant & Request -->
+        <div class="vr-detail-left">
+
+            <!-- Tenant card -->
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-solid fa-user"></i> {% if viewing_request.is_guest %}Guest Requester{% else %}Tenant{% endif %}</h3>
+                <div class="vr-tenant-block">
+                    <div class="vr-tenant-avatar-lg" {% if viewing_request.is_guest %}style="background: #e0f2fe; color: #0369a1;"{% endif %}>
+                        {{ viewing_request.requester_name|slice:":1"|upper }}
+                    </div>
+                    <div class="vr-tenant-info">
+                        <strong>
+                            {{ viewing_request.requester_name }}
+                            {% if viewing_request.is_guest %}
+                                <span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle;">Guest</span>
+                            {% endif %}
+                        </strong>
+                        {% if viewing_request.requester_email %}
+                            <span><i class="fa-regular fa-envelope"></i> {{ viewing_request.requester_email }}</span>
+                        {% endif %}
+                        {% if viewing_request.requester_phone %}
+                            <span><i class="fa-solid fa-phone"></i> {{ viewing_request.requester_phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Request details card -->
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-regular fa-calendar-check"></i> Request Details</h3>
+
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Requested date</span>
+                    <span class="vr-info-value">{{ viewing_request.preferred_date|date:"l, F j, Y" }}</span>
+                </div>
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Requested time</span>
+                    <span class="vr-info-value">{{ viewing_request.preferred_time|time:"g:i A" }}</span>
+                </div>
+                <div class="vr-info-row">
+                    <span class="vr-info-label">Submitted on</span>
+                    <span class="vr-info-value">{{ viewing_request.created_at|date:"M j, Y \a\t g:i A" }}</span>
+                </div>
+
+                {% if viewing_request.notes %}
+                <div class="vr-notes-block">
+                    <span class="vr-info-label">Tenant notes</span>
+                    <p>{{ viewing_request.notes|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if viewing_request.status == 'pending' %}
+            <!-- Decline card -->
+            <div class="vr-detail-card danger-zone">
+                <h3 class="vr-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Decline this request</h3>
+                <p class="vr-danger-help">
+                    Declining will cancel the request and notify the tenant that you can't accommodate this viewing.
+                </p>
+                <form action="{% url 'landloards:decline_viewing_request' viewing_request.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger-outline"
+                            onclick="return confirm('Decline this viewing request? The tenant will be notified.');">
+                        <i class="fa-solid fa-xmark"></i> Decline viewing request
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- RIGHT: Property -->
+        <div class="vr-detail-right">
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-solid fa-house"></i> Property</h3>
+                <div class="vr-property-block">
+                    {% if viewing_request.property.cover_image %}
+                        <img src="{{ viewing_request.property.cover_image.url }}"
+                             alt="{{ viewing_request.property.title }}"
+                             class="vr-property-image">
+                    {% else %}
+                        <div class="vr-property-image vr-property-image-placeholder">
+                            <i class="fa-solid fa-house"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="vr-property-text">
+                        <strong>{{ viewing_request.property.title }}</strong>
+                        <span><i class="fa-solid fa-location-dot"></i>
+                            {{ viewing_request.property.area.name }},
+                            {{ viewing_request.property.town.name }}
+                        </span>
+                        <span class="vr-property-price">
+                            GHS {{ viewing_request.property.price|floatformat:0 }}
+                            <small>/ {{ viewing_request.property.get_payment_period_display }}</small>
+                        </span>
+                        <a href="{% url 'landloards:property_detail' viewing_request.property.slug %}"
+                           class="btn-outline-action btn-small">
+                            <i class="fa-solid fa-eye"></i> View property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>{% endblock %}

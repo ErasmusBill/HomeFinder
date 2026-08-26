@@ -1,255 +1,6 @@
 {% extends 'home_finder/base.html' %}
-{% load static %}
 
-{% block content %}
-<!-- Breadcrumb Navigation -->
-<div class="vh-breadcrumb-wrap">
-    <div class="vh-breadcrumb-container">
-        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
-        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
-        <span>How It Works</span>
-    </div>
-</div>
-
-<!-- Hero Section -->
-<section class="vh-hiw-hero">
-    <div class="vh-container">
-        <div class="vh-hiw-hero-content">
-            <span class="vh-pill-badge"><i class="fa-solid fa-circle-question"></i> Simple, Transparent & Secure</span>
-            <h1>How <span>VacantHommie</span> Works</h1>
-            <p>
-                Whether you are searching for your next apartment in Accra, Kumasi, or Takoradi, or you're a property owner looking to fill vacancies with vetted tenants, here is how our platform makes it effortless.
-            </p>
-            <div class="vh-role-toggle-group">
-                <a href="#tenants-guide" class="vh-btn vh-btn-gold">
-                    <i class="fa-solid fa-user"></i> For Tenants &amp; Renters
-                </a>
-                <a href="#landlords-guide" class="vh-btn vh-btn-outline-white">
-                    <i class="fa-solid fa-building-user"></i> For Landlords &amp; Owners
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Section 1: For Tenants -->
-<section id="tenants-guide" class="vh-section vh-bg-light">
-    <div class="vh-container">
-        <div class="vh-section-header">
-            <span class="vh-section-tag">Renter's Guide</span>
-            <h2 class="vh-section-title">How Renting Works for <span>Tenants</span></h2>
-            <p class="vh-section-sub">Find and secure your ideal home in 3 clear steps without stress or illegal agent viewing charges.</p>
-        </div>
-
-        <div class="vh-steps-grid">
-            <!-- Step 1 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">01</div>
-                <div class="vh-step-icon-wrap bg-emerald">
-                    <i class="fa-solid fa-magnifying-glass-location"></i>
-                </div>
-                <h3>1. Search &amp; Filter</h3>
-                <p>
-                    Browse verified rental listings across all 16 regions in Ghana. Filter by location (Region, District, Town, Area), budget, bedroom count, and amenities to find your match.
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> High-resolution photos &amp; real rental terms
-                </div>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">02</div>
-                <div class="vh-step-icon-wrap bg-amber">
-                    <i class="fa-solid fa-calendar-check"></i>
-                </div>
-                <h3>2. Book Viewings or Express Interest</h3>
-                <p>
-                    Found a property you love? Click <strong>Book Viewing</strong> to pick your preferred date and time, or register your interest with a single click from your tenant dashboard.
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> 100% Free — No middlemen viewing fees
-                </div>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">03</div>
-                <div class="vh-step-icon-wrap bg-blue">
-                    <i class="fa-solid fa-key"></i>
-                </div>
-                <h3>3. Inspect &amp; Move In</h3>
-                <p>
-                    Meet the verified landlord for the viewing, inspect the premises, agree on tenancy agreement details, and finalize your lease with confidence and full transparency.
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> Direct interaction with verified landlords
-                </div>
-            </div>
-        </div>
-
-        <div class="vh-center-btn-wrap">
-            <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-navy">
-                <i class="fa-solid fa-house-chimney"></i> Browse Available Properties Now
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Section 2: For Landlords -->
-<section id="landlords-guide" class="vh-section">
-    <div class="vh-container">
-        <div class="vh-section-header">
-            <span class="vh-section-tag">Property Owner's Guide</span>
-            <h2 class="vh-section-title">How Listing Works for <span>Landlords</span></h2>
-            <p class="vh-section-sub">Rent out your vacancies faster, manage viewing schedules smoothly, and attract qualified tenants.</p>
-        </div>
-
-        <div class="vh-steps-grid">
-            <!-- Step 1 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">01</div>
-                <div class="vh-step-icon-wrap bg-purple">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <h3>1. List Your Vacancy</h3>
-                <p>
-                    Create a landlord account and add your listing details in minutes: pricing, location, features, room types, and multi-angle photos with automated optimization.
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> Showcase all features &amp; amenities clearly
-                </div>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">02</div>
-                <div class="vh-step-icon-wrap bg-emerald">
-                    <i class="fa-solid fa-id-card"></i>
-                </div>
-                <h3>2. Verify Identity Once</h3>
-                <p>
-                    Upload your <strong>Ghana Card / National ID</strong> once. Once approved by our compliance team, all your current and future listings receive the prestigious <strong>VERIFIED</strong> badge!
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> Verified badges boost inquiries by up to 300%
-                </div>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="vh-step-card">
-                <div class="vh-step-number">03</div>
-                <div class="vh-step-icon-wrap bg-amber">
-                    <i class="fa-solid fa-bell"></i>
-                </div>
-                <h3>3. Receive Inquiries &amp; Rent</h3>
-                <p>
-                    Manage viewing requests and tenant inquiries right from your dedicated Landlord Dashboard. Reschedule, confirm, and communicate directly with renters.
-                </p>
-                <div class="vh-step-highlight">
-                    <i class="fa-solid fa-circle-check"></i> Instant notifications and dashboard tracking
-                </div>
-            </div>
-        </div>
-
-        <div class="vh-center-btn-wrap">
-            <a href="{% if request.user.is_authenticated and request.user.role == 'landlord' %}{% url 'landloards:create_property' %}{% else %}{% url 'account:role_select' %}{% endif %}" class="vh-btn vh-btn-gold">
-                <i class="fa-solid fa-plus"></i> List Your Property on VacantHommie
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Trust & Verification Breakdown -->
-<section class="vh-section vh-bg-light">
-    <div class="vh-container">
-        <div class="vh-dual-grid">
-            <div class="vh-dual-content">
-                <span class="vh-section-tag">Safety First</span>
-                <h2 class="vh-section-title">Our Strict <span>Verification Standards</span></h2>
-                <p class="vh-lead-p">
-                    We take property legitimacy seriously. That's why unverified or suspicious properties are never approved for public search.
-                </p>
-                
-                <div class="vh-verification-items">
-                    <div class="vh-v-item">
-                        <div class="vh-v-icon"><i class="fa-solid fa-id-badge"></i></div>
-                        <div>
-                            <h4>Ghana Card Identity Check</h4>
-                            <p>Every landlord's identity is vetted by our compliance team against official national identification standards.</p>
-                        </div>
-                    </div>
-                    <div class="vh-v-item">
-                        <div class="vh-v-icon"><i class="fa-solid fa-file-contract"></i></div>
-                        <div>
-                            <h4>Land Title &amp; Indenture Audits</h4>
-                            <p>Property ownership documents and building permits can be attached to validate legal ownership.</p>
-                        </div>
-                    </div>
-                    <div class="vh-v-item">
-                        <div class="vh-v-icon"><i class="fa-solid fa-images"></i></div>
-                        <div>
-                            <h4>Genuine Media Processing</h4>
-                            <p>All property photos are processed, watermarked, and optimized to guarantee authentic visual representations.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="vh-dual-image">
-                <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" alt="Beautiful Verified Property">
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- FAQ Section -->
-<section class="vh-section">
-    <div class="vh-container">
-        <div class="vh-section-header">
-            <span class="vh-section-tag">Got Questions?</span>
-            <h2 class="vh-section-title">Frequently Asked <span>Questions</span></h2>
-            <p class="vh-section-sub">Quick answers to common questions about using VacantHommie.</p>
-        </div>
-
-        <div class="vh-faq-grid">
-            <div class="vh-faq-card">
-                <h4><i class="fa-solid fa-circle-question text-gold"></i> Do tenants pay any fee to browse or view properties?</h4>
-                <p>No! Browsing listings, filtering by location/price, and submitting viewing requests or expressing interest is completely free for tenants.</p>
-            </div>
-            <div class="vh-faq-card">
-                <h4><i class="fa-solid fa-circle-question text-gold"></i> How long does landlord document verification take?</h4>
-                <p>Our administrative team reviews uploaded Ghana Cards and property documents promptly—usually within a few hours to 1 business day.</p>
-            </div>
-            <div class="vh-faq-card">
-                <h4><i class="fa-solid fa-circle-question text-gold"></i> Can a landlord use one Ghana Card for all listings?</h4>
-                <p>Yes! Once your Ghana Card is uploaded and approved, it acts as a platform-wide identity verification covering all your current and future property listings.</p>
-            </div>
-            <div class="vh-faq-card">
-                <h4><i class="fa-solid fa-circle-question text-gold"></i> What should I do if I encounter an issue or have a question?</h4>
-                <p>You can reach our dedicated support team via our <a href="{% url 'home_finder:contact' %}">Contact Page</a> anytime and we will assist you immediately.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Call to Action -->
-<section class="vh-cta-section">
-    <div class="vh-container">
-        <div class="vh-cta-content">
-            <h2>Ready to Get Started?</h2>
-            <p>Experience safe, transparent, and modern property rentals in Ghana today.</p>
-            <div class="vh-cta-btns">
-                <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
-                    <i class="fa-solid fa-magnifying-glass"></i> Find a Home
-                </a>
-                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-outline-white">
-                    <i class="fa-solid fa-user-plus"></i> Create Free Account
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
+{% block extra_head %}
 <style>
 /* ============================================================
    How It Works Custom Styling
@@ -644,3 +395,253 @@
 }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="vh-breadcrumb-wrap">
+    <div class="vh-breadcrumb-container">
+        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
+        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
+        <span>How It Works</span>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="vh-hiw-hero">
+    <div class="vh-container">
+        <div class="vh-hiw-hero-content">
+            <span class="vh-pill-badge"><i class="fa-solid fa-circle-question"></i> Simple, Transparent & Secure</span>
+            <h1>How <span>VacantHommie</span> Works</h1>
+            <p>
+                Whether you are searching for your next apartment in Accra, Kumasi, or Takoradi, or you're a property owner looking to fill vacancies with vetted tenants, here is how our platform makes it effortless.
+            </p>
+            <div class="vh-role-toggle-group">
+                <a href="#tenants-guide" class="vh-btn vh-btn-gold">
+                    <i class="fa-solid fa-user"></i> For Tenants &amp; Renters
+                </a>
+                <a href="#landlords-guide" class="vh-btn vh-btn-outline-white">
+                    <i class="fa-solid fa-building-user"></i> For Landlords &amp; Owners
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section 1: For Tenants -->
+<section id="tenants-guide" class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Renter's Guide</span>
+            <h2 class="vh-section-title">How Renting Works for <span>Tenants</span></h2>
+            <p class="vh-section-sub">Find and secure your ideal home in 3 clear steps without stress or illegal agent viewing charges.</p>
+        </div>
+
+        <div class="vh-steps-grid">
+            <!-- Step 1 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">01</div>
+                <div class="vh-step-icon-wrap bg-emerald">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </div>
+                <h3>1. Search &amp; Filter</h3>
+                <p>
+                    Browse verified rental listings across all 16 regions in Ghana. Filter by location (Region, District, Town, Area), budget, bedroom count, and amenities to find your match.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> High-resolution photos &amp; real rental terms
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">02</div>
+                <div class="vh-step-icon-wrap bg-amber">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3>2. Book Viewings or Express Interest</h3>
+                <p>
+                    Found a property you love? Click <strong>Book Viewing</strong> to pick your preferred date and time, or register your interest with a single click from your tenant dashboard.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> 100% Free — No middlemen viewing fees
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">03</div>
+                <div class="vh-step-icon-wrap bg-blue">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <h3>3. Inspect &amp; Move In</h3>
+                <p>
+                    Meet the verified landlord for the viewing, inspect the premises, agree on tenancy agreement details, and finalize your lease with confidence and full transparency.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Direct interaction with verified landlords
+                </div>
+            </div>
+        </div>
+
+        <div class="vh-center-btn-wrap">
+            <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-navy">
+                <i class="fa-solid fa-house-chimney"></i> Browse Available Properties Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Section 2: For Landlords -->
+<section id="landlords-guide" class="vh-section">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Property Owner's Guide</span>
+            <h2 class="vh-section-title">How Listing Works for <span>Landlords</span></h2>
+            <p class="vh-section-sub">Rent out your vacancies faster, manage viewing schedules smoothly, and attract qualified tenants.</p>
+        </div>
+
+        <div class="vh-steps-grid">
+            <!-- Step 1 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">01</div>
+                <div class="vh-step-icon-wrap bg-purple">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h3>1. List Your Vacancy</h3>
+                <p>
+                    Create a landlord account and add your listing details in minutes: pricing, location, features, room types, and multi-angle photos with automated optimization.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Showcase all features &amp; amenities clearly
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">02</div>
+                <div class="vh-step-icon-wrap bg-emerald">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h3>2. Verify Identity Once</h3>
+                <p>
+                    Upload your <strong>Ghana Card / National ID</strong> once. Once approved by our compliance team, all your current and future listings receive the prestigious <strong>VERIFIED</strong> badge!
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Verified badges boost inquiries by up to 300%
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="vh-step-card">
+                <div class="vh-step-number">03</div>
+                <div class="vh-step-icon-wrap bg-amber">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h3>3. Receive Inquiries &amp; Rent</h3>
+                <p>
+                    Manage viewing requests and tenant inquiries right from your dedicated Landlord Dashboard. Reschedule, confirm, and communicate directly with renters.
+                </p>
+                <div class="vh-step-highlight">
+                    <i class="fa-solid fa-circle-check"></i> Instant notifications and dashboard tracking
+                </div>
+            </div>
+        </div>
+
+        <div class="vh-center-btn-wrap">
+            <a href="{% if request.user.is_authenticated and request.user.role == 'landlord' %}{% url 'landloards:create_property' %}{% else %}{% url 'account:role_select' %}{% endif %}" class="vh-btn vh-btn-gold">
+                <i class="fa-solid fa-plus"></i> List Your Property on VacantHommie
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Trust & Verification Breakdown -->
+<section class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-dual-grid">
+            <div class="vh-dual-content">
+                <span class="vh-section-tag">Safety First</span>
+                <h2 class="vh-section-title">Our Strict <span>Verification Standards</span></h2>
+                <p class="vh-lead-p">
+                    We take property legitimacy seriously. That's why unverified or suspicious properties are never approved for public search.
+                </p>
+                
+                <div class="vh-verification-items">
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-id-badge"></i></div>
+                        <div>
+                            <h4>Ghana Card Identity Check</h4>
+                            <p>Every landlord's identity is vetted by our compliance team against official national identification standards.</p>
+                        </div>
+                    </div>
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-file-contract"></i></div>
+                        <div>
+                            <h4>Land Title &amp; Indenture Audits</h4>
+                            <p>Property ownership documents and building permits can be attached to validate legal ownership.</p>
+                        </div>
+                    </div>
+                    <div class="vh-v-item">
+                        <div class="vh-v-icon"><i class="fa-solid fa-images"></i></div>
+                        <div>
+                            <h4>Genuine Media Processing</h4>
+                            <p>All property photos are processed, watermarked, and optimized to guarantee authentic visual representations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="vh-dual-image">
+                <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80" alt="Beautiful Verified Property">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="vh-section">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Got Questions?</span>
+            <h2 class="vh-section-title">Frequently Asked <span>Questions</span></h2>
+            <p class="vh-section-sub">Quick answers to common questions about using VacantHommie.</p>
+        </div>
+
+        <div class="vh-faq-grid">
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> Do tenants pay any fee to browse or view properties?</h4>
+                <p>No! Browsing listings, filtering by location/price, and submitting viewing requests or expressing interest is completely free for tenants.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> How long does landlord document verification take?</h4>
+                <p>Our administrative team reviews uploaded Ghana Cards and property documents promptly—usually within a few hours to 1 business day.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> Can a landlord use one Ghana Card for all listings?</h4>
+                <p>Yes! Once your Ghana Card is uploaded and approved, it acts as a platform-wide identity verification covering all your current and future property listings.</p>
+            </div>
+            <div class="vh-faq-card">
+                <h4><i class="fa-solid fa-circle-question text-gold"></i> What should I do if I encounter an issue or have a question?</h4>
+                <p>You can reach our dedicated support team via our <a href="{% url 'home_finder:contact' %}">Contact Page</a> anytime and we will assist you immediately.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="vh-cta-section">
+    <div class="vh-container">
+        <div class="vh-cta-content">
+            <h2>Ready to Get Started?</h2>
+            <p>Experience safe, transparent, and modern property rentals in Ghana today.</p>
+            <div class="vh-cta-btns">
+                <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
+                    <i class="fa-solid fa-magnifying-glass"></i> Find a Home
+                </a>
+                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-outline-white">
+                    <i class="fa-solid fa-user-plus"></i> Create Free Account
+                </a>
+            </div>
+        </div>
+    </div>
+</section>{% endblock %}

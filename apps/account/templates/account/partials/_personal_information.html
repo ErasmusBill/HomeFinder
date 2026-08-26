@@ -1,84 +1,6 @@
 <section aria-labelledby="personal-information-heading" class="pi-card">
-    <header class="pi-header">
-        <div class="pi-header__intro">
-            <div class="pi-header__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.12a7.5 7.5 0 0115 0"/></svg>
-            </div>
-            <div>
-                <h2 id="personal-information-heading" class="pi-header__title">Personal information</h2>
-                <p class="pi-header__subtitle">Keep your contact details up to date so we can reach you about your account.</p>
-            </div>
-        </div>
-        <span class="pi-badge">Account details</span>
-    </header>
 
-    <form method="post" action="{% url 'account:update_personal_information' %}" class="pi-form" id="personal-info-form" novalidate>
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-        <div class="pi-alert">
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            <span>{{ form.non_field_errors }}</span>
-        </div>
-        {% endif %}
-
-        <div class="pi-grid">
-            <div class="pi-field{% if form.full_name.errors %} has-error{% endif %}">
-                <label for="{{ form.full_name.id_for_label }}">
-                    Full name{% if form.full_name.field.required %} <span class="pi-required">*</span>{% endif %}
-                </label>
-                {{ form.full_name }}
-                {% if form.full_name.errors %}
-                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.full_name.errors.0 }}</p>
-                {% else %}
-                    <p class="pi-hint">Use the name you want displayed on your account.</p>
-                {% endif %}
-            </div>
-
-            <div class="pi-field{% if form.email.errors %} has-error{% endif %}">
-                <label for="{{ form.email.id_for_label }}">
-                    Email address{% if form.email.field.required %} <span class="pi-required">*</span>{% endif %}
-                </label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.email.errors.0 }}</p>
-                {% else %}
-                    <p class="pi-hint">We use this for important account updates.</p>
-                {% endif %}
-            </div>
-
-            <div class="pi-field{% if form.phone_number.errors %} has-error{% endif %}">
-                <label for="{{ form.phone_number.id_for_label }}">
-                    Phone number{% if form.phone_number.field.required %} <span class="pi-required">*</span>{% endif %}
-                </label>
-                {{ form.phone_number }}
-                {% if form.phone_number.errors %}
-                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.phone_number.errors.0 }}</p>
-                {% else %}
-                    <p class="pi-hint">Include your country code, e.g. +233 24 123 4567.</p>
-                {% endif %}
-            </div>
-
-            <div class="pi-field">
-                <span class="pi-field__label-static">Account role</span>
-                <div class="pi-readonly">
-                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                    <span>{{ user.get_role_display }}</span>
-                </div>
-                <p class="pi-hint">Your role is managed by VacantHommie and can't be changed here.</p>
-            </div>
-        </div>
-
-        <footer class="pi-footer">
-            <p class="pi-footer__note"><i class="fa-regular fa-clock" aria-hidden="true"></i> Changes are saved to your account immediately.</p>
-            <button type="submit" class="pi-btn" id="pi-submit-btn">
-                <i class="fa-solid fa-check" aria-hidden="true"></i>
-                <span id="pi-submit-label">Save personal details</span>
-            </button>
-        </footer>
-    </form>
-</section>
-
+{% block extra_head %}
 <style>
     .pi-card {
         overflow: hidden;
@@ -301,8 +223,86 @@
         cursor: not-allowed;
     }
 </style>
+{% endblock %}
+    <header class="pi-header">
+        <div class="pi-header__intro">
+            <div class="pi-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.12a7.5 7.5 0 0115 0"/></svg>
+            </div>
+            <div>
+                <h2 id="personal-information-heading" class="pi-header__title">Personal information</h2>
+                <p class="pi-header__subtitle">Keep your contact details up to date so we can reach you about your account.</p>
+            </div>
+        </div>
+        <span class="pi-badge">Account details</span>
+    </header>
 
-<script>
+    <form method="post" action="{% url 'account:update_personal_information' %}" class="pi-form" id="personal-info-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="pi-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="pi-grid">
+            <div class="pi-field{% if form.full_name.errors %} has-error{% endif %}">
+                <label for="{{ form.full_name.id_for_label }}">
+                    Full name{% if form.full_name.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.full_name.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">Use the name you want displayed on your account.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field{% if form.email.errors %} has-error{% endif %}">
+                <label for="{{ form.email.id_for_label }}">
+                    Email address{% if form.email.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.email.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">We use this for important account updates.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field{% if form.phone_number.errors %} has-error{% endif %}">
+                <label for="{{ form.phone_number.id_for_label }}">
+                    Phone number{% if form.phone_number.field.required %} <span class="pi-required">*</span>{% endif %}
+                </label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                    <p class="pi-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.phone_number.errors.0 }}</p>
+                {% else %}
+                    <p class="pi-hint">Include your country code, e.g. +233 24 123 4567.</p>
+                {% endif %}
+            </div>
+
+            <div class="pi-field">
+                <span class="pi-field__label-static">Account role</span>
+                <div class="pi-readonly">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <span>{{ user.get_role_display }}</span>
+                </div>
+                <p class="pi-hint">Your role is managed by VacantHommie and can't be changed here.</p>
+            </div>
+        </div>
+
+        <footer class="pi-footer">
+            <p class="pi-footer__note"><i class="fa-regular fa-clock" aria-hidden="true"></i> Changes are saved to your account immediately.</p>
+            <button type="submit" class="pi-btn" id="pi-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="pi-submit-label">Save personal details</span>
+            </button>
+        </footer>
+    </form>
+</section><script>
     (function() {
         const form = document.getElementById('personal-info-form');
         const btn = document.getElementById('pi-submit-btn');

@@ -1,235 +1,6 @@
 {% extends 'tenant/base.html' %}
-{% load static %}
 
-{% block content %}
-<div class="notification-create-wrapper">
-
-    {# ------------------------------------------------------------------ #}
-    {#  Flash messages                                                    #}
-    {# ------------------------------------------------------------------ #}
-    {% if messages %}
-        <div class="flash-stack">
-            {% for message in messages %}
-                <div class="flash flash-{{ message.tags|default:'info' }}">
-                    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-triangle-exclamation{% elif message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="page-header-row">
-        <div>
-            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
-                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                <span>My Notifications</span>
-            </nav>
-            <h1>My Notifications</h1>
-            <p class="page-subtitle">View all system alerts, communications, and updates related to your account.</p>
-        </div>
-
-        {# ------------------------------------------------------------------ #}
-        {#  Bulk actions (Mark all read / Clear all) — POST forms            #}
-        {# ------------------------------------------------------------------ #}
-        <div class="header-actions">
-            <form method="post"
-                  action="{% url 'tenant:mark_all_notifications_read' %}"
-                  class="inline-form">
-                {% csrf_token %}
-                <input type="hidden" name="return_status" value="{{ current_status }}">
-                <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
-                <button type="submit"
-                        class="btn btn-outline"
-                        {% if unread_count == 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-check-double"></i>
-                    Mark all as read{% if unread_count %} ({{ unread_count }}){% endif %}
-                </button>
-            </form>
-            <form method="post"
-                  action="{% url 'tenant:clear_all_notifications' %}"
-                  class="inline-form"
-                  onsubmit="return confirm('This will permanently delete ALL of your notifications. Continue?');">
-                {% csrf_token %}
-                <input type="hidden" name="return_status" value="{{ current_status }}">
-                <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
-                <button type="submit"
-                        class="btn btn-danger-outline"
-                        {% if all_count == 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-broom"></i>
-                    Clear all
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Status Filter Pills (GET form so the chosen filter is bookmarkable) -->
-    <div class="filter-bar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;">
-        <span style="font-size: 0.82rem; color: var(--text-muted, #5a6478); font-weight: 600; margin-right: 4px;">Filter:</span>
-        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=all"
-           class="status-filter-pill {% if current_status == 'all' %}active{% endif %}">
-            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All <span class="pill-count">({{ all_count|default:0 }})</span>
-        </a>
-        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=unread"
-           class="status-filter-pill {% if current_status == 'unread' %}active{% endif %}">
-            <i class="fa-solid fa-circle-dot" aria-hidden="true"></i> Unread <span class="pill-count">({{ unread_count|default:0 }})</span>
-        </a>
-        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=read"
-           class="status-filter-pill {% if current_status == 'read' %}active{% endif %}">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Read <span class="pill-count">({{ read_count|default:0 }})</span>
-        </a>
-        {% if current_status != "all" %}
-            <a href="?{% if querystring %}{{ querystring }}{% endif %}"
-               class="status-filter-pill clear"
-               title="Clear filter">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
-            </a>
-        {% endif %}
-    </div>
-
-    <div class="form-card" style="padding: 0; overflow: hidden;">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color, #e9ebef); text-align: left;">
-                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Status</th>
-                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Title & Content</th>
-                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Sender</th>
-                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Date</th>
-                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase; text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for notification in notifications %}
-                        <tr style="border-bottom: 1px solid var(--border-color, #e9ebef); transition: background 0.1s ease;">
-                            <td style="padding: 16px 20px; white-space: nowrap;">
-                                <span class="status-pill {% if notification.is_read %}status-read{% else %}status-unread{% endif %}">
-                                    <i class="fa-solid {% if notification.is_read %}fa-circle-check{% else %}fa-circle-dot{% endif %}" aria-hidden="true"></i>
-                                    <span>{% if notification.is_read %}Read{% else %}Unread{% endif %}</span>
-                                </span>
-                            </td>
-                            <td style="padding: 16px 20px;">
-                                <strong style="display: block; font-size: 0.9rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">{{ notification.title }}</strong>
-                                <p style="font-size: 0.82rem; color: var(--text-muted, #5a6478); margin: 0; line-height: 1.4;">{{ notification.content }}</p>
-                                {% if notification.is_read and notification.read_at %}
-                                    <small style="display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 0.72rem; color: #047857;">
-                                        <i class="fa-regular fa-clock" aria-hidden="true"></i>
-                                        Read {{ notification.read_at|date:"M j, Y, g:i a" }}
-                                    </small>
-                                {% endif %}
-                            </td>
-                            <td style="padding: 16px 20px; font-size: 0.85rem; color: var(--text-dark, #14213d);">
-                                {{ notification.created_by.email|default:"System Alert" }}
-                            </td>
-                            <td style="padding: 16px 20px; font-size: 0.82rem; color: var(--text-muted, #5a6478); white-space: nowrap;">
-                                {{ notification.created_at|date:"M j, Y, g:i a" }}
-                            </td>
-                            <td style="padding: 16px 20px; text-align: right; white-space: nowrap;">
-                                <div class="row-actions">
-                                    {# Toggle read / unread -- POST forms so they can't be #}
-                                    {# triggered by a stray <img> tag and so CSRF covers #}
-                                    {# them. The hidden `return_status` / `return_page` #}
-                                    # fields send the user back to the same filter/page. #}
-                                    {% if notification.is_read %}
-                                        <form method="post"
-                                              action="{% url 'tenant:mark_notification_unread' notification.id %}"
-                                              class="inline-form"
-                                              title="Mark as unread">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="return_status" value="{{ current_status }}">
-                                            <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
-                                            <button type="submit" class="action-icon-btn" aria-label="Mark as unread">
-                                                <i class="fa-regular fa-envelope"></i>
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <form method="post"
-                                              action="{% url 'tenant:mark_notification_read' notification.id %}"
-                                              class="inline-form"
-                                              title="Mark as read">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="return_status" value="{{ current_status }}">
-                                            <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
-                                            <button type="submit" class="action-icon-btn action-icon-btn-primary" aria-label="Mark as read">
-                                                <i class="fa-solid fa-check"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                    <form method="post"
-                                          action="{% url 'tenant:delete_notification' notification.id %}"
-                                          class="inline-form"
-                                          onsubmit="return confirm('Delete this notification?');"
-                                          title="Delete">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="return_status" value="{{ current_status }}">
-                                        <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
-                                        <button type="submit" class="action-icon-btn delete" aria-label="Delete">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 48px 20px; color: var(--text-muted, #5a6478);">
-                                <div style="font-size: 2rem; margin-bottom: 12px; color: #cbd5e1;">
-                                    <i class="fa-regular fa-bell-slash" aria-hidden="true"></i>
-                                </div>
-                                <strong style="display: block; font-size: 0.95rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">
-                                    {% if current_status == "read" %}
-                                        No read notifications
-                                    {% elif current_status == "unread" %}
-                                        No unread notifications
-                                    {% else %}
-                                        No notifications found
-                                    {% endif %}
-                                </strong>
-                                <p style="font-size: 0.85rem; margin: 0;">
-                                    {% if current_status != "all" %}
-                                        Try a different status filter, or clear it to see all notifications.
-                                    {% else %}
-                                        You're all caught up! There are no notifications to display right now.
-                                    {% endif %}
-                                </p>
-                                {% if current_status != "all" %}
-                                    <a href="{% url 'tenant:my-notifications' %}"
-                                       style="display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 8px 14px; background: var(--primary, #1f8a4c); color: #fff; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                                        <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear filter
-                                    </a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        {# ------------------------------------------------------------------ #}
-        {#  Pagination -- preserves the active status filter in the links    #}
-        {# ------------------------------------------------------------------ #}
-        {% if page_obj and page_obj.has_other_pages %}
-            <div class="pagination-container">
-                <div class="pagination">
-                    {% if page_obj.has_previous %}
-                        <a href="?status={{ current_status }}&amp;page={{ page_obj.previous_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}"
-                           class="page-btn">
-                            <i class="fa-solid fa-chevron-left"></i> Previous
-                        </a>
-                    {% endif %}
-                    <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                    {% if page_obj.has_next %}
-                        <a href="?status={{ current_status }}&amp;page={{ page_obj.next_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}"
-                           class="page-btn">
-                            Next <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
+{% block extra_head %}
 <style>
     .notification-create-wrapper {
         padding: 24px 32px;
@@ -528,3 +299,233 @@
     }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="notification-create-wrapper">
+
+    {# ------------------------------------------------------------------ #}
+    {#  Flash messages                                                    #}
+    {# ------------------------------------------------------------------ #}
+    {% if messages %}
+        <div class="flash-stack">
+            {% for message in messages %}
+                <div class="flash flash-{{ message.tags|default:'info' }}">
+                    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-triangle-exclamation{% elif message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header-row">
+        <div>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <a href="{% url 'tenant:dashboard' %}">Dashboard</a>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                <span>My Notifications</span>
+            </nav>
+            <h1>My Notifications</h1>
+            <p class="page-subtitle">View all system alerts, communications, and updates related to your account.</p>
+        </div>
+
+        {# ------------------------------------------------------------------ #}
+        {#  Bulk actions (Mark all read / Clear all) — POST forms            #}
+        {# ------------------------------------------------------------------ #}
+        <div class="header-actions">
+            <form method="post"
+                  action="{% url 'tenant:mark_all_notifications_read' %}"
+                  class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="return_status" value="{{ current_status }}">
+                <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
+                <button type="submit"
+                        class="btn btn-outline"
+                        {% if unread_count == 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-check-double"></i>
+                    Mark all as read{% if unread_count %} ({{ unread_count }}){% endif %}
+                </button>
+            </form>
+            <form method="post"
+                  action="{% url 'tenant:clear_all_notifications' %}"
+                  class="inline-form"
+                  onsubmit="return confirm('This will permanently delete ALL of your notifications. Continue?');">
+                {% csrf_token %}
+                <input type="hidden" name="return_status" value="{{ current_status }}">
+                <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
+                <button type="submit"
+                        class="btn btn-danger-outline"
+                        {% if all_count == 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-broom"></i>
+                    Clear all
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Filter Pills (GET form so the chosen filter is bookmarkable) -->
+    <div class="filter-bar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;">
+        <span style="font-size: 0.82rem; color: var(--text-muted, #5a6478); font-weight: 600; margin-right: 4px;">Filter:</span>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=all"
+           class="status-filter-pill {% if current_status == 'all' %}active{% endif %}">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All <span class="pill-count">({{ all_count|default:0 }})</span>
+        </a>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=unread"
+           class="status-filter-pill {% if current_status == 'unread' %}active{% endif %}">
+            <i class="fa-solid fa-circle-dot" aria-hidden="true"></i> Unread <span class="pill-count">({{ unread_count|default:0 }})</span>
+        </a>
+        <a href="?{% if querystring %}{{ querystring }}&{% endif %}status=read"
+           class="status-filter-pill {% if current_status == 'read' %}active{% endif %}">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Read <span class="pill-count">({{ read_count|default:0 }})</span>
+        </a>
+        {% if current_status != "all" %}
+            <a href="?{% if querystring %}{{ querystring }}{% endif %}"
+               class="status-filter-pill clear"
+               title="Clear filter">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="form-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1px solid var(--border-color, #e9ebef); text-align: left;">
+                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Status</th>
+                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Title & Content</th>
+                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Sender</th>
+                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase;">Date</th>
+                        <th style="padding: 14px 20px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #5a6478); text-transform: uppercase; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in notifications %}
+                        <tr style="border-bottom: 1px solid var(--border-color, #e9ebef); transition: background 0.1s ease;">
+                            <td style="padding: 16px 20px; white-space: nowrap;">
+                                <span class="status-pill {% if notification.is_read %}status-read{% else %}status-unread{% endif %}">
+                                    <i class="fa-solid {% if notification.is_read %}fa-circle-check{% else %}fa-circle-dot{% endif %}" aria-hidden="true"></i>
+                                    <span>{% if notification.is_read %}Read{% else %}Unread{% endif %}</span>
+                                </span>
+                            </td>
+                            <td style="padding: 16px 20px;">
+                                <strong style="display: block; font-size: 0.9rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">{{ notification.title }}</strong>
+                                <p style="font-size: 0.82rem; color: var(--text-muted, #5a6478); margin: 0; line-height: 1.4;">{{ notification.content }}</p>
+                                {% if notification.is_read and notification.read_at %}
+                                    <small style="display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 0.72rem; color: #047857;">
+                                        <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                        Read {{ notification.read_at|date:"M j, Y, g:i a" }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 16px 20px; font-size: 0.85rem; color: var(--text-dark, #14213d);">
+                                {{ notification.created_by.email|default:"System Alert" }}
+                            </td>
+                            <td style="padding: 16px 20px; font-size: 0.82rem; color: var(--text-muted, #5a6478); white-space: nowrap;">
+                                {{ notification.created_at|date:"M j, Y, g:i a" }}
+                            </td>
+                            <td style="padding: 16px 20px; text-align: right; white-space: nowrap;">
+                                <div class="row-actions">
+                                    {# Toggle read / unread -- POST forms so they can't be #}
+                                    {# triggered by a stray <img> tag and so CSRF covers #}
+                                    {# them. The hidden `return_status` / `return_page` #}
+                                    # fields send the user back to the same filter/page. #}
+                                    {% if notification.is_read %}
+                                        <form method="post"
+                                              action="{% url 'tenant:mark_notification_unread' notification.id %}"
+                                              class="inline-form"
+                                              title="Mark as unread">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="return_status" value="{{ current_status }}">
+                                            <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
+                                            <button type="submit" class="action-icon-btn" aria-label="Mark as unread">
+                                                <i class="fa-regular fa-envelope"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post"
+                                              action="{% url 'tenant:mark_notification_read' notification.id %}"
+                                              class="inline-form"
+                                              title="Mark as read">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="return_status" value="{{ current_status }}">
+                                            <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
+                                            <button type="submit" class="action-icon-btn action-icon-btn-primary" aria-label="Mark as read">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="post"
+                                          action="{% url 'tenant:delete_notification' notification.id %}"
+                                          class="inline-form"
+                                          onsubmit="return confirm('Delete this notification?');"
+                                          title="Delete">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="return_status" value="{{ current_status }}">
+                                        <input type="hidden" name="return_page" value="{{ page_obj.number|default:'' }}">
+                                        <button type="submit" class="action-icon-btn delete" aria-label="Delete">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 48px 20px; color: var(--text-muted, #5a6478);">
+                                <div style="font-size: 2rem; margin-bottom: 12px; color: #cbd5e1;">
+                                    <i class="fa-regular fa-bell-slash" aria-hidden="true"></i>
+                                </div>
+                                <strong style="display: block; font-size: 0.95rem; color: var(--text-dark, #14213d); margin-bottom: 4px;">
+                                    {% if current_status == "read" %}
+                                        No read notifications
+                                    {% elif current_status == "unread" %}
+                                        No unread notifications
+                                    {% else %}
+                                        No notifications found
+                                    {% endif %}
+                                </strong>
+                                <p style="font-size: 0.85rem; margin: 0;">
+                                    {% if current_status != "all" %}
+                                        Try a different status filter, or clear it to see all notifications.
+                                    {% else %}
+                                        You're all caught up! There are no notifications to display right now.
+                                    {% endif %}
+                                </p>
+                                {% if current_status != "all" %}
+                                    <a href="{% url 'tenant:my-notifications' %}"
+                                       style="display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 8px 14px; background: var(--primary, #1f8a4c); color: #fff; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                                        <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear filter
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# ------------------------------------------------------------------ #}
+        {#  Pagination -- preserves the active status filter in the links    #}
+        {# ------------------------------------------------------------------ #}
+        {% if page_obj and page_obj.has_other_pages %}
+            <div class="pagination-container">
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?status={{ current_status }}&amp;page={{ page_obj.previous_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}"
+                           class="page-btn">
+                            <i class="fa-solid fa-chevron-left"></i> Previous
+                        </a>
+                    {% endif %}
+                    <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?status={{ current_status }}&amp;page={{ page_obj.next_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}"
+                           class="page-btn">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>{% endblock %}

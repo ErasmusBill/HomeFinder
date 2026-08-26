@@ -1,277 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}Landlord Documents & Verification | VacantHommie{% endblock %}
-
-{% block content %}
-<div class="docs-page">
-
-    <!-- Page Header -->
-    <div class="docs-card docs-header">
-        <div class="docs-header__text">
-            <nav class="docs-breadcrumb" aria-label="Breadcrumb">
-                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
-                <span class="docs-breadcrumb__sep">/</span>
-                <span class="docs-breadcrumb__current">Documents</span>
-            </nav>
-            <div class="docs-header__title-row">
-                <span class="docs-header__icon">
-                    <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
-                </span>
-                <div>
-                    <h1 class="docs-header__title">Verification documents</h1>
-                    <p class="docs-header__subtitle">Upload the documents below so we can verify your account. Verified landlords publish listings faster and show a trust badge to renters.</p>
-                </div>
-            </div>
-        </div>
-        <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary docs-header__cta">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            Upload document
-        </a>
-    </div>
-
-    <!-- Django messages -->
-    {% if messages %}
-    <div class="docs-messages">
-        {% for message in messages %}
-        <div class="docs-message docs-message--{{ message.tags|default:'info' }}">
-            <i class="fa-solid
-                {% if message.tags == 'success' %}fa-circle-check
-                {% elif message.tags == 'error' %}fa-circle-xmark
-                {% elif message.tags == 'warning' %}fa-triangle-exclamation
-                {% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
-            <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Getting-started checklist: only matters before anything has been uploaded -->
-    <div class="docs-card docs-checklist" id="getting-started-checklist">
-        <div class="docs-checklist__icon">
-            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-        </div>
-        <div class="docs-checklist__body">
-            <p class="docs-checklist__title">What you'll need to get verified</p>
-            <p class="docs-checklist__subtitle">Most landlords are verified within 1–2 business days after all three are submitted.</p>
-            <ul class="docs-checklist__list">
-                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A government-issued ID (Ghana Card, passport, or driver's licence)</li>
-                <li><i class="fa-regular fa-square" aria-hidden="true"></i> Proof of property ownership or a signed management agreement</li>
-                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A business registration certificate, if you manage as a company</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Status summary strip -->
-    <div class="docs-stats" id="status-summary">
-        <div class="docs-stat">
-            <p class="docs-stat__label">Total</p>
-            <p class="docs-stat__value" data-count="all">0</p>
-        </div>
-        <div class="docs-stat docs-stat--verified">
-            <p class="docs-stat__label">Verified</p>
-            <p class="docs-stat__value" data-count="verified">0</p>
-        </div>
-        <div class="docs-stat docs-stat--pending">
-            <p class="docs-stat__label">Pending</p>
-            <p class="docs-stat__value" data-count="pending">0</p>
-        </div>
-        <div class="docs-stat docs-stat--rejected">
-            <p class="docs-stat__label">Needs attention</p>
-            <p class="docs-stat__value" data-count="rejected">0</p>
-        </div>
-    </div>
-
-    <!-- Documents Section -->
-    <div class="docs-card docs-table-card">
-        <div class="docs-table-card__header">
-            <div>
-                <h3 class="docs-section-title">Your uploaded documents</h3>
-                <p class="docs-section-subtitle">Tap a filter to narrow the list by review status.</p>
-            </div>
-
-            <div class="filter-tab-group" role="tablist" aria-label="Filter documents by status">
-                <button type="button" class="filter-tab active" data-filter="all" role="tab" aria-selected="true">
-                    <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
-                    <span>All</span>
-                    <span class="filter-tab-count" data-count-badge="all">0</span>
-                </button>
-                <button type="button" class="filter-tab" data-filter="verified" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                    <span>Verified</span>
-                    <span class="filter-tab-count" data-count-badge="verified">0</span>
-                </button>
-                <button type="button" class="filter-tab" data-filter="pending" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
-                    <span>Pending</span>
-                    <span class="filter-tab-count" data-count-badge="pending">0</span>
-                </button>
-                <button type="button" class="filter-tab" data-filter="rejected" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                    <span>Rejected</span>
-                    <span class="filter-tab-count" data-count-badge="rejected">0</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- explains what each status means, once, above the list -->
-        <div class="docs-status-key">
-            <span><span class="status-dot status-dot--verified"></span> Verified — visible to renters</span>
-            <span><span class="status-dot status-dot--pending"></span> Pending — awaiting our review</span>
-            <span><span class="status-dot status-dot--rejected"></span> Rejected — hover for the reason, then re-upload</span>
-        </div>
-
-        <!-- Documents Table -->
-        <div class="docs-table-wrap">
-            <table class="docs-table">
-                <thead>
-                    <tr>
-                        {% if request.user.role == 'admin' or request.user.is_superuser %}
-                        <th>Landlord</th>
-                        {% endif %}
-                        <th>Document type</th>
-                        <th>Associated property</th>
-                        <th>Status</th>
-                        <th>Uploaded</th>
-                        <th class="docs-table__actions-head">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for doc in documents %}
-                    <tr class="document-row" data-status="{{ doc.verification_status }}">
-                        {% if request.user.role == 'admin' or request.user.is_superuser %}
-                        <td data-label="Landlord">
-                            <div class="docs-person">
-                                <span class="docs-avatar">{{ doc.landlord.full_name|default:doc.landlord.email|slice:":1"|upper }}</span>
-                                <span class="docs-truncate">{{ doc.landlord.full_name|default:doc.landlord.email }}</span>
-                            </div>
-                        </td>
-                        {% endif %}
-                        <td data-label="Document type">
-                            <div class="docs-doctype">
-                                <span class="docs-doctype__icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span>
-                                <span>{{ doc.get_document_type_display }}</span>
-                            </div>
-                        </td>
-                        <td data-label="Associated property">
-                            {% if doc.property %}
-                                <span class="docs-property">
-                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
-                                    <span class="docs-truncate">{{ doc.property.title }}</span>
-                                </span>
-                            {% else %}
-                                <span class="docs-property docs-property--muted">
-                                    <i class="fa-solid fa-user" aria-hidden="true"></i>
-                                    General profile document
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td data-label="Status">
-                            {% if doc.verification_status == 'verified' %}
-                                <span class="status-pill status-pill--verified">
-                                    <span class="status-dot status-dot--verified"></span>Verified
-                                </span>
-                            {% elif doc.verification_status == 'pending' %}
-                                <span class="status-pill status-pill--pending">
-                                    <span class="status-dot status-dot--pending"></span>Pending review
-                                </span>
-                            {% else %}
-                                <span class="status-pill status-pill--rejected" title="{{ doc.rejection_reason }}">
-                                    <span class="status-dot status-dot--rejected"></span>Rejected
-                                </span>
-                                {% if doc.rejection_reason %}
-                                <p class="docs-rejection-reason">{{ doc.rejection_reason }}</p>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                        <td data-label="Uploaded">
-                            <div class="docs-date">
-                                <span class="docs-date__day">{{ doc.created_at|date:"M d, Y" }}</span>
-                                <span class="docs-date__time">{{ doc.created_at|date:"g:i A" }}</span>
-                            </div>
-                        </td>
-                        <td data-label="Actions" class="docs-table__actions">
-                            {% if doc.file %}
-                            <a href="{{ doc.file.url }}" target="_blank" class="doc-btn doc-btn--ghost" title="View document">
-                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                <span>View</span>
-                            </a>
-                            {% endif %}
-                            {% if doc.verification_status == 'rejected' %}
-                            <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary-soft" title="Re-upload this document">
-                                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
-                                <span>Re-upload</span>
-                            </a>
-                            {% endif %}
-                            {% if request.user.role == 'admin' or request.user.is_superuser %}
-                            <a href="{% url 'landlords:document_review' doc.id %}" class="doc-btn doc-btn--primary" title="Review document">
-                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                                <span>Review</span>
-                            </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr class="docs-empty-row">
-                        <td colspan="6">
-                            <div class="docs-empty">
-                                <div class="docs-empty__icon">
-                                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
-                                </div>
-                                <p class="docs-empty__title">No documents yet</p>
-                                <p class="docs-empty__subtitle">Start with the checklist above — once your ID and ownership proof are in, most reviews finish within a couple of days.</p>
-                                <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary">
-                                    <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
-                                    Upload your first document
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- No results after filtering -->
-        <div id="no-filter-results" class="docs-empty docs-empty--filter" style="display:none;">
-            <div class="docs-empty__icon"><i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i></div>
-            <p class="docs-empty__title">Nothing matches this filter</p>
-            <p class="docs-empty__subtitle">Try a different status tab, or select "All" to see everything.</p>
-        </div>
-
-        <!-- Pagination Controls -->
-        {% if documents.has_other_pages %}
-        <div class="docs-pagination">
-            <div class="docs-pagination__summary">
-                Page <strong>{{ documents.number }}</strong> of <strong>{{ documents.paginator.num_pages }}</strong>
-            </div>
-            <div class="docs-pagination__controls">
-                {% if documents.has_previous %}
-                    <a href="?page={{ documents.previous_page_number }}" class="doc-btn doc-btn--ghost">
-                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
-                    </a>
-                {% else %}
-                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
-                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
-                    </span>
-                {% endif %}
-                {% if documents.has_next %}
-                    <a href="?page={{ documents.next_page_number }}" class="doc-btn doc-btn--ghost">
-                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
-                {% else %}
-                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
-                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Self-contained styles: intentionally does not rely on Tailwind utility classes,
-     so this page renders correctly even if the Tailwind build is stale. -->
+{% block extra_head %}
 <style>
     .docs-page {
         max-width: 1180px;
@@ -652,8 +381,280 @@
         .docs-header__cta { width: 100%; justify-content: center; }
     }
 </style>
+{% endblock %}
+{% load static %}
 
-<script>
+{% block title %}Landlord Documents & Verification | VacantHommie{% endblock %}
+
+{% block content %}
+<div class="docs-page">
+
+    <!-- Page Header -->
+    <div class="docs-card docs-header">
+        <div class="docs-header__text">
+            <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
+                <span class="docs-breadcrumb__sep">/</span>
+                <span class="docs-breadcrumb__current">Documents</span>
+            </nav>
+            <div class="docs-header__title-row">
+                <span class="docs-header__icon">
+                    <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <h1 class="docs-header__title">Verification documents</h1>
+                    <p class="docs-header__subtitle">Upload the documents below so we can verify your account. Verified landlords publish listings faster and show a trust badge to renters.</p>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary docs-header__cta">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Upload document
+        </a>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="docs-messages">
+        {% for message in messages %}
+        <div class="docs-message docs-message--{{ message.tags|default:'info' }}">
+            <i class="fa-solid
+                {% if message.tags == 'success' %}fa-circle-check
+                {% elif message.tags == 'error' %}fa-circle-xmark
+                {% elif message.tags == 'warning' %}fa-triangle-exclamation
+                {% else %}fa-circle-info{% endif %}" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Getting-started checklist: only matters before anything has been uploaded -->
+    <div class="docs-card docs-checklist" id="getting-started-checklist">
+        <div class="docs-checklist__icon">
+            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+        </div>
+        <div class="docs-checklist__body">
+            <p class="docs-checklist__title">What you'll need to get verified</p>
+            <p class="docs-checklist__subtitle">Most landlords are verified within 1–2 business days after all three are submitted.</p>
+            <ul class="docs-checklist__list">
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A government-issued ID (Ghana Card, passport, or driver's licence)</li>
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> Proof of property ownership or a signed management agreement</li>
+                <li><i class="fa-regular fa-square" aria-hidden="true"></i> A business registration certificate, if you manage as a company</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Status summary strip -->
+    <div class="docs-stats" id="status-summary">
+        <div class="docs-stat">
+            <p class="docs-stat__label">Total</p>
+            <p class="docs-stat__value" data-count="all">0</p>
+        </div>
+        <div class="docs-stat docs-stat--verified">
+            <p class="docs-stat__label">Verified</p>
+            <p class="docs-stat__value" data-count="verified">0</p>
+        </div>
+        <div class="docs-stat docs-stat--pending">
+            <p class="docs-stat__label">Pending</p>
+            <p class="docs-stat__value" data-count="pending">0</p>
+        </div>
+        <div class="docs-stat docs-stat--rejected">
+            <p class="docs-stat__label">Needs attention</p>
+            <p class="docs-stat__value" data-count="rejected">0</p>
+        </div>
+    </div>
+
+    <!-- Documents Section -->
+    <div class="docs-card docs-table-card">
+        <div class="docs-table-card__header">
+            <div>
+                <h3 class="docs-section-title">Your uploaded documents</h3>
+                <p class="docs-section-subtitle">Tap a filter to narrow the list by review status.</p>
+            </div>
+
+            <div class="filter-tab-group" role="tablist" aria-label="Filter documents by status">
+                <button type="button" class="filter-tab active" data-filter="all" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                    <span>All</span>
+                    <span class="filter-tab-count" data-count-badge="all">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="verified" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    <span>Verified</span>
+                    <span class="filter-tab-count" data-count-badge="verified">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="pending" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                    <span>Pending</span>
+                    <span class="filter-tab-count" data-count-badge="pending">0</span>
+                </button>
+                <button type="button" class="filter-tab" data-filter="rejected" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                    <span>Rejected</span>
+                    <span class="filter-tab-count" data-count-badge="rejected">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- explains what each status means, once, above the list -->
+        <div class="docs-status-key">
+            <span><span class="status-dot status-dot--verified"></span> Verified — visible to renters</span>
+            <span><span class="status-dot status-dot--pending"></span> Pending — awaiting our review</span>
+            <span><span class="status-dot status-dot--rejected"></span> Rejected — hover for the reason, then re-upload</span>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="docs-table-wrap">
+            <table class="docs-table">
+                <thead>
+                    <tr>
+                        {% if request.user.role == 'admin' or request.user.is_superuser %}
+                        <th>Landlord</th>
+                        {% endif %}
+                        <th>Document type</th>
+                        <th>Associated property</th>
+                        <th>Status</th>
+                        <th>Uploaded</th>
+                        <th class="docs-table__actions-head">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr class="document-row" data-status="{{ doc.verification_status }}">
+                        {% if request.user.role == 'admin' or request.user.is_superuser %}
+                        <td data-label="Landlord">
+                            <div class="docs-person">
+                                <span class="docs-avatar">{{ doc.landlord.full_name|default:doc.landlord.email|slice:":1"|upper }}</span>
+                                <span class="docs-truncate">{{ doc.landlord.full_name|default:doc.landlord.email }}</span>
+                            </div>
+                        </td>
+                        {% endif %}
+                        <td data-label="Document type">
+                            <div class="docs-doctype">
+                                <span class="docs-doctype__icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span>
+                                <span>{{ doc.get_document_type_display }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Associated property">
+                            {% if doc.property %}
+                                <span class="docs-property">
+                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                    <span class="docs-truncate">{{ doc.property.title }}</span>
+                                </span>
+                            {% else %}
+                                <span class="docs-property docs-property--muted">
+                                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                                    General profile document
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Status">
+                            {% if doc.verification_status == 'verified' %}
+                                <span class="status-pill status-pill--verified">
+                                    <span class="status-dot status-dot--verified"></span>Verified
+                                </span>
+                            {% elif doc.verification_status == 'pending' %}
+                                <span class="status-pill status-pill--pending">
+                                    <span class="status-dot status-dot--pending"></span>Pending review
+                                </span>
+                            {% else %}
+                                <span class="status-pill status-pill--rejected" title="{{ doc.rejection_reason }}">
+                                    <span class="status-dot status-dot--rejected"></span>Rejected
+                                </span>
+                                {% if doc.rejection_reason %}
+                                <p class="docs-rejection-reason">{{ doc.rejection_reason }}</p>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td data-label="Uploaded">
+                            <div class="docs-date">
+                                <span class="docs-date__day">{{ doc.created_at|date:"M d, Y" }}</span>
+                                <span class="docs-date__time">{{ doc.created_at|date:"g:i A" }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Actions" class="docs-table__actions">
+                            {% if doc.file %}
+                            <a href="{{ doc.file.url }}" target="_blank" class="doc-btn doc-btn--ghost" title="View document">
+                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                                <span>View</span>
+                            </a>
+                            {% endif %}
+                            {% if doc.verification_status == 'rejected' %}
+                            <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary-soft" title="Re-upload this document">
+                                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                                <span>Re-upload</span>
+                            </a>
+                            {% endif %}
+                            {% if request.user.role == 'admin' or request.user.is_superuser %}
+                            <a href="{% url 'landlords:document_review' doc.id %}" class="doc-btn doc-btn--primary" title="Review document">
+                                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                                <span>Review</span>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="docs-empty-row">
+                        <td colspan="6">
+                            <div class="docs-empty">
+                                <div class="docs-empty__icon">
+                                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                                </div>
+                                <p class="docs-empty__title">No documents yet</p>
+                                <p class="docs-empty__subtitle">Start with the checklist above — once your ID and ownership proof are in, most reviews finish within a couple of days.</p>
+                                <a href="{% url 'landloards:create_landlord_document' %}" class="doc-btn doc-btn--primary">
+                                    <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                                    Upload your first document
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No results after filtering -->
+        <div id="no-filter-results" class="docs-empty docs-empty--filter" style="display:none;">
+            <div class="docs-empty__icon"><i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i></div>
+            <p class="docs-empty__title">Nothing matches this filter</p>
+            <p class="docs-empty__subtitle">Try a different status tab, or select "All" to see everything.</p>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if documents.has_other_pages %}
+        <div class="docs-pagination">
+            <div class="docs-pagination__summary">
+                Page <strong>{{ documents.number }}</strong> of <strong>{{ documents.paginator.num_pages }}</strong>
+            </div>
+            <div class="docs-pagination__controls">
+                {% if documents.has_previous %}
+                    <a href="?page={{ documents.previous_page_number }}" class="doc-btn doc-btn--ghost">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
+                    </a>
+                {% else %}
+                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Previous
+                    </span>
+                {% endif %}
+                {% if documents.has_next %}
+                    <a href="?page={{ documents.next_page_number }}" class="doc-btn doc-btn--ghost">
+                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                {% else %}
+                    <span class="doc-btn doc-btn--ghost doc-btn--disabled">
+                        Next <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Self-contained styles: intentionally does not rely on Tailwind utility classes,
+     so this page renders correctly even if the Tailwind build is stale. --><script>
     (function() {
         const tabs = document.querySelectorAll('.filter-tab');
         const rows = document.querySelectorAll('.document-row');

@@ -1,95 +1,6 @@
 <section aria-labelledby="landlord-profile-heading" class="lp-card">
-    <header class="lp-header">
-        <div class="lp-header__intro">
-            <div class="lp-header__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l8-4 6 4v14M9 9h2m-2 4h2m4-4h2m-2 4h2"/></svg>
-            </div>
-            <div>
-                <h2 id="landlord-profile-heading" class="lp-header__title">Landlord profile</h2>
-                <p class="lp-header__subtitle">Add business and payout details to help keep your property account organised.</p>
-            </div>
-        </div>
-        <span class="lp-badge">Business details</span>
-    </header>
 
-    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="lp-form" id="landlord-profile-form" novalidate>
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-        <div class="lp-alert">
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            <span>{{ form.non_field_errors }}</span>
-        </div>
-        {% endif %}
-
-        <div class="lp-layout">
-            <div class="lp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
-                <div class="lp-photo__preview" id="lp-photo-preview">
-                    {% if form.instance.profile_picture %}
-                        <img src="{{ form.instance.profile_picture.url }}" alt="Landlord profile photo" id="lp-photo-img">
-                    {% else %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="lp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
-                        <img src="" alt="Landlord profile photo" id="lp-photo-img" style="display:none;">
-                    {% endif %}
-                </div>
-                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
-                {{ form.profile_picture }}
-                {% if form.profile_picture.errors %}
-                    <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
-                {% else %}
-                    <p class="lp-hint">A clear image helps make your profile recognisable.</p>
-                {% endif %}
-            </div>
-
-            <div class="lp-grid">
-                <div class="lp-field lp-field--full{% if form.company_name.errors %} has-error{% endif %}">
-                    <label for="{{ form.company_name.id_for_label }}">
-                        Company or trading name <span class="lp-optional">(optional)</span>
-                    </label>
-                    {{ form.company_name }}
-                    {% if form.company_name.errors %}
-                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.company_name.errors.0 }}</p>
-                    {% else %}
-                        <p class="lp-hint">Use your registered business name, if you have one.</p>
-                    {% endif %}
-                </div>
-
-                <div class="lp-field{% if form.tax_identification_number.errors %} has-error{% endif %}">
-                    <label for="{{ form.tax_identification_number.id_for_label }}">
-                        Tax identification number{% if form.tax_identification_number.field.required %} <span class="lp-required">*</span>{% endif %}
-                    </label>
-                    {{ form.tax_identification_number }}
-                    {% if form.tax_identification_number.errors %}
-                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.tax_identification_number.errors.0 }}</p>
-                    {% else %}
-                        <p class="lp-hint">Enter your TIN exactly as registered.</p>
-                    {% endif %}
-                </div>
-
-                <div class="lp-field{% if form.payout_bank_account.errors %} has-error{% endif %}">
-                    <label for="{{ form.payout_bank_account.id_for_label }}">
-                        Payout account number{% if form.payout_bank_account.field.required %} <span class="lp-required">*</span>{% endif %}
-                    </label>
-                    {{ form.payout_bank_account }}
-                    {% if form.payout_bank_account.errors %}
-                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.payout_bank_account.errors.0 }}</p>
-                    {% else %}
-                        <p class="lp-hint"><i class="fa-solid fa-lock lp-hint__icon" aria-hidden="true"></i> Use an account you can access for payouts — kept private and never shown to renters.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <footer class="lp-footer">
-            <p class="lp-footer__note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Review payout details carefully before saving.</p>
-            <button type="submit" class="lp-btn" id="lp-submit-btn">
-                <i class="fa-solid fa-check" aria-hidden="true"></i>
-                <span id="lp-submit-label">Save landlord profile</span>
-            </button>
-        </footer>
-    </form>
-</section>
-
+{% block extra_head %}
 <style>
     .lp-card {
         overflow: hidden;
@@ -312,8 +223,97 @@
     .lp-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.3); }
     .lp-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 </style>
+{% endblock %}
+    <header class="lp-header">
+        <div class="lp-header__intro">
+            <div class="lp-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l8-4 6 4v14M9 9h2m-2 4h2m4-4h2m-2 4h2"/></svg>
+            </div>
+            <div>
+                <h2 id="landlord-profile-heading" class="lp-header__title">Landlord profile</h2>
+                <p class="lp-header__subtitle">Add business and payout details to help keep your property account organised.</p>
+            </div>
+        </div>
+        <span class="lp-badge">Business details</span>
+    </header>
 
-<script>
+    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="lp-form" id="landlord-profile-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="lp-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="lp-layout">
+            <div class="lp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
+                <div class="lp-photo__preview" id="lp-photo-preview">
+                    {% if form.instance.profile_picture %}
+                        <img src="{{ form.instance.profile_picture.url }}" alt="Landlord profile photo" id="lp-photo-img">
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="lp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                        <img src="" alt="Landlord profile photo" id="lp-photo-img" style="display:none;">
+                    {% endif %}
+                </div>
+                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
+                {{ form.profile_picture }}
+                {% if form.profile_picture.errors %}
+                    <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
+                {% else %}
+                    <p class="lp-hint">A clear image helps make your profile recognisable.</p>
+                {% endif %}
+            </div>
+
+            <div class="lp-grid">
+                <div class="lp-field lp-field--full{% if form.company_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.company_name.id_for_label }}">
+                        Company or trading name <span class="lp-optional">(optional)</span>
+                    </label>
+                    {{ form.company_name }}
+                    {% if form.company_name.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.company_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint">Use your registered business name, if you have one.</p>
+                    {% endif %}
+                </div>
+
+                <div class="lp-field{% if form.tax_identification_number.errors %} has-error{% endif %}">
+                    <label for="{{ form.tax_identification_number.id_for_label }}">
+                        Tax identification number{% if form.tax_identification_number.field.required %} <span class="lp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.tax_identification_number }}
+                    {% if form.tax_identification_number.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.tax_identification_number.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint">Enter your TIN exactly as registered.</p>
+                    {% endif %}
+                </div>
+
+                <div class="lp-field{% if form.payout_bank_account.errors %} has-error{% endif %}">
+                    <label for="{{ form.payout_bank_account.id_for_label }}">
+                        Payout account number{% if form.payout_bank_account.field.required %} <span class="lp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.payout_bank_account }}
+                    {% if form.payout_bank_account.errors %}
+                        <p class="lp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.payout_bank_account.errors.0 }}</p>
+                    {% else %}
+                        <p class="lp-hint"><i class="fa-solid fa-lock lp-hint__icon" aria-hidden="true"></i> Use an account you can access for payouts — kept private and never shown to renters.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer class="lp-footer">
+            <p class="lp-footer__note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Review payout details carefully before saving.</p>
+            <button type="submit" class="lp-btn" id="lp-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="lp-submit-label">Save landlord profile</span>
+            </button>
+        </footer>
+    </form>
+</section><script>
     (function() {
         const fileInput = document.querySelector('#landlord-profile-form input[type="file"]');
         const img = document.getElementById('lp-photo-img');

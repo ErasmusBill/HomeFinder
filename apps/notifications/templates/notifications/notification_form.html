@@ -1,183 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block content %}
-<div class="notification-create-wrapper">
-    <div class="page-header-row">
-        <div>
-            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
-                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                <a href="{% url 'notifications:list-notifications' %}">Notifications</a>
-                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                <span>{% if form.instance.pk %}Edit notification{% else %}Create new{% endif %}</span>
-            </nav>
-            <h1>{% if form.instance.pk %}Update notification{% else %}Create notification{% endif %}</h1>
-            <p class="page-subtitle">{% if form.instance.pk %}Change the details below, then save to update what the recipient sees.{% else %}Send a notification about an update, activity, or system alert. It appears in the recipient's list right away.{% endif %}</p>
-        </div>
-        <a href="{% url 'notifications:list-notifications' %}" class="btn btn-outline">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to notifications
-        </a>
-    </div>
-
-    <div class="create-layout">
-        <div class="form-card">
-            <div class="card-section-header">
-                <div class="section-icon">
-                    <i class="fa-solid fa-bell" aria-hidden="true"></i>
-                </div>
-                <div>
-                    <h3>Notification details</h3>
-                    <p>{% if form.instance.pk %}Fields marked with <span class="required">*</span> are required.{% else %}Fill in the fields below, then check the preview on the right before sending.{% endif %}</p>
-                </div>
-            </div>
-
-            <form method="post" class="notification-form" id="notification-form" data-mode="{% if form.instance.pk %}edit{% else %}create{% endif %}" novalidate>
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                        <span>{{ form.non_field_errors }}</span>
-                    </div>
-                {% endif %}
-
-                {# Recipient options are permission-scoped server-side. Landlords #}
-                {# see administrators and only tenants interested in their listings. #}
-                {% if form.user %}
-                    <div class="form-group{% if form.user.errors %} has-error{% endif %}">
-                        <label for="{{ form.user.id_for_label }}">Recipient <span class="required">*</span></label>
-                        {{ form.user }}
-                        {% if form.user.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.user.errors.0 }}</span>
-                        {% else %}
-                            <small class="form-hint">Landlords can select an administrator or a tenant who has registered interest in one of their properties.</small>
-                        {% endif %}
-                    </div>
-                {% endif %}
-
-                <div class="form-group{% if form.title.errors %} has-error{% endif %}">
-                    <label for="{{ form.title.id_for_label }}">Title <span class="required">*</span></label>
-                    {{ form.title }}
-                    <div class="input-footer">
-                        {% if form.title.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.title.errors.0 }}</span>
-                        {% else %}
-                            <span class="form-hint">A short, specific headline — this is the first thing the recipient sees.</span>
-                        {% endif %}
-                        <span class="char-count" id="title-count">0 / 120</span>
-                    </div>
-                </div>
-
-                <div class="form-group{% if form.content.errors %} has-error{% endif %}">
-                    <label for="{{ form.content.id_for_label }}">Content <span class="required">*</span></label>
-                    {{ form.content }}
-                    <div class="input-footer">
-                        {% if form.content.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.content.errors.0 }}</span>
-                        {% else %}
-                            <span class="form-hint">Explain what happened and, if useful, what the recipient should do next.</span>
-                        {% endif %}
-                        <span class="char-count" id="content-count">0 / 2000</span>
-                    </div>
-                </div>
-
-                {# Read state is owned by the mark-read / mark-unread endpoints, #}
-                {# not by the create/edit form, so we don't render an is_read #}
-                {# checkbox. If we're editing an existing notification, surface #}
-                {# the current read state as read-only info instead. #}
-                {% if notification %}
-                    <div class="form-group">
-                        <label>Status</label>
-                        <div class="status-pill {% if notification.is_read %}status-read{% else %}status-unread{% endif %}">
-                            <i class="fa-solid {% if notification.is_read %}fa-circle-check{% else %}fa-circle-dot{% endif %}" aria-hidden="true"></i>
-                            <span>
-                                {% if notification.is_read %}
-                                    Read{% if notification.read_at %} on {{ notification.read_at|date:"M j, Y, g:i a" }}{% endif %}
-                                {% else %}
-                                    Unread
-                                {% endif %}
-                            </span>
-                        </div>
-                        <small class="form-hint">To change this, use the mark-read / mark-unread buttons on the notifications list — not this form.</small>
-                    </div>
-                {% endif %}
-
-                <div class="send-note">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    {% if form.instance.pk %}
-                        <span>Saving will update this notification immediately for the recipient.</span>
-                    {% else %}
-                        <span>The recipient will see this notification as soon as you send it — double-check the preview first.</span>
-                    {% endif %}
-                </div>
-
-                <div class="form-actions">
-                    <a href="{% url 'notifications:list-notifications' %}" class="btn btn-light">Cancel</a>
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
-                        <span id="submit-btn-label">{% if form.instance.pk %}Update notification{% else %}Send notification{% endif %}</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="sidebar-column">
-            <div class="preview-card">
-                <h4><i class="fa-regular fa-eye" aria-hidden="true"></i> Live preview</h4>
-                <div class="preview-box">
-                    <div class="preview-item-header">
-                        <span class="preview-bell"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
-                        <div class="preview-title-wrap">
-                            <strong id="preview-title-text">{{ form.instance.title|default:"Notification title" }}</strong>
-                            <span class="preview-time">Just now</span>
-                        </div>
-                    </div>
-                    <p id="preview-content-text">{{ form.instance.content|default:"This is how your notification will appear to the recipient." }}</p>
-                </div>
-                <div class="preview-info-box">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    <span>The real notification also shows a timestamp and appears at the top of the recipient's list.</span>
-                </div>
-            </div>
-
-            <div class="tips-card">
-                <h4><i class="fa-regular fa-lightbulb" aria-hidden="true"></i> Writing a good notification</h4>
-                <ul class="tips-list">
-                    <li>
-                        <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
-                        <div>
-                            <strong>Be clear and concise</strong>
-                            <p>A short title and a plain-language message read fastest.</p>
-                        </div>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-link" aria-hidden="true"></i>
-                        <div>
-                            <strong>Point to something actionable</strong>
-                            <p>Mention the property, tenant, or item involved so the reader knows what to do next.</p>
-                        </div>
-                    </li>
-                    <li>
-                        <i class="fa-regular fa-bell-slash" aria-hidden="true"></i>
-                        <div>
-                            <strong>Save it for what matters</strong>
-                            <p>Reserve notifications for things the recipient genuinely needs to know.</p>
-                        </div>
-                    </li>
-                    <li>
-                        <i class="fa-regular fa-circle-check" aria-hidden="true"></i>
-                        <div>
-                            <strong>Check the preview</strong>
-                            <p>Read it back on the left before sending — it can't be recalled once sent.</p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_head %}
 <style>
     .notification-create-wrapper {
         padding: 24px 32px;
@@ -638,8 +461,185 @@
         }
     }
 </style>
+{% endblock %}
+{% load static %}
 
-<script>
+{% block content %}
+<div class="notification-create-wrapper">
+    <div class="page-header-row">
+        <div>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                <a href="{% url 'notifications:list-notifications' %}">Notifications</a>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                <span>{% if form.instance.pk %}Edit notification{% else %}Create new{% endif %}</span>
+            </nav>
+            <h1>{% if form.instance.pk %}Update notification{% else %}Create notification{% endif %}</h1>
+            <p class="page-subtitle">{% if form.instance.pk %}Change the details below, then save to update what the recipient sees.{% else %}Send a notification about an update, activity, or system alert. It appears in the recipient's list right away.{% endif %}</p>
+        </div>
+        <a href="{% url 'notifications:list-notifications' %}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to notifications
+        </a>
+    </div>
+
+    <div class="create-layout">
+        <div class="form-card">
+            <div class="card-section-header">
+                <div class="section-icon">
+                    <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3>Notification details</h3>
+                    <p>{% if form.instance.pk %}Fields marked with <span class="required">*</span> are required.{% else %}Fill in the fields below, then check the preview on the right before sending.{% endif %}</p>
+                </div>
+            </div>
+
+            <form method="post" class="notification-form" id="notification-form" data-mode="{% if form.instance.pk %}edit{% else %}create{% endif %}" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        <span>{{ form.non_field_errors }}</span>
+                    </div>
+                {% endif %}
+
+                {# Recipient options are permission-scoped server-side. Landlords #}
+                {# see administrators and only tenants interested in their listings. #}
+                {% if form.user %}
+                    <div class="form-group{% if form.user.errors %} has-error{% endif %}">
+                        <label for="{{ form.user.id_for_label }}">Recipient <span class="required">*</span></label>
+                        {{ form.user }}
+                        {% if form.user.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.user.errors.0 }}</span>
+                        {% else %}
+                            <small class="form-hint">Landlords can select an administrator or a tenant who has registered interest in one of their properties.</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <div class="form-group{% if form.title.errors %} has-error{% endif %}">
+                    <label for="{{ form.title.id_for_label }}">Title <span class="required">*</span></label>
+                    {{ form.title }}
+                    <div class="input-footer">
+                        {% if form.title.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.title.errors.0 }}</span>
+                        {% else %}
+                            <span class="form-hint">A short, specific headline — this is the first thing the recipient sees.</span>
+                        {% endif %}
+                        <span class="char-count" id="title-count">0 / 120</span>
+                    </div>
+                </div>
+
+                <div class="form-group{% if form.content.errors %} has-error{% endif %}">
+                    <label for="{{ form.content.id_for_label }}">Content <span class="required">*</span></label>
+                    {{ form.content }}
+                    <div class="input-footer">
+                        {% if form.content.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.content.errors.0 }}</span>
+                        {% else %}
+                            <span class="form-hint">Explain what happened and, if useful, what the recipient should do next.</span>
+                        {% endif %}
+                        <span class="char-count" id="content-count">0 / 2000</span>
+                    </div>
+                </div>
+
+                {# Read state is owned by the mark-read / mark-unread endpoints, #}
+                {# not by the create/edit form, so we don't render an is_read #}
+                {# checkbox. If we're editing an existing notification, surface #}
+                {# the current read state as read-only info instead. #}
+                {% if notification %}
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="status-pill {% if notification.is_read %}status-read{% else %}status-unread{% endif %}">
+                            <i class="fa-solid {% if notification.is_read %}fa-circle-check{% else %}fa-circle-dot{% endif %}" aria-hidden="true"></i>
+                            <span>
+                                {% if notification.is_read %}
+                                    Read{% if notification.read_at %} on {{ notification.read_at|date:"M j, Y, g:i a" }}{% endif %}
+                                {% else %}
+                                    Unread
+                                {% endif %}
+                            </span>
+                        </div>
+                        <small class="form-hint">To change this, use the mark-read / mark-unread buttons on the notifications list — not this form.</small>
+                    </div>
+                {% endif %}
+
+                <div class="send-note">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    {% if form.instance.pk %}
+                        <span>Saving will update this notification immediately for the recipient.</span>
+                    {% else %}
+                        <span>The recipient will see this notification as soon as you send it — double-check the preview first.</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'notifications:list-notifications' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                        <span id="submit-btn-label">{% if form.instance.pk %}Update notification{% else %}Send notification{% endif %}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="sidebar-column">
+            <div class="preview-card">
+                <h4><i class="fa-regular fa-eye" aria-hidden="true"></i> Live preview</h4>
+                <div class="preview-box">
+                    <div class="preview-item-header">
+                        <span class="preview-bell"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+                        <div class="preview-title-wrap">
+                            <strong id="preview-title-text">{{ form.instance.title|default:"Notification title" }}</strong>
+                            <span class="preview-time">Just now</span>
+                        </div>
+                    </div>
+                    <p id="preview-content-text">{{ form.instance.content|default:"This is how your notification will appear to the recipient." }}</p>
+                </div>
+                <div class="preview-info-box">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    <span>The real notification also shows a timestamp and appears at the top of the recipient's list.</span>
+                </div>
+            </div>
+
+            <div class="tips-card">
+                <h4><i class="fa-regular fa-lightbulb" aria-hidden="true"></i> Writing a good notification</h4>
+                <ul class="tips-list">
+                    <li>
+                        <i class="fa-regular fa-comment-dots" aria-hidden="true"></i>
+                        <div>
+                            <strong>Be clear and concise</strong>
+                            <p>A short title and a plain-language message read fastest.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-link" aria-hidden="true"></i>
+                        <div>
+                            <strong>Point to something actionable</strong>
+                            <p>Mention the property, tenant, or item involved so the reader knows what to do next.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-regular fa-bell-slash" aria-hidden="true"></i>
+                        <div>
+                            <strong>Save it for what matters</strong>
+                            <p>Reserve notifications for things the recipient genuinely needs to know.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fa-regular fa-circle-check" aria-hidden="true"></i>
+                        <div>
+                            <strong>Check the preview</strong>
+                            <p>Read it back on the left before sending — it can't be recalled once sent.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div><script>
     document.addEventListener('DOMContentLoaded', function() {
         const titleInput = document.querySelector('input[name="title"]');
         const contentInput = document.querySelector('textarea[name="content"]');

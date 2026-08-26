@@ -1,4 +1,59 @@
 {% extends 'landloards/landlord_base.html' %}
+
+{% block extra_head %}
+<style>
+.add-district-wrapper { display: flex; flex-direction: column; gap: 25px; max-width: 1000px; margin: 0 auto; }
+.page-breadcrumb-header { display: flex; flex-direction: column; gap: 8px; }
+.breadcrumb-nav { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.breadcrumb-nav a { color: var(--text-muted); text-decoration: none; }
+.breadcrumb-nav a:hover { color: var(--primary-green); }
+.breadcrumb-nav .separator { font-size: 9px; color: #94a3b8; }
+.breadcrumb-nav .current { color: var(--text-main); font-weight: 600; }
+.page-title-block h1 { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 2px; }
+.page-title-block p { font-size: 13px; color: var(--text-muted); }
+
+.district-form-container { display: flex; flex-direction: column; gap: 20px; }
+.dashboard-card-box { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+.dashboard-card-box h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+
+.form-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group-field { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.form-group-field label { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.required-star { color: #ef4444; }
+.help-text-hint { font-size: 12px; color: var(--text-muted); }
+.field-error-text { font-size: 11px; color: #ef4444; font-weight: 600; }
+
+.select-wrapper { position: relative; display: flex; align-items: center; }
+.select-wrapper select, .form-group-field input[type="text"], .form-group-field input:not([type]) {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--text-main);
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+.select-wrapper select { appearance: none; -webkit-appearance: none; -moz-appearance: none; cursor: pointer; padding-right: 40px; }
+.select-chevron { position: absolute; right: 15px; color: var(--text-muted); font-size: 12px; pointer-events: none; }
+
+.example-notice-box { display: flex; gap: 12px; align-items: flex-start; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px; }
+.notice-icon { color: var(--primary-green); font-size: 16px; margin-top: 1px; }
+.notice-text { font-size: 12px; color: #166534; line-height: 1.5; }
+.notice-text strong { font-weight: 700; color: #14532d; }
+
+.form-actions-footer { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px 25px; }
+.btn-cancel-action { background: white; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.btn-save-action { background: var(--primary-green); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.btn-save-action:hover { background: var(--primary-green-hover); }
+
+@media(max-width: 768px) {
+    .form-grid-row { grid-template-columns: 1fr; }
+    .form-actions-footer { flex-direction: column-reverse; gap: 12px; }
+    .btn-cancel-action, .btn-save-action { width: 100%; text-align: center; justify-content: center; }
+}
+</style>
+{% endblock %}
 {% load static %}
 
 {% block title %}{% if is_update %}Edit District: {{ object_name }}{% else %}Add District{% if region %} for {{ region.name }}{% endif %}{% endif %} - VacantHommie{% endblock %}
@@ -89,62 +144,7 @@
 
     </form>
 
-</div>
-
-<style>
-.add-district-wrapper { display: flex; flex-direction: column; gap: 25px; max-width: 1000px; margin: 0 auto; }
-.page-breadcrumb-header { display: flex; flex-direction: column; gap: 8px; }
-.breadcrumb-nav { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
-.breadcrumb-nav a { color: var(--text-muted); text-decoration: none; }
-.breadcrumb-nav a:hover { color: var(--primary-green); }
-.breadcrumb-nav .separator { font-size: 9px; color: #94a3b8; }
-.breadcrumb-nav .current { color: var(--text-main); font-weight: 600; }
-.page-title-block h1 { font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 2px; }
-.page-title-block p { font-size: 13px; color: var(--text-muted); }
-
-.district-form-container { display: flex; flex-direction: column; gap: 20px; }
-.dashboard-card-box { background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
-.dashboard-card-box h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
-
-.form-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.form-group-field { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.form-group-field label { font-size: 13px; font-weight: 700; color: var(--text-main); }
-.required-star { color: #ef4444; }
-.help-text-hint { font-size: 12px; color: var(--text-muted); }
-.field-error-text { font-size: 11px; color: #ef4444; font-weight: 600; }
-
-.select-wrapper { position: relative; display: flex; align-items: center; }
-.select-wrapper select, .form-group-field input[type="text"], .form-group-field input:not([type]) {
-    width: 100%;
-    padding: 14px 18px;
-    font-size: 14px;
-    color: var(--text-main);
-    background: white;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    box-sizing: border-box;
-}
-.select-wrapper select { appearance: none; -webkit-appearance: none; -moz-appearance: none; cursor: pointer; padding-right: 40px; }
-.select-chevron { position: absolute; right: 15px; color: var(--text-muted); font-size: 12px; pointer-events: none; }
-
-.example-notice-box { display: flex; gap: 12px; align-items: flex-start; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px; }
-.notice-icon { color: var(--primary-green); font-size: 16px; margin-top: 1px; }
-.notice-text { font-size: 12px; color: #166534; line-height: 1.5; }
-.notice-text strong { font-weight: 700; color: #14532d; }
-
-.form-actions-footer { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 16px; padding: 20px 25px; }
-.btn-cancel-action { background: white; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; }
-.btn-save-action { background: var(--primary-green); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.btn-save-action:hover { background: var(--primary-green-hover); }
-
-@media(max-width: 768px) {
-    .form-grid-row { grid-template-columns: 1fr; }
-    .form-actions-footer { flex-direction: column-reverse; gap: 12px; }
-    .btn-cancel-action, .btn-save-action { width: 100%; text-align: center; justify-content: center; }
-}
-</style>
-
-<script>
+</div><script>
     const nameInput = document.getElementById("{{ form.name.id_for_label }}");
     const slugInput = document.getElementById("{{ form.slug.id_for_label }}");
 

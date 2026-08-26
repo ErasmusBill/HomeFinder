@@ -1,205 +1,6 @@
 {% extends 'home_finder/base.html' %}
-{% load static %}
 
-{% block content %}
-<!-- Breadcrumb Navigation -->
-<div class="vh-breadcrumb-wrap">
-    <div class="vh-breadcrumb-container">
-        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
-        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
-        <span>About Us</span>
-    </div>
-</div>
-
-<!-- Hero Section -->
-<section class="vh-about-hero">
-    <div class="vh-container">
-        <div class="vh-about-hero-grid">
-            <div class="vh-about-hero-text">
-                <span class="vh-pill-badge"><i class="fa-solid fa-shield-halved"></i> Trust, Transparency & Safety</span>
-                <h1>Transforming How People Rent Homes in <span>Ghana</span></h1>
-                <p>
-                    VacantHommie is Ghana's trusted property rental and listing marketplace. We connect verified property owners directly with genuine tenants—eliminating middlemen stress, fake listings, and exorbitant agent fees.
-                </p>
-                <div class="vh-hero-actions">
-                    <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
-                        <i class="fa-solid fa-magnifying-glass"></i> Explore Properties
-                    </a>
-                    <a href="{% url 'home_finder:how_it_works' %}" class="vh-btn vh-btn-outline-white">
-                        <i class="fa-solid fa-circle-play"></i> How It Works
-                    </a>
-                </div>
-            </div>
-            <div class="vh-about-hero-visual">
-                <div class="vh-hero-stat-card vh-stat-top">
-                    <div class="vh-stat-icon green"><i class="fa-solid fa-id-card-clip"></i></div>
-                    <div>
-                        <div class="vh-stat-num">100%</div>
-                        <div class="vh-stat-desc">Ghana Card Verified Landlords</div>
-                    </div>
-                </div>
-                <div class="vh-hero-stat-card vh-stat-bottom">
-                    <div class="vh-stat-icon gold"><i class="fa-solid fa-circle-check"></i></div>
-                    <div>
-                        <div class="vh-stat-num">{{ verified_properties|default:"100+" }}</div>
-                        <div class="vh-stat-desc">Vetted Listings on Platform</div>
-                    </div>
-                </div>
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Modern Ghanaian Home" class="vh-hero-img">
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Stats Bar -->
-<section class="vh-stats-strip">
-    <div class="vh-container">
-        <div class="vh-stats-grid">
-            <div class="vh-stat-item">
-                <div class="vh-stat-value">{{ total_properties|default:"50+" }}</div>
-                <div class="vh-stat-label">Properties Catalogued</div>
-            </div>
-            <div class="vh-stat-item">
-                <div class="vh-stat-value">{{ regions_count|default:"16" }}</div>
-                <div class="vh-stat-label">Regions Across Ghana</div>
-            </div>
-            <div class="vh-stat-item">
-                <div class="vh-stat-value">0%</div>
-                <div class="vh-stat-label">Fake Middlemen Fees</div>
-            </div>
-            <div class="vh-stat-item">
-                <div class="vh-stat-value">24/7</div>
-                <div class="vh-stat-label">Active Support & Inquiries</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Mission & Story -->
-<section class="vh-section vh-bg-light">
-    <div class="vh-container">
-        <div class="vh-dual-grid">
-            <div class="vh-dual-image">
-                <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80" alt="Apartment keys and house">
-                <div class="vh-floating-badge">
-                    <i class="fa-solid fa-award"></i>
-                    <span>Built for Ghanaian Renters & Property Owners</span>
-                </div>
-            </div>
-            <div class="vh-dual-content">
-                <span class="vh-section-tag">Our Story</span>
-                <h2 class="vh-section-title">Why We Built <span>VacantHommie</span></h2>
-                <p class="vh-lead-p">
-                    Finding a decent, affordable, and legit rental property in Ghana has traditionally been frustrating. Prospective tenants often pay high "viewing fees" only to be shown substandard properties or scammed by unregistered brokers.
-                </p>
-                <p class="vh-text-muted">
-                    VacantHommie was born to fix this broken system. We provide an intuitive, verified platform where landlords can showcase their vacancies with official documentation (such as Ghana Card and Title/Site Plans), and tenants can search, inspect, and schedule visits with absolute peace of mind.
-                </p>
-
-                <div class="vh-checklist">
-                    <div class="vh-check-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>No Illegal Viewing Fees</strong>
-                            <p>Browse listings online with full high-resolution media and exact locations before you go anywhere.</p>
-                        </div>
-                    </div>
-                    <div class="vh-check-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>Strict Landlord & Document Vetting</strong>
-                            <p>Every landlord listing is subject to administrative review and proof of identity.</p>
-                        </div>
-                    </div>
-                    <div class="vh-check-item">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>Direct Landlord-Tenant Connections</strong>
-                            <p>Schedule viewings and submit rental interests seamlessly through your tenant dashboard.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Core Values -->
-<section class="vh-section">
-    <div class="vh-container">
-        <div class="vh-section-header">
-            <span class="vh-section-tag">Our Principles</span>
-            <h2 class="vh-section-title">The Values That <span>Drive Us</span></h2>
-            <p class="vh-section-sub">We adhere to the highest standards of integrity to build the safest rental ecosystem in Ghana.</p>
-        </div>
-
-        <div class="vh-values-grid">
-            <div class="vh-value-card">
-                <div class="vh-value-icon bg-emerald"><i class="fa-solid fa-shield-halved"></i></div>
-                <h3>Rigorous Verification</h3>
-                <p>We require genuine national identity documentation and property title records before listings can be approved for public search.</p>
-            </div>
-            <div class="vh-value-card">
-                <div class="vh-value-icon bg-amber"><i class="fa-solid fa-scale-balanced"></i></div>
-                <h3>Transparent Pricing</h3>
-                <p>No hidden markups, surprise surcharges, or shady viewing charges. The price and terms you see are directly set by the landlord.</p>
-            </div>
-            <div class="vh-value-card">
-                <div class="vh-value-icon bg-blue"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Modern Convenience</h3>
-                <p>Smart search filters, cascading locations by Region, District, Town, and Area, plus instant scheduling from your phone or PC.</p>
-            </div>
-            <div class="vh-value-card">
-                <div class="vh-value-icon bg-purple"><i class="fa-solid fa-handshake-angle"></i></div>
-                <h3>Empowering Landlords</h3>
-                <p>We give property owners professional tools, tenant inquiries, and flexible subscription plans to rent out vacancies faster.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- How Verification Works Banner -->
-<section class="vh-verification-banner">
-    <div class="vh-container">
-        <div class="vh-vbanner-box">
-            <div class="vh-vbanner-text">
-                <h2>Safety & Verification is in Our DNA</h2>
-                <p>
-                    From Ghana Card validation to land document checks and automated media processing, we take every step to safeguard both renters and property owners.
-                </p>
-                <div class="vh-vbanner-tags">
-                    <span><i class="fa-solid fa-check"></i> Ghana Card Checked</span>
-                    <span><i class="fa-solid fa-check"></i> Site Plan & Indenture Reviewed</span>
-                    <span><i class="fa-solid fa-check"></i> Direct Viewing Booking</span>
-                </div>
-            </div>
-            <div class="vh-vbanner-cta">
-                <a href="{% url 'home_finder:how_it_works' %}" class="vh-btn vh-btn-gold">
-                    Learn How It Works <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Call To Action -->
-<section class="vh-cta-section">
-    <div class="vh-container">
-        <div class="vh-cta-content">
-            <h2>Ready to Find Your Next Home in Ghana?</h2>
-            <p>Join thousands of tenants and landlords experiencing simple, secure property rentals today.</p>
-            <div class="vh-cta-btns">
-                <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
-                    <i class="fa-solid fa-house-chimney"></i> Browse Available Properties
-                </a>
-                <a href="{% url 'home_finder:contact' %}" class="vh-btn vh-btn-outline-white">
-                    <i class="fa-solid fa-envelope"></i> Contact Our Team
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
+{% block extra_head %}
 <style>
 /* ============================================================
    About Page Custom Styling
@@ -699,3 +500,203 @@
 }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<div class="vh-breadcrumb-wrap">
+    <div class="vh-breadcrumb-container">
+        <a href="{% url 'home_finder:home' %}"><i class="fa-solid fa-house"></i> Home</a>
+        <i class="fa-solid fa-chevron-right vh-bc-sep"></i>
+        <span>About Us</span>
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="vh-about-hero">
+    <div class="vh-container">
+        <div class="vh-about-hero-grid">
+            <div class="vh-about-hero-text">
+                <span class="vh-pill-badge"><i class="fa-solid fa-shield-halved"></i> Trust, Transparency & Safety</span>
+                <h1>Transforming How People Rent Homes in <span>Ghana</span></h1>
+                <p>
+                    VacantHommie is Ghana's trusted property rental and listing marketplace. We connect verified property owners directly with genuine tenants—eliminating middlemen stress, fake listings, and exorbitant agent fees.
+                </p>
+                <div class="vh-hero-actions">
+                    <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
+                        <i class="fa-solid fa-magnifying-glass"></i> Explore Properties
+                    </a>
+                    <a href="{% url 'home_finder:how_it_works' %}" class="vh-btn vh-btn-outline-white">
+                        <i class="fa-solid fa-circle-play"></i> How It Works
+                    </a>
+                </div>
+            </div>
+            <div class="vh-about-hero-visual">
+                <div class="vh-hero-stat-card vh-stat-top">
+                    <div class="vh-stat-icon green"><i class="fa-solid fa-id-card-clip"></i></div>
+                    <div>
+                        <div class="vh-stat-num">100%</div>
+                        <div class="vh-stat-desc">Ghana Card Verified Landlords</div>
+                    </div>
+                </div>
+                <div class="vh-hero-stat-card vh-stat-bottom">
+                    <div class="vh-stat-icon gold"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="vh-stat-num">{{ verified_properties|default:"100+" }}</div>
+                        <div class="vh-stat-desc">Vetted Listings on Platform</div>
+                    </div>
+                </div>
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Modern Ghanaian Home" class="vh-hero-img">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="vh-stats-strip">
+    <div class="vh-container">
+        <div class="vh-stats-grid">
+            <div class="vh-stat-item">
+                <div class="vh-stat-value">{{ total_properties|default:"50+" }}</div>
+                <div class="vh-stat-label">Properties Catalogued</div>
+            </div>
+            <div class="vh-stat-item">
+                <div class="vh-stat-value">{{ regions_count|default:"16" }}</div>
+                <div class="vh-stat-label">Regions Across Ghana</div>
+            </div>
+            <div class="vh-stat-item">
+                <div class="vh-stat-value">0%</div>
+                <div class="vh-stat-label">Fake Middlemen Fees</div>
+            </div>
+            <div class="vh-stat-item">
+                <div class="vh-stat-value">24/7</div>
+                <div class="vh-stat-label">Active Support & Inquiries</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Story -->
+<section class="vh-section vh-bg-light">
+    <div class="vh-container">
+        <div class="vh-dual-grid">
+            <div class="vh-dual-image">
+                <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80" alt="Apartment keys and house">
+                <div class="vh-floating-badge">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Built for Ghanaian Renters & Property Owners</span>
+                </div>
+            </div>
+            <div class="vh-dual-content">
+                <span class="vh-section-tag">Our Story</span>
+                <h2 class="vh-section-title">Why We Built <span>VacantHommie</span></h2>
+                <p class="vh-lead-p">
+                    Finding a decent, affordable, and legit rental property in Ghana has traditionally been frustrating. Prospective tenants often pay high "viewing fees" only to be shown substandard properties or scammed by unregistered brokers.
+                </p>
+                <p class="vh-text-muted">
+                    VacantHommie was born to fix this broken system. We provide an intuitive, verified platform where landlords can showcase their vacancies with official documentation (such as Ghana Card and Title/Site Plans), and tenants can search, inspect, and schedule visits with absolute peace of mind.
+                </p>
+
+                <div class="vh-checklist">
+                    <div class="vh-check-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>No Illegal Viewing Fees</strong>
+                            <p>Browse listings online with full high-resolution media and exact locations before you go anywhere.</p>
+                        </div>
+                    </div>
+                    <div class="vh-check-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>Strict Landlord & Document Vetting</strong>
+                            <p>Every landlord listing is subject to administrative review and proof of identity.</p>
+                        </div>
+                    </div>
+                    <div class="vh-check-item">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>Direct Landlord-Tenant Connections</strong>
+                            <p>Schedule viewings and submit rental interests seamlessly through your tenant dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Values -->
+<section class="vh-section">
+    <div class="vh-container">
+        <div class="vh-section-header">
+            <span class="vh-section-tag">Our Principles</span>
+            <h2 class="vh-section-title">The Values That <span>Drive Us</span></h2>
+            <p class="vh-section-sub">We adhere to the highest standards of integrity to build the safest rental ecosystem in Ghana.</p>
+        </div>
+
+        <div class="vh-values-grid">
+            <div class="vh-value-card">
+                <div class="vh-value-icon bg-emerald"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>Rigorous Verification</h3>
+                <p>We require genuine national identity documentation and property title records before listings can be approved for public search.</p>
+            </div>
+            <div class="vh-value-card">
+                <div class="vh-value-icon bg-amber"><i class="fa-solid fa-scale-balanced"></i></div>
+                <h3>Transparent Pricing</h3>
+                <p>No hidden markups, surprise surcharges, or shady viewing charges. The price and terms you see are directly set by the landlord.</p>
+            </div>
+            <div class="vh-value-card">
+                <div class="vh-value-icon bg-blue"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Modern Convenience</h3>
+                <p>Smart search filters, cascading locations by Region, District, Town, and Area, plus instant scheduling from your phone or PC.</p>
+            </div>
+            <div class="vh-value-card">
+                <div class="vh-value-icon bg-purple"><i class="fa-solid fa-handshake-angle"></i></div>
+                <h3>Empowering Landlords</h3>
+                <p>We give property owners professional tools, tenant inquiries, and flexible subscription plans to rent out vacancies faster.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How Verification Works Banner -->
+<section class="vh-verification-banner">
+    <div class="vh-container">
+        <div class="vh-vbanner-box">
+            <div class="vh-vbanner-text">
+                <h2>Safety & Verification is in Our DNA</h2>
+                <p>
+                    From Ghana Card validation to land document checks and automated media processing, we take every step to safeguard both renters and property owners.
+                </p>
+                <div class="vh-vbanner-tags">
+                    <span><i class="fa-solid fa-check"></i> Ghana Card Checked</span>
+                    <span><i class="fa-solid fa-check"></i> Site Plan & Indenture Reviewed</span>
+                    <span><i class="fa-solid fa-check"></i> Direct Viewing Booking</span>
+                </div>
+            </div>
+            <div class="vh-vbanner-cta">
+                <a href="{% url 'home_finder:how_it_works' %}" class="vh-btn vh-btn-gold">
+                    Learn How It Works <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call To Action -->
+<section class="vh-cta-section">
+    <div class="vh-container">
+        <div class="vh-cta-content">
+            <h2>Ready to Find Your Next Home in Ghana?</h2>
+            <p>Join thousands of tenants and landlords experiencing simple, secure property rentals today.</p>
+            <div class="vh-cta-btns">
+                <a href="{% url 'home_finder:list_properties' %}" class="vh-btn vh-btn-gold">
+                    <i class="fa-solid fa-house-chimney"></i> Browse Available Properties
+                </a>
+                <a href="{% url 'home_finder:contact' %}" class="vh-btn vh-btn-outline-white">
+                    <i class="fa-solid fa-envelope"></i> Contact Our Team
+                </a>
+            </div>
+        </div>
+    </div>
+</section>{% endblock %}

@@ -1,198 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}Browse Locations - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="locations-management-wrapper">
-
-    <!-- Page Header Row -->
-    <div class="page-header-row">
-        <div class="header-titles">
-            <h1>Browse Locations</h1>
-            <p>Browse the available regions, districts, towns, and areas. Locations are managed by the VacantHommie team — pick the right one when creating your property listing.</p>
-        </div>
-    </div>
-
-    <!-- Existing Locations Table Section (Beneath Cards) -->
-    <div class="dashboard-card-box locations-table-box">
-        <!-- Location Stats Mini Strip -->
-        <div class="loc-mini-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
-            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                </div>
-                <div>
-                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Regions</span>
-                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_regions }}</h4>
-                </div>
-            </div>
-            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-map"></i>
-                </div>
-                <div>
-                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Districts</span>
-                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_districts }}</h4>
-                </div>
-            </div>
-            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-city"></i>
-                </div>
-                <div>
-                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Towns</span>
-                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_towns }}</h4>
-                </div>
-            </div>
-            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                    <i class="fa-solid fa-map-pin"></i>
-                </div>
-                <div>
-                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Areas</span>
-                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_areas }}</h4>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-header-row">
-            <div>
-                <h2>Existing Location Hierarchies</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0;">Browse nested Regions, Districts, Towns, and Areas with pagination.</p>
-            </div>
-            <div class="table-header-tools">
-                <form method="GET" class="loc-filter-form" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <div class="table-search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" name="q" value="{{ search_query }}" placeholder="Search region, district, town, area..." autocomplete="off">
-                        {% if search_query %}
-                            <a href="{% url 'locations:list_locations' %}?per_page={{ per_page }}" class="search-clear-btn" title="Clear Search"><i class="fa-solid fa-xmark"></i></a>
-                        {% endif %}
-                    </div>
-
-                    <div class="per-page-wrap" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted);">
-                        <label for="per_page_select">Show:</label>
-                        <select name="per_page" id="per_page_select" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: #ffffff;">
-                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5 regions</option>
-                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10 regions</option>
-                            <option value="20" {% if per_page == 20 %}selected{% endif %}>20 regions</option>
-                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50 regions</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn-page" style="background: var(--primary-green); color: #ffffff; border-color: var(--primary-green); font-weight: 600;">
-                        <i class="fa-solid fa-filter"></i> Filter
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="styled-location-table" id="locations-table">
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">Region</th>
-                        <th style="width: 75%;">Districts / Towns / Areas Hierarchy</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for region in locations %}
-                        <tr class="location-row">
-                            <td class="region-cell">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <strong><i class="fa-solid fa-map-location-dot text-green"></i> {{ region.name }}</strong>
-                                </div>
-                                <small style="display: block; color: var(--text-muted); margin-top: 4px; font-size: 11.5px;">
-                                    {{ region.districts.all|length }} District{{ region.districts.all|length|pluralize }}
-                                </small>
-                            </td>
-                            <td>
-                                <div class="nested-hierarchy-list">
-                                    {% for district in region.districts.all %}
-                                        <div class="district-badge-group">
-                                            <span class="district-name"><i class="fa-solid fa-map"></i> {{ district.name }}</span>
-                                            <div class="towns-sublist">
-                                                {% for town in district.towns.all %}
-                                                    <span class="town-tag">
-                                                        <i class="fa-solid fa-city"></i> {{ town.name }}
-                                                        <small class="areas-text">
-                                                            ({% for area in town.areas.all %}{{ area.name }}{% if not forloop.last %}, {% endif %}{% empty %}No areas{% endfor %})
-                                                        </small>
-                                                    </span>
-                                                {% empty %}
-                                                    <span class="text-muted text-xs">No towns configured</span>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% empty %}
-                                        <span class="text-muted" style="font-size: 13px;">No districts configured yet under this region.</span>
-                                    {% endfor %}
-                                </div>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-map-location-dot" style="font-size: 36px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
-                                {% if search_query %}
-                                    No location hierarchies match your search "<strong>{{ search_query }}</strong>".
-                                    <br><a href="{% url 'locations:list_locations' %}" style="color: var(--primary-green); font-weight: 600; text-decoration: underline; margin-top: 8px; display: inline-block;">Clear Search Filter</a>
-                                {% else %}
-                                    No locations are currently available. Please contact the VacantHommie team so they can add your region.
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Full Rich Pagination -->
-        <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding-top: 18px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 14px;">
-            <div class="pagination-info" style="font-size: 13px; color: var(--text-muted);">
-                Showing <strong>{{ locations.start_index|default:0 }}</strong> to <strong>{{ locations.end_index|default:0 }}</strong> of <strong>{{ locations.paginator.count|default:0 }}</strong> regions
-            </div>
-
-            {% if locations.paginator.num_pages > 1 %}
-            <div class="pagination-nav-pills" style="display: flex; align-items: center; gap: 5px;">
-                <!-- First Page -->
-                {% if locations.has_previous %}
-                    <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
-                    <a href="?page={{ locations.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></a>
-                {% else %}
-                    <span class="page-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
-                    <span class="page-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>
-                {% endif %}
-
-                <!-- Numbered Pages -->
-                {% for num in locations.paginator.page_range %}
-                    {% if locations.number == num %}
-                        <span class="page-btn active">{{ num }}</span>
-                    {% elif num == 1 or num == locations.paginator.num_pages or num|add:"-2" <= locations.number and num|add:"2" >= locations.number %}
-                        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn">{{ num }}</a>
-                    {% elif num|add:"1" == locations.number|add:"-3" or num|add:"-1" == locations.number|add:"3" %}
-                        <span class="page-btn-dots" style="padding: 0 4px; color: var(--text-muted); font-size: 12px;">...</span>
-                    {% endif %}
-                {% endfor %}
-
-                <!-- Next Page -->
-                {% if locations.has_next %}
-                    <a href="?page={{ locations.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Next Page"><i class="fa-solid fa-chevron-right"></i></a>
-                    <a href="?page={{ locations.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
-                {% else %}
-                    <span class="page-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
-                    <span class="page-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-</div>
-
-
-<!-- Additional Styles for Table Layout -->
+{% block extra_head %}
 <style>
 /* ---------- PAGE HEADER (was missing) ---------- */
 .page-header-row {
@@ -791,8 +599,201 @@
     }
 }
 </style>
+{% endblock %}
+{% load static %}
 
-<script>
+{% block title %}Browse Locations - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="locations-management-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>Browse Locations</h1>
+            <p>Browse the available regions, districts, towns, and areas. Locations are managed by the VacantHommie team — pick the right one when creating your property listing.</p>
+        </div>
+    </div>
+
+    <!-- Existing Locations Table Section (Beneath Cards) -->
+    <div class="dashboard-card-box locations-table-box">
+        <!-- Location Stats Mini Strip -->
+        <div class="loc-mini-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
+            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Regions</span>
+                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_regions }}</h4>
+                </div>
+            </div>
+            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-map"></i>
+                </div>
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Districts</span>
+                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_districts }}</h4>
+                </div>
+            </div>
+            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Towns</span>
+                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_towns }}</h4>
+                </div>
+            </div>
+            <div class="loc-mini-stat" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                    <i class="fa-solid fa-map-pin"></i>
+                </div>
+                <div>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Areas</span>
+                    <h4 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main);">{{ total_areas }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-header-row">
+            <div>
+                <h2>Existing Location Hierarchies</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 2px 0 0;">Browse nested Regions, Districts, Towns, and Areas with pagination.</p>
+            </div>
+            <div class="table-header-tools">
+                <form method="GET" class="loc-filter-form" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div class="table-search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Search region, district, town, area..." autocomplete="off">
+                        {% if search_query %}
+                            <a href="{% url 'locations:list_locations' %}?per_page={{ per_page }}" class="search-clear-btn" title="Clear Search"><i class="fa-solid fa-xmark"></i></a>
+                        {% endif %}
+                    </div>
+
+                    <div class="per-page-wrap" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted);">
+                        <label for="per_page_select">Show:</label>
+                        <select name="per_page" id="per_page_select" onchange="this.form.submit()" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: #ffffff;">
+                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5 regions</option>
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10 regions</option>
+                            <option value="20" {% if per_page == 20 %}selected{% endif %}>20 regions</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50 regions</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-page" style="background: var(--primary-green); color: #ffffff; border-color: var(--primary-green); font-weight: 600;">
+                        <i class="fa-solid fa-filter"></i> Filter
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="styled-location-table" id="locations-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Region</th>
+                        <th style="width: 75%;">Districts / Towns / Areas Hierarchy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for region in locations %}
+                        <tr class="location-row">
+                            <td class="region-cell">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <strong><i class="fa-solid fa-map-location-dot text-green"></i> {{ region.name }}</strong>
+                                </div>
+                                <small style="display: block; color: var(--text-muted); margin-top: 4px; font-size: 11.5px;">
+                                    {{ region.districts.all|length }} District{{ region.districts.all|length|pluralize }}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="nested-hierarchy-list">
+                                    {% for district in region.districts.all %}
+                                        <div class="district-badge-group">
+                                            <span class="district-name"><i class="fa-solid fa-map"></i> {{ district.name }}</span>
+                                            <div class="towns-sublist">
+                                                {% for town in district.towns.all %}
+                                                    <span class="town-tag">
+                                                        <i class="fa-solid fa-city"></i> {{ town.name }}
+                                                        <small class="areas-text">
+                                                            ({% for area in town.areas.all %}{{ area.name }}{% if not forloop.last %}, {% endif %}{% empty %}No areas{% endfor %})
+                                                        </small>
+                                                    </span>
+                                                {% empty %}
+                                                    <span class="text-muted text-xs">No towns configured</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <span class="text-muted" style="font-size: 13px;">No districts configured yet under this region.</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-map-location-dot" style="font-size: 36px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
+                                {% if search_query %}
+                                    No location hierarchies match your search "<strong>{{ search_query }}</strong>".
+                                    <br><a href="{% url 'locations:list_locations' %}" style="color: var(--primary-green); font-weight: 600; text-decoration: underline; margin-top: 8px; display: inline-block;">Clear Search Filter</a>
+                                {% else %}
+                                    No locations are currently available. Please contact the VacantHommie team so they can add your region.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Full Rich Pagination -->
+        <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding-top: 18px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 14px;">
+            <div class="pagination-info" style="font-size: 13px; color: var(--text-muted);">
+                Showing <strong>{{ locations.start_index|default:0 }}</strong> to <strong>{{ locations.end_index|default:0 }}</strong> of <strong>{{ locations.paginator.count|default:0 }}</strong> regions
+            </div>
+
+            {% if locations.paginator.num_pages > 1 %}
+            <div class="pagination-nav-pills" style="display: flex; align-items: center; gap: 5px;">
+                <!-- First Page -->
+                {% if locations.has_previous %}
+                    <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+                    <a href="?page={{ locations.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Previous Page"><i class="fa-solid fa-chevron-left"></i></a>
+                {% else %}
+                    <span class="page-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                    <span class="page-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>
+                {% endif %}
+
+                <!-- Numbered Pages -->
+                {% for num in locations.paginator.page_range %}
+                    {% if locations.number == num %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% elif num == 1 or num == locations.paginator.num_pages or num|add:"-2" <= locations.number and num|add:"2" >= locations.number %}
+                        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn">{{ num }}</a>
+                    {% elif num|add:"1" == locations.number|add:"-3" or num|add:"-1" == locations.number|add:"3" %}
+                        <span class="page-btn-dots" style="padding: 0 4px; color: var(--text-muted); font-size: 12px;">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Next Page -->
+                {% if locations.has_next %}
+                    <a href="?page={{ locations.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Next Page"><i class="fa-solid fa-chevron-right"></i></a>
+                    <a href="?page={{ locations.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if per_page %}&per_page={{ per_page }}{% endif %}" class="page-btn" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
+                {% else %}
+                    <span class="page-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
+                    <span class="page-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Additional Styles for Table Layout --><script>
 document.addEventListener('DOMContentLoaded', function () {
     // Live client-side search across region / district / town / area names
     var searchInput = document.getElementById('location-search-input');

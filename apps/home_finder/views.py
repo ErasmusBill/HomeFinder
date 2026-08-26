@@ -531,3 +531,9 @@ def contact(request):
         'form': form,
     })
 
+
+def pricing(request):
+    """Public pricing page showing all active subscription plans."""
+    from apps.Subscription.models import SubscriptionPlan
+    plans = SubscriptionPlan.objects.filter(is_active=True).order_by('price')
+    return render(request, 'home_finder/pricing.html', {'plans': plans})

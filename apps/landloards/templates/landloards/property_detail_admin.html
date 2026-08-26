@@ -1,348 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
 
-{% block title %}{{ property.title }} - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="property-detail-container">
-
-    <!-- Page Header & Top Actions -->
-    <div class="page-header-flex">
-        <div>
-            <div class="breadcrumb-trail">
-                <a href="{% url 'landloards:property_list' %}">Dashboard</a> <i class="fa-solid fa-chevron-right"></i>
-                <a href="{% url 'landloards:property_list' %}">Properties</a> <i class="fa-solid fa-chevron-right"></i>
-                <span>Property Details</span>
-            </div>
-            <div class="title-with-badges">
-                <h1 class="page-title">{{ property.title }}</h1>
-                {% if property.publication_status == 'published' %}
-                    <span class="status-badge published"><span class="dot"></span> Published</span>
-                {% else %}
-                    <span class="status-badge draft"><span class="dot"></span> {{ property.get_publication_status_display }}</span>
-                {% endif %}
-
-                {% if property.verification_status == 'verified' %}
-                    <span class="status-badge verified"><i class="fa-solid fa-check"></i> Verified</span>
-                {% elif property.verification_status == 'pending' %}
-                    <span class="status-badge pending"><span class="dot"></span> Pending</span>
-                {% else %}
-                    <span class="status-badge rejected"><span class="dot"></span> Rejected</span>
-                {% endif %}
-            </div>
-            <p class="page-subtitle"><i class="fa-solid fa-location-dot"></i> {{ property.area.name }}, {{ property.town.name }} &bull; Added on {{ property.created_at|date:"F j, Y" }}</p>
-        </div>
-        <div class="header-action-buttons">
-            <a href="{% url 'landloards:update_property' property.id %}" class="btn-outline-action">
-                <i class="fa-solid fa-pen"></i> Edit Property
-            </a>
-            <a href="{% url 'landloards:create_property' %}" class="btn-primary-green">
-                <i class="fa-solid fa-circle-plus"></i> Add Media
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="detail-main-grid">
-
-        <!-- Left Column: Gallery & Details tabs -->
-        <div class="detail-left-column">
-
-            <!-- Image Gallery Carousel Component -->
-            <div class="gallery-card">
-                <div class="main-gallery-display">
-                    <span class="primary-image-tag">Primary Image</span>
-                    {% if property.cover_image %}
-                        <img id="activeGalleryImage" src="{{ property.cover_image.url }}" alt="{{ property.title }}" class="main-display-img">
-                    {% else %}
-                        <img id="activeGalleryImage" src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80" alt="Default" class="main-display-img">
-                    {% endif %}
-                </div>
-
-                <!-- Thumbnails Strip -->
-                <div class="gallery-thumbnails-strip">
-                    {% if property.cover_image %}
-                        <div class="thumb-item active" onclick="changeImage('{{ property.cover_image.url }}', this)">
-                            <img src="{{ property.cover_image.url }}" alt="Cover">
-                        </div>
-                    {% endif %}
-                    {% for media in property.media.all %}
-                        <div class="thumb-item" onclick="changeImage('{{ media.file.url }}', this)">
-                            <img src="{{ media.file.url }}" alt="Property photo">
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Tabs Navigation & Content Sections -->
-            <div class="content-tabs-card">
-                <div class="tabs-header">
-                    <button class="tab-btn active" onclick="switchTab(event, 'overviewTab')"><i class="fa-solid fa-house"></i> Overview</button>
-                    <button class="tab-btn" onclick="switchTab(event, 'amenitiesTab')"><i class="fa-solid fa-list-check"></i> Features & Amenities</button>
-                    <button class="tab-btn" onclick="switchTab(event, 'mediaTab')"><i class="fa-solid fa-images"></i> Media ({{ property.media.count|add:1 }})</button>
-                    <button class="tab-btn" onclick="switchTab(event, 'documentsTab')"><i class="fa-solid fa-file-shield"></i> Documents ({{ property.landlord_documents.count }})</button>
-                    <button class="tab-btn" onclick="switchTab(event, 'activityTab')"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</button>
-                </div>
-
-                <!-- Overview Tab Content -->
-                <div id="overviewTab" class="tab-content active">
-                    <div class="specs-grid">
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-fingerprint"></i> Property ID</span>
-                            <span class="spec-value">{{ property.reference_number }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-tag"></i> Price</span>
-                            <span class="spec-value text-green">GHS {{ property.price|floatformat:0 }} / {{ property.payment_period }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-door-open"></i> Room Type</span>
-                            <span class="spec-value">{{ property.get_room_type_display }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-shield-halved"></i> Security Deposit</span>
-                            <span class="spec-value">GHS {{ property.price|floatformat:0 }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-bed"></i> Bedrooms</span>
-                            <span class="spec-value">{{ property.bedrooms }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-calendar-check"></i> Availability</span>
-                            <span class="spec-value {% if property.is_available %}text-available{% else %}text-unavailable{% endif %}">
-                                {% if property.is_available %}Available{% else %}Occupied{% endif %}
-                            </span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-bath"></i> Bathrooms</span>
-                            <span class="spec-value">{{ property.bathrooms }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-calendar-day"></i> Available From</span>
-                            <span class="spec-value">{{ property.available_from|date:"M j, Y"|default:"Immediate" }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-restroom"></i> Toilets</span>
-                            <span class="spec-value">{{ property.toilets }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-user-tie"></i> Landlord</span>
-                            <span class="spec-value">{{ property.landlord.full_name }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-ruler-combined"></i> Floor Area</span>
-                            <span class="spec-value">{{ property.floor_area|default:"N/A" }} {% if property.floor_area %}m²{% endif %}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-user-pen"></i> Listed By</span>
-                            <span class="spec-value">{{ property.landlord.full_name }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-couch"></i> Furnished</span>
-                            <span class="spec-value">{% if property.is_furnished %}Yes{% else %}No{% endif %}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-circle-check"></i> Status</span>
-                            <span class="spec-value text-capitalize">{{ property.publication_status }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-square-parking"></i> Parking Spaces</span>
-                            <span class="spec-value">{{ property.parking_spaces }}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label"><i class="fa-solid fa-shield-halved"></i> Verification Status</span>
-                            <span class="spec-value text-capitalize">{{ property.verification_status }}</span>
-                        </div>
-                    </div>
-
-                    <div class="description-section">
-                        <h3>Description</h3>
-                        <p>{{ property.description|linebreaks }}</p>
-                    </div>
-                </div>
-
-                <!-- Features & Amenities Tab -->
-                <div id="amenitiesTab" class="tab-content">
-                    <h3>Property Amenities</h3>
-                    <div class="amenities-grid-list">
-                        {% for amenity in property.amenities.all %}
-                            <div class="amenity-badge-item">
-                                <i class="fa-solid fa-check-circle"></i> {{ amenity.name }}
-                            </div>
-                        {% empty %}
-                            <p class="text-muted">No specific amenities listed for this property.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Media Tab -->
-                <div id="mediaTab" class="tab-content">
-                    <h3>All Uploaded Media Files</h3>
-                    <div class="media-grid-gallery">
-                        {% if property.cover_image %}
-                            <div class="media-card-thumb">
-                                <img src="{{ property.cover_image.url }}" alt="Cover">
-                                <span>Cover Image</span>
-                            </div>
-                        {% endif %}
-                        {% for media in property.media.all %}
-                            <div class="media-card-thumb">
-                                <img src="{{ media.file.url }}" alt="Media">
-                                <span>{{ media.get_media_type_display }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Documents Tab -->
-                <div id="documentsTab" class="tab-content">
-                    <h3>Attached Property & Verification Documents</h3>
-                    <div class="docs-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
-                        {% for doc in property.landlord_documents.all %}
-                            <div class="doc-detail-card" style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
-                                <div class="doc-card-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">{{ doc.get_document_type_display }}</h4>
-                                    <span class="status-badge {{ doc.verification_status }}">{{ doc.get_verification_status_display }}</span>
-                                </div>
-                                <p style="font-size: 12px; color: #64748b; margin: 4px 0 12px 0;">Uploaded {{ doc.created_at|date:"M j, Y" }}</p>
-                                {% if doc.file %}
-                                    <a href="{{ doc.file.url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #059669; text-decoration: none;">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View Document
-                                    </a>
-                                {% else %}
-                                    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #94a3b8;">
-                                        <i class="fa-solid fa-file-circle-exclamation"></i> No file attached
-                                    </span>
-                                {% endif %}
-                            </div>
-                        {% empty %}
-                            <p class="text-muted">No specific documents attached to this property listing yet.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Activity Log Tab -->
-                <div id="activityTab" class="tab-content">
-                    <h3>Activity & Verification Timeline</h3>
-                    <div class="timeline-container">
-                        <div class="timeline-step completed">
-                            <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
-                            <div class="timeline-content">
-                                <strong>Property Created</strong>
-                                <span>{{ property.created_at|date:"F j, Y at g:i A" }}</span>
-                            </div>
-                        </div>
-                        <div class="timeline-step {% if property.publication_status != 'draft' %}completed{% endif %}">
-                            <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
-                            <div class="timeline-content">
-                                <strong>Submitted for Publication</strong>
-                                <span>{{ property.created_at|date:"F j, Y" }}</span>
-                            </div>
-                        </div>
-                        <div class="timeline-step {% if property.verification_status == 'verified' %}completed{% elif property.verification_status == 'rejected' %}rejected{% else %}pending{% endif %}">
-                            <div class="timeline-icon"><i class="fa-solid fa-shield"></i></div>
-                            <div class="timeline-content">
-                                <strong>Verification Status: {{ property.get_verification_status_display }}</strong>
-                                <span>Updated recently</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Pricing, Quick Stats, Landlord Info, Status workflow -->
-        <div class="detail-right-column">
-
-            <!-- Price Summary Card -->
-            <div class="sidebar-card">
-                <h3>Price Summary</h3>
-                <div class="price-display-box">
-                    <span class="big-price">GHS {{ property.price|floatformat:0 }}</span>
-                    <span class="price-period">/ {{ property.payment_period }}</span>
-                </div>
-                <p class="security-deposit-note">Security Deposit: GHS {{ property.price|floatformat:0 }}</p>
-            </div>
-
-            <!-- Quick Stats Card (Calculated Days Listed via JS, Enquiries/Saved removed as requested) -->
-            <div class="sidebar-card">
-                <h3>Quick Stats</h3>
-                <div class="quick-stats-grid-clean">
-                    <div class="stat-box-item">
-                        <i class="fa-solid fa-eye"></i>
-                        <div>
-                            <strong>{{ property.views_count }}</strong>
-                            <span>Views</span>
-                        </div>
-                    </div>
-                    <div class="stat-box-item">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        <div>
-                            <strong id="daysListedCount">--</strong>
-                            <span>Days Listed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Landlord Information Card -->
-            <div class="sidebar-card">
-                <h3>Landlord Information</h3>
-                <div class="landlord-profile-box">
-                    <div class="landlord-avatar-name">
-                        <div class="landlord-avatar-circle">
-                            {{ property.landlord.full_name|slice:":2"|upper }}
-                        </div>
-                        <div>
-                            <strong>{{ property.landlord.full_name }}</strong>
-                            <span class="verified-tag-small"><i class="fa-solid fa-circle-check"></i> Verified Landlord</span>
-                        </div>
-                    </div>
-                    <div class="landlord-rating-row">
-                        <i class="fa-solid fa-star text-warning"></i> <strong>4.8</strong> <span class="text-muted">(23 reviews)</span>
-                    </div>
-                    <div class="landlord-contact-details">
-                        <p><i class="fa-solid fa-phone"></i> {{ property.landlord.phone_number|default:"+233 24 123 4567" }}</p>
-                        <p><i class="fa-solid fa-envelope"></i> {{ property.landlord.email }}</p>
-                    </div>
-                    <button class="btn-full-outline" onclick="alert('Contact profile action triggered')">View Landlord Profile</button>
-                </div>
-            </div>
-
-            <!-- Property Status Workflow Card -->
-            <div class="sidebar-card">
-                <h3>Property Status</h3>
-                <div class="status-workflow-steps">
-                    <div class="workflow-step active-done">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>Property Created</strong>
-                            <span>{{ property.created_at|date:"M j, Y at g:i A" }}</span>
-                        </div>
-                    </div>
-                    <div class="workflow-step {% if property.publication_status != 'draft' %}active-done{% else %}pending-step{% endif %}">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>Published Status</strong>
-                            <span>{{ property.get_publication_status_display }}</span>
-                        </div>
-                    </div>
-                    <div class="workflow-step {% if property.verification_status == 'verified' %}active-done{% else %}pending-step{% endif %}">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <div>
-                            <strong>Verified</strong>
-                            <span>{{ property.get_verification_status_display }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- CSS Styling matching design system -->
+{% block extra_head %}
 <style>
     .property-detail-container {
         display: flex;
@@ -927,8 +585,351 @@
     .status-badge.rejected { background: #fee2e2; color: #991b1b; }
     .status-badge.rejected .dot { background: #dc2626; }
 </style>
+{% endblock %}
 
-<!-- JavaScript for Gallery switching, Tabs, and Dynamic Days Listed Calculation -->
+{% block title %}{{ property.title }} - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="property-detail-container">
+
+    <!-- Page Header & Top Actions -->
+    <div class="page-header-flex">
+        <div>
+            <div class="breadcrumb-trail">
+                <a href="{% url 'landloards:property_list' %}">Dashboard</a> <i class="fa-solid fa-chevron-right"></i>
+                <a href="{% url 'landloards:property_list' %}">Properties</a> <i class="fa-solid fa-chevron-right"></i>
+                <span>Property Details</span>
+            </div>
+            <div class="title-with-badges">
+                <h1 class="page-title">{{ property.title }}</h1>
+                {% if property.publication_status == 'published' %}
+                    <span class="status-badge published"><span class="dot"></span> Published</span>
+                {% else %}
+                    <span class="status-badge draft"><span class="dot"></span> {{ property.get_publication_status_display }}</span>
+                {% endif %}
+
+                {% if property.verification_status == 'verified' %}
+                    <span class="status-badge verified"><i class="fa-solid fa-check"></i> Verified</span>
+                {% elif property.verification_status == 'pending' %}
+                    <span class="status-badge pending"><span class="dot"></span> Pending</span>
+                {% else %}
+                    <span class="status-badge rejected"><span class="dot"></span> Rejected</span>
+                {% endif %}
+            </div>
+            <p class="page-subtitle"><i class="fa-solid fa-location-dot"></i> {{ property.area.name }}, {{ property.town.name }} &bull; Added on {{ property.created_at|date:"F j, Y" }}</p>
+        </div>
+        <div class="header-action-buttons">
+            <a href="{% url 'landloards:update_property' property.id %}" class="btn-outline-action">
+                <i class="fa-solid fa-pen"></i> Edit Property
+            </a>
+            <a href="{% url 'landloards:create_property' %}" class="btn-primary-green">
+                <i class="fa-solid fa-circle-plus"></i> Add Media
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="detail-main-grid">
+
+        <!-- Left Column: Gallery & Details tabs -->
+        <div class="detail-left-column">
+
+            <!-- Image Gallery Carousel Component -->
+            <div class="gallery-card">
+                <div class="main-gallery-display">
+                    <span class="primary-image-tag">Primary Image</span>
+                    {% if property.cover_image %}
+                        <img id="activeGalleryImage" src="{{ property.cover_image.url }}" alt="{{ property.title }}" class="main-display-img">
+                    {% else %}
+                        <img id="activeGalleryImage" src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80" alt="Default" class="main-display-img">
+                    {% endif %}
+                </div>
+
+                <!-- Thumbnails Strip -->
+                <div class="gallery-thumbnails-strip">
+                    {% if property.cover_image %}
+                        <div class="thumb-item active" onclick="changeImage('{{ property.cover_image.url }}', this)">
+                            <img src="{{ property.cover_image.url }}" alt="Cover">
+                        </div>
+                    {% endif %}
+                    {% for media in property.media.all %}
+                        <div class="thumb-item" onclick="changeImage('{{ media.file.url }}', this)">
+                            <img src="{{ media.file.url }}" alt="Property photo">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tabs Navigation & Content Sections -->
+            <div class="content-tabs-card">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab(event, 'overviewTab')"><i class="fa-solid fa-house"></i> Overview</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'amenitiesTab')"><i class="fa-solid fa-list-check"></i> Features & Amenities</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'mediaTab')"><i class="fa-solid fa-images"></i> Media ({{ property.media.count|add:1 }})</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'documentsTab')"><i class="fa-solid fa-file-shield"></i> Documents ({{ property.landlord_documents.count }})</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'activityTab')"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</button>
+                </div>
+
+                <!-- Overview Tab Content -->
+                <div id="overviewTab" class="tab-content active">
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-fingerprint"></i> Property ID</span>
+                            <span class="spec-value">{{ property.reference_number }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-tag"></i> Price</span>
+                            <span class="spec-value text-green">GHS {{ property.price|floatformat:0 }} / {{ property.payment_period }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-door-open"></i> Room Type</span>
+                            <span class="spec-value">{{ property.get_room_type_display }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-shield-halved"></i> Security Deposit</span>
+                            <span class="spec-value">GHS {{ property.price|floatformat:0 }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-bed"></i> Bedrooms</span>
+                            <span class="spec-value">{{ property.bedrooms }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-calendar-check"></i> Availability</span>
+                            <span class="spec-value {% if property.is_available %}text-available{% else %}text-unavailable{% endif %}">
+                                {% if property.is_available %}Available{% else %}Occupied{% endif %}
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-bath"></i> Bathrooms</span>
+                            <span class="spec-value">{{ property.bathrooms }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-calendar-day"></i> Available From</span>
+                            <span class="spec-value">{{ property.available_from|date:"M j, Y"|default:"Immediate" }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-restroom"></i> Toilets</span>
+                            <span class="spec-value">{{ property.toilets }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-user-tie"></i> Landlord</span>
+                            <span class="spec-value">{{ property.landlord.full_name }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-ruler-combined"></i> Floor Area</span>
+                            <span class="spec-value">{{ property.floor_area|default:"N/A" }} {% if property.floor_area %}m²{% endif %}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-user-pen"></i> Listed By</span>
+                            <span class="spec-value">{{ property.landlord.full_name }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-couch"></i> Furnished</span>
+                            <span class="spec-value">{% if property.is_furnished %}Yes{% else %}No{% endif %}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-circle-check"></i> Status</span>
+                            <span class="spec-value text-capitalize">{{ property.publication_status }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-square-parking"></i> Parking Spaces</span>
+                            <span class="spec-value">{{ property.parking_spaces }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label"><i class="fa-solid fa-shield-halved"></i> Verification Status</span>
+                            <span class="spec-value text-capitalize">{{ property.verification_status }}</span>
+                        </div>
+                    </div>
+
+                    <div class="description-section">
+                        <h3>Description</h3>
+                        <p>{{ property.description|linebreaks }}</p>
+                    </div>
+                </div>
+
+                <!-- Features & Amenities Tab -->
+                <div id="amenitiesTab" class="tab-content">
+                    <h3>Property Amenities</h3>
+                    <div class="amenities-grid-list">
+                        {% for amenity in property.amenities.all %}
+                            <div class="amenity-badge-item">
+                                <i class="fa-solid fa-check-circle"></i> {{ amenity.name }}
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No specific amenities listed for this property.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Media Tab -->
+                <div id="mediaTab" class="tab-content">
+                    <h3>All Uploaded Media Files</h3>
+                    <div class="media-grid-gallery">
+                        {% if property.cover_image %}
+                            <div class="media-card-thumb">
+                                <img src="{{ property.cover_image.url }}" alt="Cover">
+                                <span>Cover Image</span>
+                            </div>
+                        {% endif %}
+                        {% for media in property.media.all %}
+                            <div class="media-card-thumb">
+                                <img src="{{ media.file.url }}" alt="Media">
+                                <span>{{ media.get_media_type_display }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Documents Tab -->
+                <div id="documentsTab" class="tab-content">
+                    <h3>Attached Property & Verification Documents</h3>
+                    <div class="docs-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+                        {% for doc in property.landlord_documents.all %}
+                            <div class="doc-detail-card" style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
+                                <div class="doc-card-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">{{ doc.get_document_type_display }}</h4>
+                                    <span class="status-badge {{ doc.verification_status }}">{{ doc.get_verification_status_display }}</span>
+                                </div>
+                                <p style="font-size: 12px; color: #64748b; margin: 4px 0 12px 0;">Uploaded {{ doc.created_at|date:"M j, Y" }}</p>
+                                {% if doc.file %}
+                                    <a href="{{ doc.file.url }}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #059669; text-decoration: none;">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View Document
+                                    </a>
+                                {% else %}
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #94a3b8;">
+                                        <i class="fa-solid fa-file-circle-exclamation"></i> No file attached
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No specific documents attached to this property listing yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Activity Log Tab -->
+                <div id="activityTab" class="tab-content">
+                    <h3>Activity & Verification Timeline</h3>
+                    <div class="timeline-container">
+                        <div class="timeline-step completed">
+                            <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
+                            <div class="timeline-content">
+                                <strong>Property Created</strong>
+                                <span>{{ property.created_at|date:"F j, Y at g:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-step {% if property.publication_status != 'draft' %}completed{% endif %}">
+                            <div class="timeline-icon"><i class="fa-solid fa-check"></i></div>
+                            <div class="timeline-content">
+                                <strong>Submitted for Publication</strong>
+                                <span>{{ property.created_at|date:"F j, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-step {% if property.verification_status == 'verified' %}completed{% elif property.verification_status == 'rejected' %}rejected{% else %}pending{% endif %}">
+                            <div class="timeline-icon"><i class="fa-solid fa-shield"></i></div>
+                            <div class="timeline-content">
+                                <strong>Verification Status: {{ property.get_verification_status_display }}</strong>
+                                <span>Updated recently</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Pricing, Quick Stats, Landlord Info, Status workflow -->
+        <div class="detail-right-column">
+
+            <!-- Price Summary Card -->
+            <div class="sidebar-card">
+                <h3>Price Summary</h3>
+                <div class="price-display-box">
+                    <span class="big-price">GHS {{ property.price|floatformat:0 }}</span>
+                    <span class="price-period">/ {{ property.payment_period }}</span>
+                </div>
+                <p class="security-deposit-note">Security Deposit: GHS {{ property.price|floatformat:0 }}</p>
+            </div>
+
+            <!-- Quick Stats Card (Calculated Days Listed via JS, Enquiries/Saved removed as requested) -->
+            <div class="sidebar-card">
+                <h3>Quick Stats</h3>
+                <div class="quick-stats-grid-clean">
+                    <div class="stat-box-item">
+                        <i class="fa-solid fa-eye"></i>
+                        <div>
+                            <strong>{{ property.views_count }}</strong>
+                            <span>Views</span>
+                        </div>
+                    </div>
+                    <div class="stat-box-item">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <div>
+                            <strong id="daysListedCount">--</strong>
+                            <span>Days Listed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Landlord Information Card -->
+            <div class="sidebar-card">
+                <h3>Landlord Information</h3>
+                <div class="landlord-profile-box">
+                    <div class="landlord-avatar-name">
+                        <div class="landlord-avatar-circle">
+                            {{ property.landlord.full_name|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <strong>{{ property.landlord.full_name }}</strong>
+                            <span class="verified-tag-small"><i class="fa-solid fa-circle-check"></i> Verified Landlord</span>
+                        </div>
+                    </div>
+                    <div class="landlord-rating-row">
+                        <i class="fa-solid fa-star text-warning"></i> <strong>4.8</strong> <span class="text-muted">(23 reviews)</span>
+                    </div>
+                    <div class="landlord-contact-details">
+                        <p><i class="fa-solid fa-phone"></i> {{ property.landlord.phone_number|default:"+233 24 123 4567" }}</p>
+                        <p><i class="fa-solid fa-envelope"></i> {{ property.landlord.email }}</p>
+                    </div>
+                    <button class="btn-full-outline" onclick="alert('Contact profile action triggered')">View Landlord Profile</button>
+                </div>
+            </div>
+
+            <!-- Property Status Workflow Card -->
+            <div class="sidebar-card">
+                <h3>Property Status</h3>
+                <div class="status-workflow-steps">
+                    <div class="workflow-step active-done">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>Property Created</strong>
+                            <span>{{ property.created_at|date:"M j, Y at g:i A" }}</span>
+                        </div>
+                    </div>
+                    <div class="workflow-step {% if property.publication_status != 'draft' %}active-done{% else %}pending-step{% endif %}">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>Published Status</strong>
+                            <span>{{ property.get_publication_status_display }}</span>
+                        </div>
+                    </div>
+                    <div class="workflow-step {% if property.verification_status == 'verified' %}active-done{% else %}pending-step{% endif %}">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <strong>Verified</strong>
+                            <span>{{ property.get_verification_status_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- CSS Styling matching design system --><!-- JavaScript for Gallery switching, Tabs, and Dynamic Days Listed Calculation -->
 <script>
     // Gallery Image Switcher
     function changeImage(url, element) {

@@ -1,5 +1,212 @@
 {% extends 'landloards/landlord_base.html' %}
 
+{% block extra_head %}
+<style>
+    .viewing-requests-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* ---------- Stat grid ---------- */
+    .vr-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+    }
+    @media (max-width: 1024px) {
+        .vr-stat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .vr-stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+    }
+    .vr-stat-card:hover {
+        border-color: var(--primary-green);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+        transform: translateY(-1px);
+    }
+    .vr-stat-card.is-active {
+        border-color: var(--primary-green);
+        background: #f0fdf4;
+    }
+    .vr-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .vr-stat-icon.pending    { background: #fef3c7; color: #d97706; }
+    .vr-stat-icon.confirmed  { background: #d1fae5; color: #059669; }
+    .vr-stat-icon.completed  { background: #dbeafe; color: #2563eb; }
+    .vr-stat-icon.cancelled  { background: #fee2e2; color: #dc2626; }
+    .vr-stat-icon.total      { background: #f1f5f9; color: #475569; }
+    .vr-stat-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .vr-stat-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .vr-stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+    }
+
+    /* ---------- Filter tabs ---------- */
+    .vr-filter-tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .vr-filter-tab {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--text-muted);
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .vr-filter-tab:hover {
+        background: #f0fdf4;
+        color: var(--primary-green);
+        border-color: var(--primary-green);
+    }
+    .vr-filter-tab.active {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+    .vr-filter-tab.active .vr-filter-count {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    .vr-filter-count {
+        background: white;
+        color: var(--text-muted);
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* ---------- Tenant cell ---------- */
+    .tenant-info-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .tenant-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .tenant-text-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+    .tenant-text-meta strong {
+        font-size: 13px;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    .tenant-text-meta span {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    /* ---------- Property cell ---------- */
+    .vr-property-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .vr-property-cell strong {
+        font-size: 13px;
+        color: var(--text-main);
+    }
+    .vr-property-cell span {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    /* ---------- Date / Time pills ---------- */
+    .vr-date-pill, .vr-time-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        color: var(--text-main);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+    }
+
+    /* ---------- Status badges ---------- */
+    .status-badge.confirmed { background: #d1fae5; color: #065f46; }
+    .status-badge.confirmed i { font-size: 9px; }
+    .status-badge.completed { background: #dbeafe; color: #1e40af; }
+    .status-badge.completed i { font-size: 9px; }
+    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+    .status-badge.cancelled .dot { background: #dc2626; }
+
+    /* ---------- Action buttons ---------- */
+    .inline-form {
+        display: inline;
+    }
+    .action-btn.confirm,
+    .action-btn.complete {
+        background: white;
+    }
+    .action-btn.confirm:hover   { background: #f0fdf4; color: #059669; border-color: #059669; }
+    .action-btn.complete:hover  { background: #eff6ff; color: #2563eb; border-color: #2563eb; }
+</style>
+{% endblock %}
+
 {% block title %}Viewing Requests - VacantHommie{% endblock %}
 
 {% block content %}
@@ -235,210 +442,4 @@
         <span><strong>Tip:</strong> Responding to viewing requests quickly improves your tenant match rate and helps your properties get booked faster.</span>
     </div>
 
-</div>
-
-<style>
-    .viewing-requests-container {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    /* ---------- Stat grid ---------- */
-    .vr-stat-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 12px;
-    }
-    @media (max-width: 1024px) {
-        .vr-stat-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .vr-stat-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 14px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s;
-    }
-    .vr-stat-card:hover {
-        border-color: var(--primary-green);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
-        transform: translateY(-1px);
-    }
-    .vr-stat-card.is-active {
-        border-color: var(--primary-green);
-        background: #f0fdf4;
-    }
-    .vr-stat-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-    .vr-stat-icon.pending    { background: #fef3c7; color: #d97706; }
-    .vr-stat-icon.confirmed  { background: #d1fae5; color: #059669; }
-    .vr-stat-icon.completed  { background: #dbeafe; color: #2563eb; }
-    .vr-stat-icon.cancelled  { background: #fee2e2; color: #dc2626; }
-    .vr-stat-icon.total      { background: #f1f5f9; color: #475569; }
-    .vr-stat-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .vr-stat-label {
-        font-size: 11px;
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-    }
-    .vr-stat-value {
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--text-main);
-        line-height: 1;
-    }
-
-    /* ---------- Filter tabs ---------- */
-    .vr-filter-tabs {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-    .vr-filter-tab {
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        color: var(--text-muted);
-        background: #f8fafc;
-        border: 1px solid var(--border-color);
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-    .vr-filter-tab:hover {
-        background: #f0fdf4;
-        color: var(--primary-green);
-        border-color: var(--primary-green);
-    }
-    .vr-filter-tab.active {
-        background: var(--primary-green);
-        color: white;
-        border-color: var(--primary-green);
-    }
-    .vr-filter-tab.active .vr-filter-count {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-    .vr-filter-count {
-        background: white;
-        color: var(--text-muted);
-        padding: 1px 8px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 700;
-    }
-
-    /* ---------- Tenant cell ---------- */
-    .tenant-info-cell {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .tenant-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-        font-weight: 700;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .tenant-text-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
-    .tenant-text-meta strong {
-        font-size: 13px;
-        color: var(--text-main);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-    }
-    .tenant-text-meta span {
-        font-size: 11px;
-        color: var(--text-muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-    }
-
-    /* ---------- Property cell ---------- */
-    .vr-property-cell {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .vr-property-cell strong {
-        font-size: 13px;
-        color: var(--text-main);
-    }
-    .vr-property-cell span {
-        font-size: 11px;
-        color: var(--text-muted);
-    }
-
-    /* ---------- Date / Time pills ---------- */
-    .vr-date-pill, .vr-time-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #f8fafc;
-        color: var(--text-main);
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1px solid var(--border-color);
-    }
-
-    /* ---------- Status badges ---------- */
-    .status-badge.confirmed { background: #d1fae5; color: #065f46; }
-    .status-badge.confirmed i { font-size: 9px; }
-    .status-badge.completed { background: #dbeafe; color: #1e40af; }
-    .status-badge.completed i { font-size: 9px; }
-    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
-    .status-badge.cancelled .dot { background: #dc2626; }
-
-    /* ---------- Action buttons ---------- */
-    .inline-form {
-        display: inline;
-    }
-    .action-btn.confirm,
-    .action-btn.complete {
-        background: white;
-    }
-    .action-btn.confirm:hover   { background: #f0fdf4; color: #059669; border-color: #059669; }
-    .action-btn.complete:hover  { background: #eff6ff; color: #2563eb; border-color: #2563eb; }
-</style>
-{% endblock %}
+</div>{% endblock %}

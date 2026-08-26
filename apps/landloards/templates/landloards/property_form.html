@@ -1,825 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}{% if is_update %}Edit Property{% else %}Add New Property{% endif %} - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="property-form-wrapper">
-
-    <!-- Page Header Row -->
-    <div class="page-header-row">
-        <div class="header-titles">
-            <h1>{% if is_update %}Edit Property{% else %}Add New Property{% endif %}</h1>
-            <p>Fill in the details below to list your property.</p>
-        </div>
-        <div class="header-actions">
-            <a href="{% url 'landloards:property_list' %}" class="btn-secondary-action">
-                <i class="fa-solid fa-list"></i> My Properties
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Layout Grid (Form left, Sidebar right) -->
-    <div class="property-layout-grid">
-
-        <!-- Form Card Container -->
-        <div class="dashboard-card-box property-form-card">
-            <form method="POST" enctype="multipart/form-data" class="property-creation-form" id="property-form">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="form-error-banner">
-                        <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-
-                <!-- SECTION 1: Basic Information -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">1</span>
-                        <h3>Basic Information</h3>
-                    </div>
-                    <p class="section-subtitle">Fields marked <span class="required-star">*</span> are required</p>
-
-                    <div class="section-body">
-                        <div class="form-grid-2col">
-                            <!-- Title Field -->
-                            <div class="form-group">
-                                <label for="{{ form.title.id_for_label }}">Property Title <span class="required-star">*</span></label>
-                                {{ form.title }}
-                                <small class="help-text-hint">A short, catchy name for your listing, e.g. "Cozy 2-Bedroom Apartment in East Legon".</small>
-                                {% if form.title.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.title.errors.0 }}</span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Cover Image Field -->
-                            <div class="form-group">
-                                <label for="{{ form.cover_image.id_for_label }}">Cover Image <span class="required-star">*</span></label>
-                                <div class="file-upload-shell">
-                                    <div class="file-upload-dropzone" id="dropzone-box" data-preview-target="cover-preview">
-                                        {{ form.cover_image }}
-                                        <button type="button" class="cover-preview-replace" id="cover-replace-btn">
-                                            <i class="fa-solid fa-rotate"></i> Replace
-                                        </button>
-                                        <div class="dropzone-mock-content" id="dropzone-mock">
-                                            <i class="fa-solid fa-cloud-arrow-up text-green"></i>
-                                            <span>Click to upload or drag and drop</span>
-                                            <small>JPG, PNG or WEBP (Max. 5MB)</small>
-                                        </div>
-                                        <div class="cover-preview-box" id="cover-preview" aria-live="polite">
-                                            <img class="cover-preview-thumb" id="cover-preview-thumb" alt="Cover image preview" />
-                                            <div class="cover-preview-meta">
-                                                <i class="fa-solid fa-circle-check"></i>
-                                                <span id="cover-preview-name">Image uploaded</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% if form.cover_image.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.cover_image.errors.0 }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Description Field -->
-                        <div class="form-group mt-4">
-                            <label for="{{ form.description.id_for_label }}">Description <span class="required-star">*</span></label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.description.errors.0 }}</span>
-                            {% endif %}
-                            <small class="help-text-hint">Provide clear and accurate details to attract more tenants.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 2: Additional Property Media (Gallery) -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">2</span>
-                        <h3>Property Gallery & Media</h3>
-                    </div>
-                    <p class="section-subtitle">Upload multiple photos or media files for your property listing gallery. You can add as many as needed.</p>
-
-                    <div class="section-body">
-                        {% if media_formset %}
-                            {{ media_formset.management_form }}
-                            <div class="media-formset-container" id="media-formset-wrapper">
-                                {% for mform in media_formset %}
-                                    <div class="media-form-row">
-                                        <div class="media-row-header">
-                                            <span class="media-row-badge"><i class="fa-solid fa-image"></i> Media {{ forloop.counter }}</span>
-                                        </div>
-
-                                        {% if mform.non_field_errors %}
-                                            <div class="form-error-banner">{{ mform.non_field_errors }}</div>
-                                        {% endif %}
-
-                                        <!-- Hidden primary key / ID if present -->
-                                        {% for hidden in mform.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-
-                                        <div class="form-grid-3col">
-                                            <div class="form-group">
-                                                <label>Media File</label>
-                                                {{ mform.file }}
-                                                {% if mform.file.errors %}<span class="error-msg">{{ mform.file.errors.0 }}</span>{% endif %}
-                                                <div class="file-preview-inline" data-file-preview>
-                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
-                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
-                                                    <div class="file-preview-info">
-                                                        <span class="file-preview-filename" data-file-name></span>
-                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Media Type</label>
-                                                {{ mform.media_type }}
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Caption</label>
-                                                {{ mform.caption }}
-                                            </div>
-                                        </div>
-                                        <div class="form-grid-2col mt-3 align-items-center">
-                                            <div class="form-group">
-                                                <label>Display Order</label>
-                                                {{ mform.order }}
-                                            </div>
-                                            <div class="form-group flex-row-center">
-                                                <label class="checkbox-label pt-4">
-                                                    {{ mform.is_public }} <span>Is Public</span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {% if media_formset.can_delete %}
-                                            <div class="media-row-footer-actions">
-                                                <label class="delete-checkbox-label">
-                                                    {{ mform.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this media
-                                                </label>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Template for dynamic client-side row cloning -->
-                            <div id="empty-form-template" style="display: none;">
-                                <div class="media-form-row">
-                                    <div class="media-row-header">
-                                        <span class="media-row-badge"><i class="fa-solid fa-image"></i> New Media</span>
-                                    </div>
-                                    <div class="form-grid-3col">
-                                        <div class="form-group">
-                                            <label>Media File</label>
-                                            {{ media_formset.empty_form.file }}
-                                            <div class="file-preview-inline" data-file-preview>
-                                                <img class="file-preview-thumb" alt="" data-file-thumb />
-                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
-                                                <div class="file-preview-info">
-                                                    <span class="file-preview-filename" data-file-name></span>
-                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Media Type</label>
-                                            {{ media_formset.empty_form.media_type }}
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Caption</label>
-                                            {{ media_formset.empty_form.caption }}
-                                        </div>
-                                    </div>
-                                    <div class="form-grid-2col mt-3 align-items-center">
-                                        <div class="form-group">
-                                            <label>Display Order</label>
-                                            {{ media_formset.empty_form.order }}
-                                        </div>
-                                        <div class="form-group flex-row-center">
-                                            <label class="checkbox-label pt-4">
-                                                {{ media_formset.empty_form.is_public }} <span>Is Public</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {% if media_formset.can_delete %}
-                                        <div class="media-row-footer-actions">
-                                            <label class="delete-checkbox-label">
-                                                {{ media_formset.empty_form.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this media
-                                            </label>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <button type="button" id="add-more-media-btn" class="btn-sub-action">
-                                    <i class="fa-solid fa-plus"></i> Add Another Image / File
-                                </button>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- SECTION 3: Property Documents & Verification -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">3</span>
-                        <h3>Property Documents &amp; Verification</h3>
-                    </div>
-                    <p class="section-subtitle">
-                        {% if identity_doc and identity_doc.verification_status == 'verified' %}
-                            <i class="fa-solid fa-circle-check" style="color:#10b981"></i>
-                            Your Ghana Card is verified and covers all your listings. You may optionally add extra property documents below — your listing will go live without them.
-                        {% elif identity_doc %}
-                            <i class="fa-solid fa-clock" style="color:#f59e0b"></i>
-                            Your Ghana Card is under review. Upload at least one document now (your Ghana Card again or a property-specific document) so this listing can be created. Extra documents you add below may take additional time to review but won't block the listing.
-                        {% else %}
-                            Upload at least one document. Choose <strong>National ID / Ghana Card</strong> to verify all your listings at once, or pick a property-specific document type.
-                        {% endif %}
-                    </p>
-
-                    <div class="section-body">
-
-                        {% if identity_doc %}
-                            <!-- Ghana Card status banner -->
-                            <div class="identity-verification-box identity-box-{{ identity_doc.verification_status }} mb-4">
-                                <div class="identity-box-icon">
-                                    {% if identity_doc.verification_status == 'verified' %}
-                                        <i class="fa-solid fa-circle-check text-green"></i>
-                                    {% elif identity_doc.verification_status == 'rejected' %}
-                                        <i class="fa-solid fa-circle-xmark text-red"></i>
-                                    {% else %}
-                                        <i class="fa-solid fa-clock text-amber"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="identity-box-content">
-                                    <h4>Ghana Card / National ID <span class="doc-status-badge doc-status-{{ identity_doc.verification_status }}">{{ identity_doc.get_verification_status_display }}</span></h4>
-                                    <p>
-                                        {% if identity_doc.verification_status == 'verified' %}
-                                            Your verified Ghana Card covers all your property listings — no per-listing document needed.
-                                        {% elif identity_doc.verification_status == 'rejected' %}
-                                            Your Ghana Card was rejected{% if identity_doc.rejection_reason %}: {{ identity_doc.rejection_reason }}{% endif %}. Please upload a new one below by selecting <em>National ID / Ghana Card</em> in the Document Type dropdown.
-                                        {% else %}
-                                            Your Ghana Card is awaiting admin review. Your listing will go live once it's verified.
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                        {% else %}
-                            <!-- Tip: no Ghana Card yet -->
-                            <div class="doc-tip-banner mb-4">
-                                <div class="doc-tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
-                                <div class="doc-tip-body">
-                                    <strong>Tip — Upload your Ghana Card once, verify all listings!</strong>
-                                    <p>Select <em>National ID / Ghana Card</em> from the Document Type dropdown below and upload your Ghana Card. It will cover all your current and future listings, so you never have to upload it again.</p>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        {% if existing_documents %}
-                            <div class="existing-documents-card mb-4">
-                                <div class="existing-docs-header">
-                                    <h4><i class="fa-solid fa-folder-open"></i> Documents already on file ({{ existing_documents|length }})</h4>
-                                    <small class="text-muted">These are already registered in the system for your account.</small>
-                                </div>
-                                <div class="existing-docs-grid">
-                                    {% for edoc in existing_documents %}
-                                        <div class="existing-doc-item">
-                                            <div class="existing-doc-info">
-                                                <span class="existing-doc-name">
-                                                    {% if edoc.document_type == 'national_id' %}
-                                                        <i class="fa-solid fa-id-card" style="color:#10b981"></i>
-                                                    {% else %}
-                                                        <i class="fa-solid fa-file-lines" style="color:#64748b"></i>
-                                                    {% endif %}
-                                                    {{ edoc.get_document_type_display }}
-                                                </span>
-                                                <span class="existing-doc-scope">
-                                                    {% if edoc.property %}
-                                                        <i class="fa-solid fa-building"></i> {{ edoc.property.title }}
-                                                    {% else %}
-                                                        <i class="fa-solid fa-user-shield" style="color:#10b981"></i> Landlord Identity — Covers All Listings
-                                                    {% endif %}
-                                                </span>
-                                            </div>
-                                            <div class="existing-doc-meta">
-                                                <span class="doc-status-badge doc-status-{{ edoc.verification_status }}">{{ edoc.get_verification_status_display }}</span>
-                                                {% if edoc.file %}
-                                                    <a href="{{ edoc.file.url }}" target="_blank" class="existing-doc-view-btn">
-                                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View
-                                                    </a>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <!-- Unified Document FormSet -->
-                        {% if doc_formset %}
-                            {{ doc_formset.management_form }}
-
-                            {% if doc_formset.non_form_errors %}
-                                <div class="form-error-banner mb-3">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> {{ doc_formset.non_form_errors }}
-                                </div>
-                            {% endif %}
-
-                            <div class="docs-formset-container" id="doc-formset-wrapper">
-                                {% for dform in doc_formset %}
-                                    <div class="doc-form-row">
-                                        <div class="media-row-header">
-                                            <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> Document {{ forloop.counter }}</span>
-                                            <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
-                                        </div>
-
-                                        {% if dform.non_field_errors %}
-                                            <div class="form-error-banner">{{ dform.non_field_errors }}</div>
-                                        {% endif %}
-
-                                        {% for hidden in dform.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-
-                                        <div class="form-grid-2col">
-                                            <div class="form-group">
-                                                <label>
-                                                    Document Type
-                                                    {% if docs_required %}
-                                                        <span class="required-star">*</span>
-                                                    {% else %}
-                                                        <span class="optional-tag">optional</span>
-                                                    {% endif %}
-                                                </label>
-                                                {{ dform.document_type }}
-                                                {% if dform.document_type.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.document_type.errors.0 }}</span>{% endif %}
-                                            </div>
-                                            <div class="form-group">
-                                                <label>
-                                                    Upload File (PDF / Image)
-                                                    {% if docs_required %}
-                                                        <span class="required-star">*</span>
-                                                    {% else %}
-                                                        <span class="optional-tag">optional</span>
-                                                    {% endif %}
-                                                </label>
-                                                {{ dform.file }}
-                                                {% if dform.file.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.file.errors.0 }}</span>{% endif %}
-                                                <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
-                                                <div class="file-preview-inline" data-file-preview>
-                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
-                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
-                                                    <div class="file-preview-info">
-                                                        <span class="file-preview-filename" data-file-name></span>
-                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {% if doc_formset.can_delete and dform.instance.pk %}
-                                            <div class="media-row-footer-actions">
-                                                <label class="delete-checkbox-label">
-                                                    {{ dform.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this document
-                                                </label>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Template for dynamic client-side doc cloning -->
-                            <div id="empty-doc-template" style="display: none;">
-                                <div class="doc-form-row">
-                                    <div class="media-row-header">
-                                        <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> New Document</span>
-                                        <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
-                                    </div>
-                                    <div class="form-grid-2col">
-                                        <div class="form-group">
-                                            <label>Document Type</label>
-                                            {{ doc_formset.empty_form.document_type }}
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Upload File (PDF / Image)</label>
-                                            {{ doc_formset.empty_form.file }}
-                                            <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
-                                            <div class="file-preview-inline" data-file-preview>
-                                                <img class="file-preview-thumb" alt="" data-file-thumb />
-                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
-                                                <div class="file-preview-info">
-                                                    <span class="file-preview-filename" data-file-name></span>
-                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <button type="button" id="add-more-docs-btn" class="btn-sub-action">
-                                    <i class="fa-solid fa-plus"></i> Add Another Document
-                                </button>
-                            </div>
-                        {% endif %}
-
-                    </div>
-                </div>
-
-                <!-- SECTION 4: Pricing & Type -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">4</span>
-                        <h3>Pricing & Type</h3>
-                    </div>
-
-                    <div class="section-body">
-                        <div class="form-grid-3col">
-                            <!-- Price Field -->
-                            <div class="form-group">
-                                <label for="{{ form.price.id_for_label }}">Price (GHS) <span class="required-star">*</span></label>
-                                <div class="input-with-prefix">
-                                    <span class="prefix-tag">GHS</span>
-                                    {{ form.price }}
-                                </div>
-                                {% if form.price.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.price.errors.0 }}</span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Payment Period -->
-                            <div class="form-group">
-                                <label for="{{ form.payment_period.id_for_label }}">Payment Period <span class="required-star">*</span></label>
-                                {{ form.payment_period }}
-                                {% if form.payment_period.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.payment_period.errors.0 }}</span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Room Type -->
-                            <div class="form-group">
-                                <label for="{{ form.room_type.id_for_label }}">Room Type <span class="required-star">*</span></label>
-                                {{ form.room_type }}
-                                {% if form.room_type.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.room_type.errors.0 }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 5: Location -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">5</span>
-                        <h3>Location</h3>
-                    </div>
-
-                    <div class="section-body">
-                        <div class="form-grid-4col">
-                            <!-- Region -->
-                            <div class="form-group">
-                                <label for="{{ form.region.id_for_label }}">Region <span class="required-star">*</span></label>
-                                {{ form.region }}
-                            </div>
-                            <!-- District -->
-                            <div class="form-group">
-                                <label for="{{ form.district.id_for_label }}">District <span class="required-star">*</span></label>
-                                {{ form.district }}
-                            </div>
-                            <!-- Town -->
-                            <div class="form-group">
-                                <label for="{{ form.town.id_for_label }}">Town <span class="required-star">*</span></label>
-                                {{ form.town }}
-                            </div>
-                            <!-- Area -->
-                            <div class="form-group">
-                                <label for="{{ form.area.id_for_label }}">Area <span class="required-star">*</span></label>
-                                {{ form.area }}
-                            </div>
-                        </div>
-                        <div class="location-notice-box mt-3">
-                            <i class="fa-solid fa-location-dot text-green"></i>
-                            <span>Please select the exact location for your property so tenants can find it easily.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 6: Amenities -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">6</span>
-                        <h3>Amenities</h3>
-                    </div>
-
-                    <div class="section-body">
-                        <div class="form-group">
-                            <label for="{{ form.amenities.id_for_label }}">Select Amenities</label>
-                            {{ form.amenities }}
-                            <small class="help-text-hint">Choose all amenities available in this property.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 7: Property Features -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">7</span>
-                        <h3>Property Features</h3>
-                    </div>
-
-                    <div class="section-body">
-                        <div class="form-grid-3col">
-                            <!-- Bedrooms -->
-                            <div class="form-group">
-                                <label for="{{ form.bedrooms.id_for_label }}">Bedrooms <span class="required-star">*</span></label>
-                                <div class="input-with-icon-right">
-                                    {{ form.bedrooms }}
-                                    <i class="fa-solid fa-bed input-trailing-icon"></i>
-                                </div>
-                            </div>
-                            <!-- Bathrooms -->
-                            <div class="form-group">
-                                <label for="{{ form.bathrooms.id_for_label }}">Bathrooms <span class="required-star">*</span></label>
-                                <div class="input-with-icon-right">
-                                    {{ form.bathrooms }}
-                                    <i class="fa-solid fa-bath input-trailing-icon"></i>
-                                </div>
-                            </div>
-                            <!-- Toilets -->
-                            <div class="form-group">
-                                <label for="{{ form.toilets.id_for_label }}">Toilets <span class="required-star">*</span></label>
-                                <div class="input-with-icon-right">
-                                    {{ form.toilets }}
-                                    <i class="fa-solid fa-restroom input-trailing-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-grid-2col mt-4">
-                            <!-- Parking Spaces -->
-                            <div class="form-group">
-                                <label for="{{ form.parking_spaces.id_for_label }}">Parking Spaces</label>
-                                <div class="input-with-icon-right">
-                                    {{ form.parking_spaces }}
-                                    <i class="fa-solid fa-car input-trailing-icon"></i>
-                                </div>
-                            </div>
-                            <!-- Floor Area -->
-                            <div class="form-group">
-                                <label for="{{ form.floor_area.id_for_label }}">Floor Area (sqm)</label>
-                                <div class="input-with-icon-right">
-                                    {{ form.floor_area }}
-                                    <i class="fa-solid fa-ruler-combined input-trailing-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 8: Availability & Status -->
-                <div class="form-section-block">
-                    <div class="section-badge-title">
-                        <span class="step-num">8</span>
-                        <h3>Availability & Status</h3>
-                    </div>
-
-                    <div class="section-body">
-                        <div class="form-grid-3col">
-                            <!-- Is Furnished -->
-                            <div class="form-group">
-                                <label for="{{ form.is_furnished.id_for_label }}">Is Furnished?</label>
-                                {{ form.is_furnished }}
-                            </div>
-                            <!-- Is Available -->
-                            <div class="form-group">
-                                <label for="{{ form.is_available.id_for_label }}">Is Available? <span class="required-star">*</span></label>
-                                {{ form.is_available }}
-                            </div>
-                            <!-- Available From -->
-                            <div class="form-group">
-                                <label for="{{ form.available_from.id_for_label }}">Available From</label>
-                                {{ form.available_from }}
-                            </div>
-                        </div>
-                        <div class="availability-notice-box mt-3">
-                            <i class="fa-solid fa-circle-info text-green"></i>
-                            <span>Set the availability date when the property will be ready for tenants.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 9: Publication Status -->
-                <div class="form-section-block form-section-block-last">
-                    <div class="section-badge-title">
-                        <span class="step-num">9</span>
-                        <h3>Publication Status</h3>
-                    </div>
-                    <p class="section-subtitle">Control whether this listing is visible to tenants</p>
-
-                    <div class="section-body">
-                        <div class="form-grid-2col">
-                            <!-- Publication Status -->
-                            <div class="form-group">
-                                <label for="{{ form.publication_status.id_for_label }}">Publication Status <span class="required-star">*</span></label>
-                                {{ form.publication_status }}
-                                {% if form.publication_status.errors %}
-                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.publication_status.errors.0 }}</span>
-                                {% endif %}
-                                <small class="help-text-hint">
-                                    <strong>Draft</strong> keeps the listing hidden while you finish it,
-                                    <strong>Published</strong> makes it visible to tenants (subject to review),
-                                    and <strong>Archived</strong> removes it from public search without deleting it.
-                                </small>
-                            </div>
-
-                            <!-- Current status badge (read-only helper, update mode only) -->
-                            {% if is_update %}
-                            <div class="form-group">
-                                <label>Current Status</label>
-                                <div class="status-badge-display" id="current-status-badge">
-                                    <span class="status-pill status-pill-{{ object.publication_status|default:'draft' }}" id="status-pill-el">
-                                        {{ object.get_publication_status_display|default:"Draft" }}
-                                    </span>
-                                    {% if object.verification_status %}
-                                        <span class="status-pill status-pill-verification-{{ object.verification_status }}">
-                                            Verification: {{ object.get_verification_status_display }}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="publication-notice-box mt-3">
-                            <i class="fa-solid fa-circle-info text-green"></i>
-                            <span>Published listings still go through our verification review before appearing in tenant search results.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Form Action Buttons Footer -->
-                <div class="form-actions-footer">
-                    <a href="{% url 'landloards:property_list' %}" class="btn-cancel">Cancel</a>
-                    <button type="submit" class="btn-primary-action">
-                        <i class="fa-solid fa-floppy-disk"></i> {% if is_update %}Update Property{% else %}Save Property{% endif %}
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Sidebar (Tips, Room Types, Live Preview Summary) -->
-        <div class="property-sidebar-col">
-            <!-- Tips Card -->
-            <div class="dashboard-card-box sidebar-card mb-5">
-                <div class="sidebar-box-header">
-                    <i class="fa-solid fa-lightbulb text-green"></i>
-                    <h3>Tips for Landlords</h3>
-                </div>
-                <ul class="tips-list">
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Add a clear title and detailed description.</span></li>
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Use a high-quality cover image.</span></li>
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Upload multiple gallery photos to showcase your space.</span></li>
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Select the correct location.</span></li>
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Set Publication Status to "Published" when you're ready to go live.</span></li>
-                    <li><i class="fa-solid fa-check text-green"></i> <span>Review all details before saving.</span></li>
-                </ul>
-            </div>
-
-            <!-- Room Types Reference Card -->
-            <div class="dashboard-card-box sidebar-card mb-5">
-                <div class="sidebar-box-header">
-                    <h3>Room Types</h3>
-                </div>
-                <div class="room-types-guide-list">
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-bed text-green"></i></div>
-                        <div>
-                            <strong>Single Room</strong>
-                            <p>A private room for one person</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-bed text-green"></i></div>
-                        <div>
-                            <strong>Double Room</strong>
-                            <p>A room for two people</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-door-closed text-green"></i></div>
-                        <div>
-                            <strong>Self Contained</strong>
-                            <p>Private room with bathroom</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-building text-green"></i></div>
-                        <div>
-                            <strong>Apartment</strong>
-                            <p>Full apartment/flat</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-house-chimney text-green"></i></div>
-                        <div>
-                            <strong>Shared Facility</strong>
-                            <p>Shared bathroom/kitchen</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Publication Status Reference Card -->
-            <div class="dashboard-card-box sidebar-card mb-5">
-                <div class="sidebar-box-header">
-                    <h3>Publication Status</h3>
-                </div>
-                <div class="room-types-guide-list">
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-pen-to-square text-green"></i></div>
-                        <div>
-                            <strong>Draft</strong>
-                            <p>Hidden while you finish editing</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-circle-check text-green"></i></div>
-                        <div>
-                            <strong>Published</strong>
-                            <p>Visible to tenants after review</p>
-                        </div>
-                    </div>
-                    <div class="room-guide-item">
-                        <div class="room-guide-icon"><i class="fa-solid fa-box-archive text-green"></i></div>
-                        <div>
-                            <strong>Archived</strong>
-                            <p>Hidden from search, kept on record</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Preview Summary Card -->
-            <div class="dashboard-card-box sidebar-card preview-summary-card sticky-sidebar-card">
-                <div class="sidebar-box-header">
-                    <h3>Preview Summary</h3>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Title</span>
-                    <span class="summary-val" id="prev-title">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Location</span>
-                    <span class="summary-val" id="prev-location">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Price</span>
-                    <span class="summary-val" id="prev-price">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Payment Period</span>
-                    <span class="summary-val" id="prev-payment">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Room Type</span>
-                    <span class="summary-val" id="prev-room">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Bedrooms</span>
-                    <span class="summary-val" id="prev-beds">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Bathrooms</span>
-                    <span class="summary-val" id="prev-baths">-</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Amenities</span>
-                    <span class="summary-val" id="prev-amenities">0 selected</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Publication Status</span>
-                    <span class="summary-val" id="prev-publication">Draft</span>
-                </div>
-
-                <div class="review-warning-banner mt-4">
-                    <i class="fa-solid fa-triangle-exclamation text-amber"></i>
-                    <span>This property will be reviewed before it goes live on the platform.</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- Page Styling & Live Preview / Formset Script -->
+{% block extra_head %}
 <style>
 :root {
     --primary-green: #10b981;
@@ -2315,8 +1496,828 @@ img, svg {
     line-height: 1.4;
 }
 </style>
+{% endblock %}
+{% load static %}
 
-<script>
+{% block title %}{% if is_update %}Edit Property{% else %}Add New Property{% endif %} - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="property-form-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>{% if is_update %}Edit Property{% else %}Add New Property{% endif %}</h1>
+            <p>Fill in the details below to list your property.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'landloards:property_list' %}" class="btn-secondary-action">
+                <i class="fa-solid fa-list"></i> My Properties
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Layout Grid (Form left, Sidebar right) -->
+    <div class="property-layout-grid">
+
+        <!-- Form Card Container -->
+        <div class="dashboard-card-box property-form-card">
+            <form method="POST" enctype="multipart/form-data" class="property-creation-form" id="property-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-error-banner">
+                        <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- SECTION 1: Basic Information -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">1</span>
+                        <h3>Basic Information</h3>
+                    </div>
+                    <p class="section-subtitle">Fields marked <span class="required-star">*</span> are required</p>
+
+                    <div class="section-body">
+                        <div class="form-grid-2col">
+                            <!-- Title Field -->
+                            <div class="form-group">
+                                <label for="{{ form.title.id_for_label }}">Property Title <span class="required-star">*</span></label>
+                                {{ form.title }}
+                                <small class="help-text-hint">A short, catchy name for your listing, e.g. "Cozy 2-Bedroom Apartment in East Legon".</small>
+                                {% if form.title.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.title.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Cover Image Field -->
+                            <div class="form-group">
+                                <label for="{{ form.cover_image.id_for_label }}">Cover Image <span class="required-star">*</span></label>
+                                <div class="file-upload-shell">
+                                    <div class="file-upload-dropzone" id="dropzone-box" data-preview-target="cover-preview">
+                                        {{ form.cover_image }}
+                                        <button type="button" class="cover-preview-replace" id="cover-replace-btn">
+                                            <i class="fa-solid fa-rotate"></i> Replace
+                                        </button>
+                                        <div class="dropzone-mock-content" id="dropzone-mock">
+                                            <i class="fa-solid fa-cloud-arrow-up text-green"></i>
+                                            <span>Click to upload or drag and drop</span>
+                                            <small>JPG, PNG or WEBP (Max. 5MB)</small>
+                                        </div>
+                                        <div class="cover-preview-box" id="cover-preview" aria-live="polite">
+                                            <img class="cover-preview-thumb" id="cover-preview-thumb" alt="Cover image preview" />
+                                            <div class="cover-preview-meta">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span id="cover-preview-name">Image uploaded</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if form.cover_image.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.cover_image.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Description Field -->
+                        <div class="form-group mt-4">
+                            <label for="{{ form.description.id_for_label }}">Description <span class="required-star">*</span></label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.description.errors.0 }}</span>
+                            {% endif %}
+                            <small class="help-text-hint">Provide clear and accurate details to attract more tenants.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Additional Property Media (Gallery) -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">2</span>
+                        <h3>Property Gallery & Media</h3>
+                    </div>
+                    <p class="section-subtitle">Upload multiple photos or media files for your property listing gallery. You can add as many as needed.</p>
+
+                    <div class="section-body">
+                        {% if media_formset %}
+                            {{ media_formset.management_form }}
+                            <div class="media-formset-container" id="media-formset-wrapper">
+                                {% for mform in media_formset %}
+                                    <div class="media-form-row">
+                                        <div class="media-row-header">
+                                            <span class="media-row-badge"><i class="fa-solid fa-image"></i> Media {{ forloop.counter }}</span>
+                                        </div>
+
+                                        {% if mform.non_field_errors %}
+                                            <div class="form-error-banner">{{ mform.non_field_errors }}</div>
+                                        {% endif %}
+
+                                        <!-- Hidden primary key / ID if present -->
+                                        {% for hidden in mform.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+
+                                        <div class="form-grid-3col">
+                                            <div class="form-group">
+                                                <label>Media File</label>
+                                                {{ mform.file }}
+                                                {% if mform.file.errors %}<span class="error-msg">{{ mform.file.errors.0 }}</span>{% endif %}
+                                                <div class="file-preview-inline" data-file-preview>
+                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
+                                                    <div class="file-preview-info">
+                                                        <span class="file-preview-filename" data-file-name></span>
+                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Media Type</label>
+                                                {{ mform.media_type }}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Caption</label>
+                                                {{ mform.caption }}
+                                            </div>
+                                        </div>
+                                        <div class="form-grid-2col mt-3 align-items-center">
+                                            <div class="form-group">
+                                                <label>Display Order</label>
+                                                {{ mform.order }}
+                                            </div>
+                                            <div class="form-group flex-row-center">
+                                                <label class="checkbox-label pt-4">
+                                                    {{ mform.is_public }} <span>Is Public</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {% if media_formset.can_delete %}
+                                            <div class="media-row-footer-actions">
+                                                <label class="delete-checkbox-label">
+                                                    {{ mform.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this media
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Template for dynamic client-side row cloning -->
+                            <div id="empty-form-template" style="display: none;">
+                                <div class="media-form-row">
+                                    <div class="media-row-header">
+                                        <span class="media-row-badge"><i class="fa-solid fa-image"></i> New Media</span>
+                                    </div>
+                                    <div class="form-grid-3col">
+                                        <div class="form-group">
+                                            <label>Media File</label>
+                                            {{ media_formset.empty_form.file }}
+                                            <div class="file-preview-inline" data-file-preview>
+                                                <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file"></i></div>
+                                                <div class="file-preview-info">
+                                                    <span class="file-preview-filename" data-file-name></span>
+                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Media Type</label>
+                                            {{ media_formset.empty_form.media_type }}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Caption</label>
+                                            {{ media_formset.empty_form.caption }}
+                                        </div>
+                                    </div>
+                                    <div class="form-grid-2col mt-3 align-items-center">
+                                        <div class="form-group">
+                                            <label>Display Order</label>
+                                            {{ media_formset.empty_form.order }}
+                                        </div>
+                                        <div class="form-group flex-row-center">
+                                            <label class="checkbox-label pt-4">
+                                                {{ media_formset.empty_form.is_public }} <span>Is Public</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% if media_formset.can_delete %}
+                                        <div class="media-row-footer-actions">
+                                            <label class="delete-checkbox-label">
+                                                {{ media_formset.empty_form.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this media
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="button" id="add-more-media-btn" class="btn-sub-action">
+                                    <i class="fa-solid fa-plus"></i> Add Another Image / File
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Property Documents & Verification -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">3</span>
+                        <h3>Property Documents &amp; Verification</h3>
+                    </div>
+                    <p class="section-subtitle">
+                        {% if identity_doc and identity_doc.verification_status == 'verified' %}
+                            <i class="fa-solid fa-circle-check" style="color:#10b981"></i>
+                            Your Ghana Card is verified and covers all your listings. You may optionally add extra property documents below — your listing will go live without them.
+                        {% elif identity_doc %}
+                            <i class="fa-solid fa-clock" style="color:#f59e0b"></i>
+                            Your Ghana Card is under review. Upload at least one document now (your Ghana Card again or a property-specific document) so this listing can be created. Extra documents you add below may take additional time to review but won't block the listing.
+                        {% else %}
+                            Upload at least one document. Choose <strong>National ID / Ghana Card</strong> to verify all your listings at once, or pick a property-specific document type.
+                        {% endif %}
+                    </p>
+
+                    <div class="section-body">
+
+                        {% if identity_doc %}
+                            <!-- Ghana Card status banner -->
+                            <div class="identity-verification-box identity-box-{{ identity_doc.verification_status }} mb-4">
+                                <div class="identity-box-icon">
+                                    {% if identity_doc.verification_status == 'verified' %}
+                                        <i class="fa-solid fa-circle-check text-green"></i>
+                                    {% elif identity_doc.verification_status == 'rejected' %}
+                                        <i class="fa-solid fa-circle-xmark text-red"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-clock text-amber"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="identity-box-content">
+                                    <h4>Ghana Card / National ID <span class="doc-status-badge doc-status-{{ identity_doc.verification_status }}">{{ identity_doc.get_verification_status_display }}</span></h4>
+                                    <p>
+                                        {% if identity_doc.verification_status == 'verified' %}
+                                            Your verified Ghana Card covers all your property listings — no per-listing document needed.
+                                        {% elif identity_doc.verification_status == 'rejected' %}
+                                            Your Ghana Card was rejected{% if identity_doc.rejection_reason %}: {{ identity_doc.rejection_reason }}{% endif %}. Please upload a new one below by selecting <em>National ID / Ghana Card</em> in the Document Type dropdown.
+                                        {% else %}
+                                            Your Ghana Card is awaiting admin review. Your listing will go live once it's verified.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Tip: no Ghana Card yet -->
+                            <div class="doc-tip-banner mb-4">
+                                <div class="doc-tip-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                                <div class="doc-tip-body">
+                                    <strong>Tip — Upload your Ghana Card once, verify all listings!</strong>
+                                    <p>Select <em>National ID / Ghana Card</em> from the Document Type dropdown below and upload your Ghana Card. It will cover all your current and future listings, so you never have to upload it again.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if existing_documents %}
+                            <div class="existing-documents-card mb-4">
+                                <div class="existing-docs-header">
+                                    <h4><i class="fa-solid fa-folder-open"></i> Documents already on file ({{ existing_documents|length }})</h4>
+                                    <small class="text-muted">These are already registered in the system for your account.</small>
+                                </div>
+                                <div class="existing-docs-grid">
+                                    {% for edoc in existing_documents %}
+                                        <div class="existing-doc-item">
+                                            <div class="existing-doc-info">
+                                                <span class="existing-doc-name">
+                                                    {% if edoc.document_type == 'national_id' %}
+                                                        <i class="fa-solid fa-id-card" style="color:#10b981"></i>
+                                                    {% else %}
+                                                        <i class="fa-solid fa-file-lines" style="color:#64748b"></i>
+                                                    {% endif %}
+                                                    {{ edoc.get_document_type_display }}
+                                                </span>
+                                                <span class="existing-doc-scope">
+                                                    {% if edoc.property %}
+                                                        <i class="fa-solid fa-building"></i> {{ edoc.property.title }}
+                                                    {% else %}
+                                                        <i class="fa-solid fa-user-shield" style="color:#10b981"></i> Landlord Identity — Covers All Listings
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="existing-doc-meta">
+                                                <span class="doc-status-badge doc-status-{{ edoc.verification_status }}">{{ edoc.get_verification_status_display }}</span>
+                                                {% if edoc.file %}
+                                                    <a href="{{ edoc.file.url }}" target="_blank" class="existing-doc-view-btn">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Unified Document FormSet -->
+                        {% if doc_formset %}
+                            {{ doc_formset.management_form }}
+
+                            {% if doc_formset.non_form_errors %}
+                                <div class="form-error-banner mb-3">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> {{ doc_formset.non_form_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="docs-formset-container" id="doc-formset-wrapper">
+                                {% for dform in doc_formset %}
+                                    <div class="doc-form-row">
+                                        <div class="media-row-header">
+                                            <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> Document {{ forloop.counter }}</span>
+                                            <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
+                                        </div>
+
+                                        {% if dform.non_field_errors %}
+                                            <div class="form-error-banner">{{ dform.non_field_errors }}</div>
+                                        {% endif %}
+
+                                        {% for hidden in dform.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+
+                                        <div class="form-grid-2col">
+                                            <div class="form-group">
+                                                <label>
+                                                    Document Type
+                                                    {% if docs_required %}
+                                                        <span class="required-star">*</span>
+                                                    {% else %}
+                                                        <span class="optional-tag">optional</span>
+                                                    {% endif %}
+                                                </label>
+                                                {{ dform.document_type }}
+                                                {% if dform.document_type.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.document_type.errors.0 }}</span>{% endif %}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    Upload File (PDF / Image)
+                                                    {% if docs_required %}
+                                                        <span class="required-star">*</span>
+                                                    {% else %}
+                                                        <span class="optional-tag">optional</span>
+                                                    {% endif %}
+                                                </label>
+                                                {{ dform.file }}
+                                                {% if dform.file.errors %}<span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ dform.file.errors.0 }}</span>{% endif %}
+                                                <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                                <div class="file-preview-inline" data-file-preview>
+                                                    <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                    <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
+                                                    <div class="file-preview-info">
+                                                        <span class="file-preview-filename" data-file-name></span>
+                                                        <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if doc_formset.can_delete and dform.instance.pk %}
+                                            <div class="media-row-footer-actions">
+                                                <label class="delete-checkbox-label">
+                                                    {{ dform.DELETE }} <i class="fa-solid fa-trash-can"></i> Remove this document
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Template for dynamic client-side doc cloning -->
+                            <div id="empty-doc-template" style="display: none;">
+                                <div class="doc-form-row">
+                                    <div class="media-row-header">
+                                        <span class="media-row-badge"><i class="fa-solid fa-file-lines"></i> New Document</span>
+                                        <span class="doc-row-hint">Select <strong>National ID / Ghana Card</strong> to cover all listings, or a property-specific type.</span>
+                                    </div>
+                                    <div class="form-grid-2col">
+                                        <div class="form-group">
+                                            <label>Document Type</label>
+                                            {{ doc_formset.empty_form.document_type }}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Upload File (PDF / Image)</label>
+                                            {{ doc_formset.empty_form.file }}
+                                            <small class="help-text-hint">Accepted: PDF, JPG, PNG (max 10 MB)</small>
+                                            <div class="file-preview-inline" data-file-preview>
+                                                <img class="file-preview-thumb" alt="" data-file-thumb />
+                                                <div class="file-preview-icon" data-file-icon style="display:none;"><i class="fa-solid fa-file-lines"></i></div>
+                                                <div class="file-preview-info">
+                                                    <span class="file-preview-filename" data-file-name></span>
+                                                    <span class="file-preview-status"><i class="fa-solid fa-circle-check"></i> <span data-file-status>Uploaded</span></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="button" id="add-more-docs-btn" class="btn-sub-action">
+                                    <i class="fa-solid fa-plus"></i> Add Another Document
+                                </button>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Pricing & Type -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">4</span>
+                        <h3>Pricing & Type</h3>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="form-grid-3col">
+                            <!-- Price Field -->
+                            <div class="form-group">
+                                <label for="{{ form.price.id_for_label }}">Price (GHS) <span class="required-star">*</span></label>
+                                <div class="input-with-prefix">
+                                    <span class="prefix-tag">GHS</span>
+                                    {{ form.price }}
+                                </div>
+                                {% if form.price.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.price.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Payment Period -->
+                            <div class="form-group">
+                                <label for="{{ form.payment_period.id_for_label }}">Payment Period <span class="required-star">*</span></label>
+                                {{ form.payment_period }}
+                                {% if form.payment_period.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.payment_period.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Room Type -->
+                            <div class="form-group">
+                                <label for="{{ form.room_type.id_for_label }}">Room Type <span class="required-star">*</span></label>
+                                {{ form.room_type }}
+                                {% if form.room_type.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.room_type.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: Location -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">5</span>
+                        <h3>Location</h3>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="form-grid-4col">
+                            <!-- Region -->
+                            <div class="form-group">
+                                <label for="{{ form.region.id_for_label }}">Region <span class="required-star">*</span></label>
+                                {{ form.region }}
+                            </div>
+                            <!-- District -->
+                            <div class="form-group">
+                                <label for="{{ form.district.id_for_label }}">District <span class="required-star">*</span></label>
+                                {{ form.district }}
+                            </div>
+                            <!-- Town -->
+                            <div class="form-group">
+                                <label for="{{ form.town.id_for_label }}">Town <span class="required-star">*</span></label>
+                                {{ form.town }}
+                            </div>
+                            <!-- Area -->
+                            <div class="form-group">
+                                <label for="{{ form.area.id_for_label }}">Area <span class="required-star">*</span></label>
+                                {{ form.area }}
+                            </div>
+                        </div>
+                        <div class="location-notice-box mt-3">
+                            <i class="fa-solid fa-location-dot text-green"></i>
+                            <span>Please select the exact location for your property so tenants can find it easily.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: Amenities -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">6</span>
+                        <h3>Amenities</h3>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="form-group">
+                            <label for="{{ form.amenities.id_for_label }}">Select Amenities</label>
+                            {{ form.amenities }}
+                            <small class="help-text-hint">Choose all amenities available in this property.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 7: Property Features -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">7</span>
+                        <h3>Property Features</h3>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="form-grid-3col">
+                            <!-- Bedrooms -->
+                            <div class="form-group">
+                                <label for="{{ form.bedrooms.id_for_label }}">Bedrooms <span class="required-star">*</span></label>
+                                <div class="input-with-icon-right">
+                                    {{ form.bedrooms }}
+                                    <i class="fa-solid fa-bed input-trailing-icon"></i>
+                                </div>
+                            </div>
+                            <!-- Bathrooms -->
+                            <div class="form-group">
+                                <label for="{{ form.bathrooms.id_for_label }}">Bathrooms <span class="required-star">*</span></label>
+                                <div class="input-with-icon-right">
+                                    {{ form.bathrooms }}
+                                    <i class="fa-solid fa-bath input-trailing-icon"></i>
+                                </div>
+                            </div>
+                            <!-- Toilets -->
+                            <div class="form-group">
+                                <label for="{{ form.toilets.id_for_label }}">Toilets <span class="required-star">*</span></label>
+                                <div class="input-with-icon-right">
+                                    {{ form.toilets }}
+                                    <i class="fa-solid fa-restroom input-trailing-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2col mt-4">
+                            <!-- Parking Spaces -->
+                            <div class="form-group">
+                                <label for="{{ form.parking_spaces.id_for_label }}">Parking Spaces</label>
+                                <div class="input-with-icon-right">
+                                    {{ form.parking_spaces }}
+                                    <i class="fa-solid fa-car input-trailing-icon"></i>
+                                </div>
+                            </div>
+                            <!-- Floor Area -->
+                            <div class="form-group">
+                                <label for="{{ form.floor_area.id_for_label }}">Floor Area (sqm)</label>
+                                <div class="input-with-icon-right">
+                                    {{ form.floor_area }}
+                                    <i class="fa-solid fa-ruler-combined input-trailing-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 8: Availability & Status -->
+                <div class="form-section-block">
+                    <div class="section-badge-title">
+                        <span class="step-num">8</span>
+                        <h3>Availability & Status</h3>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="form-grid-3col">
+                            <!-- Is Furnished -->
+                            <div class="form-group">
+                                <label for="{{ form.is_furnished.id_for_label }}">Is Furnished?</label>
+                                {{ form.is_furnished }}
+                            </div>
+                            <!-- Is Available -->
+                            <div class="form-group">
+                                <label for="{{ form.is_available.id_for_label }}">Is Available? <span class="required-star">*</span></label>
+                                {{ form.is_available }}
+                            </div>
+                            <!-- Available From -->
+                            <div class="form-group">
+                                <label for="{{ form.available_from.id_for_label }}">Available From</label>
+                                {{ form.available_from }}
+                            </div>
+                        </div>
+                        <div class="availability-notice-box mt-3">
+                            <i class="fa-solid fa-circle-info text-green"></i>
+                            <span>Set the availability date when the property will be ready for tenants.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 9: Publication Status -->
+                <div class="form-section-block form-section-block-last">
+                    <div class="section-badge-title">
+                        <span class="step-num">9</span>
+                        <h3>Publication Status</h3>
+                    </div>
+                    <p class="section-subtitle">Control whether this listing is visible to tenants</p>
+
+                    <div class="section-body">
+                        <div class="form-grid-2col">
+                            <!-- Publication Status -->
+                            <div class="form-group">
+                                <label for="{{ form.publication_status.id_for_label }}">Publication Status <span class="required-star">*</span></label>
+                                {{ form.publication_status }}
+                                {% if form.publication_status.errors %}
+                                    <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.publication_status.errors.0 }}</span>
+                                {% endif %}
+                                <small class="help-text-hint">
+                                    <strong>Draft</strong> keeps the listing hidden while you finish it,
+                                    <strong>Published</strong> makes it visible to tenants (subject to review),
+                                    and <strong>Archived</strong> removes it from public search without deleting it.
+                                </small>
+                            </div>
+
+                            <!-- Current status badge (read-only helper, update mode only) -->
+                            {% if is_update %}
+                            <div class="form-group">
+                                <label>Current Status</label>
+                                <div class="status-badge-display" id="current-status-badge">
+                                    <span class="status-pill status-pill-{{ object.publication_status|default:'draft' }}" id="status-pill-el">
+                                        {{ object.get_publication_status_display|default:"Draft" }}
+                                    </span>
+                                    {% if object.verification_status %}
+                                        <span class="status-pill status-pill-verification-{{ object.verification_status }}">
+                                            Verification: {{ object.get_verification_status_display }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="publication-notice-box mt-3">
+                            <i class="fa-solid fa-circle-info text-green"></i>
+                            <span>Published listings still go through our verification review before appearing in tenant search results.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons Footer -->
+                <div class="form-actions-footer">
+                    <a href="{% url 'landloards:property_list' %}" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-primary-action">
+                        <i class="fa-solid fa-floppy-disk"></i> {% if is_update %}Update Property{% else %}Save Property{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar (Tips, Room Types, Live Preview Summary) -->
+        <div class="property-sidebar-col">
+            <!-- Tips Card -->
+            <div class="dashboard-card-box sidebar-card mb-5">
+                <div class="sidebar-box-header">
+                    <i class="fa-solid fa-lightbulb text-green"></i>
+                    <h3>Tips for Landlords</h3>
+                </div>
+                <ul class="tips-list">
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Add a clear title and detailed description.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Use a high-quality cover image.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Upload multiple gallery photos to showcase your space.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Select the correct location.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Set Publication Status to "Published" when you're ready to go live.</span></li>
+                    <li><i class="fa-solid fa-check text-green"></i> <span>Review all details before saving.</span></li>
+                </ul>
+            </div>
+
+            <!-- Room Types Reference Card -->
+            <div class="dashboard-card-box sidebar-card mb-5">
+                <div class="sidebar-box-header">
+                    <h3>Room Types</h3>
+                </div>
+                <div class="room-types-guide-list">
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-bed text-green"></i></div>
+                        <div>
+                            <strong>Single Room</strong>
+                            <p>A private room for one person</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-bed text-green"></i></div>
+                        <div>
+                            <strong>Double Room</strong>
+                            <p>A room for two people</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-door-closed text-green"></i></div>
+                        <div>
+                            <strong>Self Contained</strong>
+                            <p>Private room with bathroom</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-building text-green"></i></div>
+                        <div>
+                            <strong>Apartment</strong>
+                            <p>Full apartment/flat</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-house-chimney text-green"></i></div>
+                        <div>
+                            <strong>Shared Facility</strong>
+                            <p>Shared bathroom/kitchen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Publication Status Reference Card -->
+            <div class="dashboard-card-box sidebar-card mb-5">
+                <div class="sidebar-box-header">
+                    <h3>Publication Status</h3>
+                </div>
+                <div class="room-types-guide-list">
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-pen-to-square text-green"></i></div>
+                        <div>
+                            <strong>Draft</strong>
+                            <p>Hidden while you finish editing</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-circle-check text-green"></i></div>
+                        <div>
+                            <strong>Published</strong>
+                            <p>Visible to tenants after review</p>
+                        </div>
+                    </div>
+                    <div class="room-guide-item">
+                        <div class="room-guide-icon"><i class="fa-solid fa-box-archive text-green"></i></div>
+                        <div>
+                            <strong>Archived</strong>
+                            <p>Hidden from search, kept on record</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Summary Card -->
+            <div class="dashboard-card-box sidebar-card preview-summary-card sticky-sidebar-card">
+                <div class="sidebar-box-header">
+                    <h3>Preview Summary</h3>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Title</span>
+                    <span class="summary-val" id="prev-title">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Location</span>
+                    <span class="summary-val" id="prev-location">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Price</span>
+                    <span class="summary-val" id="prev-price">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Payment Period</span>
+                    <span class="summary-val" id="prev-payment">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Room Type</span>
+                    <span class="summary-val" id="prev-room">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Bedrooms</span>
+                    <span class="summary-val" id="prev-beds">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Bathrooms</span>
+                    <span class="summary-val" id="prev-baths">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Amenities</span>
+                    <span class="summary-val" id="prev-amenities">0 selected</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Publication Status</span>
+                    <span class="summary-val" id="prev-publication">Draft</span>
+                </div>
+
+                <div class="review-warning-banner mt-4">
+                    <i class="fa-solid fa-triangle-exclamation text-amber"></i>
+                    <span>This property will be reviewed before it goes live on the platform.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Page Styling & Live Preview / Formset Script --><script>
 document.addEventListener('DOMContentLoaded', function () {
     // ----- Live Preview Summary -----
     var titleInput = document.getElementById('{{ form.title.id_for_label }}');

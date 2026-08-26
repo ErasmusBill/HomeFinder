@@ -1,261 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}Dashboard - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="landlord-dashboard-wrapper" {% if landlord_access.is_suspended %}data-suspended="true"{% endif %}>
-
-    <!-- 1. Let's Get You Started Onboarding Banner -->
-    <div class="onboarding-banner-card">
-        <div class="onboarding-header-row">
-            <h2>Let's Get You Started</h2>
-            <p>Follow these steps to list your property and start getting bookings.</p>
-        </div>
-
-        <div class="onboarding-steps-grid">
-            <!-- Step 1: Amenities (locations are pre-populated by admin) -->
-            <div class="onboarding-step-card completed">
-                <div class="step-number-badge">1</div>
-                <div class="step-icon-circle green">
-                    <i class="fa-solid fa-layer-group"></i>
-                </div>
-                <h3>Add Amenities</h3>
-                <p>Add amenities available in your property.</p>
-                {% if landlord_access.is_suspended %}
-                    <a href="{% url 'subscription:plans' %}" class="btn-step-action outlined btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
-                {% else %}
-                    <a href="{% url 'landloards:create_amenity' %}" class="btn-step-action outlined">Add Amenities</a>
-                {% endif %}
-            </div>
-
-            <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-
-            <!-- Step 2 -->
-            <div class="onboarding-step-card">
-                <div class="step-number-badge">2</div>
-                <div class="step-icon-circle">
-                    <i class="fa-solid fa-building"></i>
-                </div>
-                <h3>Add Your Property</h3>
-                <p>Create your property with details, photos etc.</p>
-                {% if landlord_access.is_suspended %}
-                    <a href="{% url 'subscription:plans' %}" class="btn-step-action btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
-                {% else %}
-                    <a href="{% url 'landloards:create_property' %}" class="btn-step-action">Add Property</a>
-                {% endif %}
-            </div>
-
-            <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-
-            <!-- Step 3: Verification -->
-            {% if identity_verified %}
-                <div class="onboarding-step-card completed">
-                    <div class="step-number-badge"><i class="fa-solid fa-check"></i></div>
-                    <div class="step-icon-circle green">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <h3>Identity Verified</h3>
-                    <p>Ghana Card verified. Your listings are expedited.</p>
-                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Documents</a>
-                </div>
-            {% elif has_identity_doc %}
-                <div class="onboarding-step-card">
-                    <div class="step-number-badge">3</div>
-                    <div class="step-icon-circle" style="background: #fffbeb; color: #f59e0b;">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                    <h3>Verification Pending</h3>
-                    <p>Ghana Card uploaded. Review in progress.</p>
-                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Status</a>
-                </div>
-            {% else %}
-                <div class="onboarding-step-card">
-                    <div class="step-number-badge">3</div>
-                    <div class="step-icon-circle">
-                        <i class="fa-solid fa-id-card"></i>
-                    </div>
-                    <h3>Upload ID Document</h3>
-                    <p>Upload Ghana Card to verify your account.</p>
-                    <a href="{% url 'landloards:create_landlord_document' %}" class="btn-step-action">Upload ID</a>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- 2. Statistics Metrics Grid (Dynamic: Total Properties & Total Views) -->
-    <div class="stats-metrics-grid two-cols">
-        <div class="stat-card-item">
-            <div class="stat-icon-wrap green-light">
-                <i class="fa-solid fa-building-user"></i>
-            </div>
-            <div class="stat-content-meta">
-                <span>Total Properties</span>
-                <h2>{{ total_properties }}</h2>
-                <span class="trend-indicator positive"><i class="fa-solid fa-arrow-up"></i> Active Listings</span>
-            </div>
-        </div>
-
-        <div class="stat-card-item">
-            <div class="stat-icon-wrap blue-light">
-                <i class="fa-solid fa-eye"></i>
-            </div>
-            <div class="stat-content-meta">
-                <span>Total Views</span>
-                <h2>{{ total_views }}</h2>
-                <span class="trend-indicator positive"><i class="fa-solid fa-arrow-up"></i> Engagement</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Main Split Layout Grid -->
-    <div class="dashboard-split-layout">
-
-        <!-- Left Side Column: Summaries -->
-        <div class="dashboard-col-left">
-
-            <!-- Amenities Summary Widget -->
-            <div class="dashboard-card-box">
-                <div class="card-header-flex">
-                    <h3>Amenities Summary</h3>
-                    {% if landlord_access.is_suspended %}
-                        <a href="{% url 'subscription:plans' %}" class="header-action-link"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
-                    {% else %}
-                        <a href="{% url 'landloards:create_amenity' %}" class="header-action-link">Manage Amenities</a>
-                    {% endif %}
-                </div>
-
-                <div class="amenities-overview-grid">
-                    <div class="amenity-total-box">
-                        <span class="label">Total Amenities</span>
-                        <h2>{{ total_amenities }}</h2>
-                    </div>
-                    <div class="amenity-popular-tag">
-                        <span class="label">Most Added</span>
-                        <span class="badge-tag"><i class="fa-solid fa-check"></i> {{ most_added_amenity.name|default:"None" }}</span>
-                    </div>
-                </div>
-
-                <div class="popular-amenities-list">
-                    <h4>Popular Amenities</h4>
-                    {% for amenity in popular_amenities %}
-                    <div class="amenity-item-row">
-                        <span><i class="fa-solid fa-circle-check"></i> {{ amenity.name }}</span>
-                        <strong>{{ amenity.property_count }}</strong>
-                    </div>
-                    {% empty %}
-                    <p class="text-muted" style="font-size: 12px; padding: 10px 0;">No amenities recorded yet.</p>
-                    {% endfor %}
-                </div>
-
-                <div class="card-footer-action">
-                    {% if landlord_access.is_suspended %}
-                        <a href="{% url 'subscription:plans' %}"><i class="fa-solid fa-lock" aria-hidden="true"></i> Subscribe to manage amenities <i class="fa-solid fa-arrow-right"></i></a>
-                    {% else %}
-                        <a href="{% url 'landloards:create_amenity' %}">View All Amenities <i class="fa-solid fa-arrow-right"></i></a>
-                    {% endif %}
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Right Side Column: Status & Quick Actions -->
-        <div class="dashboard-col-right">
-
-            <!-- Verification Status Card -->
-            <div class="dashboard-card-box verification-card">
-                <div class="verification-card-header">
-                    <h3>Verification Status</h3>
-                    <span class="verification-status-pill">
-                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                        Verified
-                    </span>
-                </div>
-
-                <div class="verification-status-box">
-                    <div class="verify-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div class="verification-status-text">
-                        <h4>Verified Landlord</h4>
-                        <p>Your account is verified. You can publish properties and manage your portfolio.</p>
-                    </div>
-                </div>
-
-                <a href="{% url 'landloards:landlord_document_list' %}" class="btn-outline-action verification-card-cta">
-                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
-                    View Documents
-                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                </a>
-            </div>
-
-            <!-- Setup Reminders Card -->
-            <div class="dashboard-card-box setup-reminders-box">
-                <div class="reminder-header">
-                    <h3>Setup Reminders</h3>
-                    <i class="fa-solid fa-lightbulb"></i>
-                </div>
-                <span class="sub-title">Why setup first?</span>
-                <ul class="reminders-checklist">
-                    <li><i class="fa-solid fa-check"></i> Tenants can find your property easily</li>
-                    <li><i class="fa-solid fa-check"></i> Accurate location improves visibility</li>
-                    <li><i class="fa-solid fa-check"></i> Amenities help tenants filter better</li>
-                    <li><i class="fa-solid fa-check"></i> Complete setup builds trust</li>
-                </ul>
-            </div>
-
-            <!-- Quick Actions Card -->
-            <div class="dashboard-card-box">
-                <h3>Quick Actions</h3>
-                <div class="quick-actions-list">
-                    {% if landlord_access.is_suspended %}
-                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
-                            <div class="action-icon orange"><i class="fa-solid fa-lock"></i></div>
-                            <div><strong>Add New Amenity</strong><span>Subscribe to unlock</span></div>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
-                            <div class="action-icon blue"><i class="fa-solid fa-lock"></i></div>
-                            <div><strong>Add New Property</strong><span>Subscribe to unlock</span></div>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    {% else %}
-                        <a href="{% url 'landloards:create_amenity' %}" class="quick-action-row">
-                            <div class="action-icon orange"><i class="fa-solid fa-layer-group"></i></div>
-                            <div><strong>Add New Amenity</strong><span>Add amenity available in properties</span></div>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="{% url 'landloards:create_property' %}" class="quick-action-row">
-                            <div class="action-icon blue"><i class="fa-solid fa-building"></i></div>
-                            <div><strong>Add New Property</strong><span>List a new property for rent</span></div>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'landloards:list_landlord_subscription' %}" class="quick-action-row">
-                        <div class="action-icon purple"><i class="fa-solid fa-id-card"></i></div>
-                        <div><strong>Manage Subscription</strong><span>View or upgrade your plan</span></div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Help Support Box -->
-            <div class="dashboard-card-box help-support-card">
-                <div class="help-support-content">
-                    <h4>Need Help?</h4>
-                    <p>Check our guides or contact our support team if you need any assistance.</p>
-                    <a href="#" class="btn-primary-action">Visit Help Center</a>
-                </div>
-                <div class="help-illustration-icon">
-                    <i class="fa-solid fa-comments"></i>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- Scoped Styling for Dashboard Inner View -->
+{% block extra_head %}
 <style>
 .landlord-dashboard-wrapper {
     display: flex;
@@ -912,3 +657,260 @@
 }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block title %}Dashboard - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="landlord-dashboard-wrapper" {% if landlord_access.is_suspended %}data-suspended="true"{% endif %}>
+
+    <!-- 1. Let's Get You Started Onboarding Banner -->
+    <div class="onboarding-banner-card">
+        <div class="onboarding-header-row">
+            <h2>Let's Get You Started</h2>
+            <p>Follow these steps to list your property and start getting bookings.</p>
+        </div>
+
+        <div class="onboarding-steps-grid">
+            <!-- Step 1: Amenities (locations are pre-populated by admin) -->
+            <div class="onboarding-step-card completed">
+                <div class="step-number-badge">1</div>
+                <div class="step-icon-circle green">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h3>Add Amenities</h3>
+                <p>Add amenities available in your property.</p>
+                {% if landlord_access.is_suspended %}
+                    <a href="{% url 'subscription:plans' %}" class="btn-step-action outlined btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                {% else %}
+                    <a href="{% url 'landloards:create_amenity' %}" class="btn-step-action outlined">Add Amenities</a>
+                {% endif %}
+            </div>
+
+            <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+            <!-- Step 2 -->
+            <div class="onboarding-step-card">
+                <div class="step-number-badge">2</div>
+                <div class="step-icon-circle">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <h3>Add Your Property</h3>
+                <p>Create your property with details, photos etc.</p>
+                {% if landlord_access.is_suspended %}
+                    <a href="{% url 'subscription:plans' %}" class="btn-step-action btn-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                {% else %}
+                    <a href="{% url 'landloards:create_property' %}" class="btn-step-action">Add Property</a>
+                {% endif %}
+            </div>
+
+            <div class="step-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
+            <!-- Step 3: Verification -->
+            {% if identity_verified %}
+                <div class="onboarding-step-card completed">
+                    <div class="step-number-badge"><i class="fa-solid fa-check"></i></div>
+                    <div class="step-icon-circle green">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>Identity Verified</h3>
+                    <p>Ghana Card verified. Your listings are expedited.</p>
+                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Documents</a>
+                </div>
+            {% elif has_identity_doc %}
+                <div class="onboarding-step-card">
+                    <div class="step-number-badge">3</div>
+                    <div class="step-icon-circle" style="background: #fffbeb; color: #f59e0b;">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <h3>Verification Pending</h3>
+                    <p>Ghana Card uploaded. Review in progress.</p>
+                    <a href="{% url 'landloards:landlord_document_list' %}" class="btn-step-action outlined">View Status</a>
+                </div>
+            {% else %}
+                <div class="onboarding-step-card">
+                    <div class="step-number-badge">3</div>
+                    <div class="step-icon-circle">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <h3>Upload ID Document</h3>
+                    <p>Upload Ghana Card to verify your account.</p>
+                    <a href="{% url 'landloards:create_landlord_document' %}" class="btn-step-action">Upload ID</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 2. Statistics Metrics Grid (Dynamic: Total Properties & Total Views) -->
+    <div class="stats-metrics-grid two-cols">
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap green-light">
+                <i class="fa-solid fa-building-user"></i>
+            </div>
+            <div class="stat-content-meta">
+                <span>Total Properties</span>
+                <h2>{{ total_properties }}</h2>
+                <span class="trend-indicator positive"><i class="fa-solid fa-arrow-up"></i> Active Listings</span>
+            </div>
+        </div>
+
+        <div class="stat-card-item">
+            <div class="stat-icon-wrap blue-light">
+                <i class="fa-solid fa-eye"></i>
+            </div>
+            <div class="stat-content-meta">
+                <span>Total Views</span>
+                <h2>{{ total_views }}</h2>
+                <span class="trend-indicator positive"><i class="fa-solid fa-arrow-up"></i> Engagement</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Main Split Layout Grid -->
+    <div class="dashboard-split-layout">
+
+        <!-- Left Side Column: Summaries -->
+        <div class="dashboard-col-left">
+
+            <!-- Amenities Summary Widget -->
+            <div class="dashboard-card-box">
+                <div class="card-header-flex">
+                    <h3>Amenities Summary</h3>
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}" class="header-action-link"><i class="fa-solid fa-lock" aria-hidden="true"></i> Locked</a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}" class="header-action-link">Manage Amenities</a>
+                    {% endif %}
+                </div>
+
+                <div class="amenities-overview-grid">
+                    <div class="amenity-total-box">
+                        <span class="label">Total Amenities</span>
+                        <h2>{{ total_amenities }}</h2>
+                    </div>
+                    <div class="amenity-popular-tag">
+                        <span class="label">Most Added</span>
+                        <span class="badge-tag"><i class="fa-solid fa-check"></i> {{ most_added_amenity.name|default:"None" }}</span>
+                    </div>
+                </div>
+
+                <div class="popular-amenities-list">
+                    <h4>Popular Amenities</h4>
+                    {% for amenity in popular_amenities %}
+                    <div class="amenity-item-row">
+                        <span><i class="fa-solid fa-circle-check"></i> {{ amenity.name }}</span>
+                        <strong>{{ amenity.property_count }}</strong>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted" style="font-size: 12px; padding: 10px 0;">No amenities recorded yet.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="card-footer-action">
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}"><i class="fa-solid fa-lock" aria-hidden="true"></i> Subscribe to manage amenities <i class="fa-solid fa-arrow-right"></i></a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}">View All Amenities <i class="fa-solid fa-arrow-right"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side Column: Status & Quick Actions -->
+        <div class="dashboard-col-right">
+
+            <!-- Verification Status Card -->
+            <div class="dashboard-card-box verification-card">
+                <div class="verification-card-header">
+                    <h3>Verification Status</h3>
+                    <span class="verification-status-pill">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                        Verified
+                    </span>
+                </div>
+
+                <div class="verification-status-box">
+                    <div class="verify-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="verification-status-text">
+                        <h4>Verified Landlord</h4>
+                        <p>Your account is verified. You can publish properties and manage your portfolio.</p>
+                    </div>
+                </div>
+
+                <a href="{% url 'landloards:landlord_document_list' %}" class="btn-outline-action verification-card-cta">
+                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                    View Documents
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+
+            <!-- Setup Reminders Card -->
+            <div class="dashboard-card-box setup-reminders-box">
+                <div class="reminder-header">
+                    <h3>Setup Reminders</h3>
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+                <span class="sub-title">Why setup first?</span>
+                <ul class="reminders-checklist">
+                    <li><i class="fa-solid fa-check"></i> Tenants can find your property easily</li>
+                    <li><i class="fa-solid fa-check"></i> Accurate location improves visibility</li>
+                    <li><i class="fa-solid fa-check"></i> Amenities help tenants filter better</li>
+                    <li><i class="fa-solid fa-check"></i> Complete setup builds trust</li>
+                </ul>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="dashboard-card-box">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions-list">
+                    {% if landlord_access.is_suspended %}
+                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
+                            <div class="action-icon orange"><i class="fa-solid fa-lock"></i></div>
+                            <div><strong>Add New Amenity</strong><span>Subscribe to unlock</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'subscription:plans' %}" class="quick-action-row quick-action-locked">
+                            <div class="action-icon blue"><i class="fa-solid fa-lock"></i></div>
+                            <div><strong>Add New Property</strong><span>Subscribe to unlock</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'landloards:create_amenity' %}" class="quick-action-row">
+                            <div class="action-icon orange"><i class="fa-solid fa-layer-group"></i></div>
+                            <div><strong>Add New Amenity</strong><span>Add amenity available in properties</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <a href="{% url 'landloards:create_property' %}" class="quick-action-row">
+                            <div class="action-icon blue"><i class="fa-solid fa-building"></i></div>
+                            <div><strong>Add New Property</strong><span>List a new property for rent</span></div>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'landloards:list_landlord_subscription' %}" class="quick-action-row">
+                        <div class="action-icon purple"><i class="fa-solid fa-id-card"></i></div>
+                        <div><strong>Manage Subscription</strong><span>View or upgrade your plan</span></div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Help Support Box -->
+            <div class="dashboard-card-box help-support-card">
+                <div class="help-support-content">
+                    <h4>Need Help?</h4>
+                    <p>Check our guides or contact our support team if you need any assistance.</p>
+                    <a href="#" class="btn-primary-action">Visit Help Center</a>
+                </div>
+                <div class="help-illustration-icon">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Scoped Styling for Dashboard Inner View -->{% endblock %}

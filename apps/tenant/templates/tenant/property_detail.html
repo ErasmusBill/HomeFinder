@@ -1,4 +1,104 @@
 {% extends 'tenant/base.html' %}
+
+{% block extra_head %}
+<style>
+    .property-gallery-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 8px;
+        height: 420px;
+        width: 100%;
+    }
+    .gallery-main-img,
+    .gallery-sub-imgs { min-width: 0; }
+    .gallery-main-img {
+        overflow: hidden;
+        border-radius: 12px 0 0 12px;
+        background: #e5e7eb;
+    }
+    .gallery-main-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .gallery-main-img img:hover { transform: scale(1.02); }
+
+    .gallery-sub-imgs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .sub-img-card {
+        position: relative;
+        overflow: hidden;
+        background: #e5e7eb;
+    }
+    .sub-img-card:first-child { border-top-right-radius: 12px; }
+    .sub-img-card:last-child  { border-bottom-right-radius: 12px; }
+    .sub-img-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+    .sub-img-card img:hover { transform: scale(1.02); }
+
+    .more-photos .overlay-text {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+        padding: 4px;
+    }
+
+    @media (max-width: 900px) {
+        .property-gallery-grid {
+            grid-template-columns: 1fr;
+            height: auto;
+            gap: 8px;
+        }
+        .gallery-main-img {
+            aspect-ratio: 16 / 10;
+            height: auto;
+            border-radius: 12px 12px 0 0;
+        }
+        .gallery-sub-imgs {
+            display: flex;
+            overflow-x: auto;
+            grid-template-columns: unset;
+            grid-template-rows: unset;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 4px;
+        }
+        .sub-img-card {
+            flex: 0 0 clamp(120px, 36vw, 180px);
+            aspect-ratio: 1 / 1;
+            scroll-snap-align: start;
+            height: auto;
+        }
+        .sub-img-card:first-child { border-top-right-radius: 0; border-top-left-radius: 0; }
+        .sub-img-card:last-child  { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .gallery-main-img img,
+        .sub-img-card img { transition: none; }
+    }
+</style>
+{% endblock %}
 {% load static %}
 
 {% block title %}{{ property.title|default:"Property Details" }} - VacantHommie{% endblock %}
@@ -323,103 +423,4 @@
         </aside>
     </div>
 
-</div>
-
-<style>
-    .property-gallery-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 8px;
-        height: 420px;
-        width: 100%;
-    }
-    .gallery-main-img,
-    .gallery-sub-imgs { min-width: 0; }
-    .gallery-main-img {
-        overflow: hidden;
-        border-radius: 12px 0 0 12px;
-        background: #e5e7eb;
-    }
-    .gallery-main-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.3s ease;
-    }
-    .gallery-main-img img:hover { transform: scale(1.02); }
-
-    .gallery-sub-imgs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(2, 1fr);
-        gap: 8px;
-    }
-    .sub-img-card {
-        position: relative;
-        overflow: hidden;
-        background: #e5e7eb;
-    }
-    .sub-img-card:first-child { border-top-right-radius: 12px; }
-    .sub-img-card:last-child  { border-bottom-right-radius: 12px; }
-    .sub-img-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.3s ease;
-    }
-    .sub-img-card img:hover { transform: scale(1.02); }
-
-    .more-photos .overlay-text {
-        position: absolute;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.65);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-align: center;
-        padding: 4px;
-    }
-
-    @media (max-width: 900px) {
-        .property-gallery-grid {
-            grid-template-columns: 1fr;
-            height: auto;
-            gap: 8px;
-        }
-        .gallery-main-img {
-            aspect-ratio: 16 / 10;
-            height: auto;
-            border-radius: 12px 12px 0 0;
-        }
-        .gallery-sub-imgs {
-            display: flex;
-            overflow-x: auto;
-            grid-template-columns: unset;
-            grid-template-rows: unset;
-            -webkit-overflow-scrolling: touch;
-            scroll-snap-type: x mandatory;
-            padding-bottom: 4px;
-        }
-        .sub-img-card {
-            flex: 0 0 clamp(120px, 36vw, 180px);
-            aspect-ratio: 1 / 1;
-            scroll-snap-align: start;
-            height: auto;
-        }
-        .sub-img-card:first-child { border-top-right-radius: 0; border-top-left-radius: 0; }
-        .sub-img-card:last-child  { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .gallery-main-img img,
-        .sub-img-card img { transition: none; }
-    }
-</style>
-{% endblock %}
+</div>{% endblock %}

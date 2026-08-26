@@ -1,207 +1,6 @@
 {% load static %}
 
-<header class="vh-navbar-header" id="siteHeader">
-    <div class="vh-navbar-container">
-
-        <!-- 1. Left Brand Logo -->
-        <a href="{% url 'home_finder:home' %}" class="vh-brand" aria-label="VacantHommie Home">
-            <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-brand-logo">
-        </a>
-
-        <!-- 2. Desktop Navigation Center Links -->
-        <nav class="vh-nav-desktop" aria-label="Primary navigation">
-            <ul class="vh-nav-links">
-                <li>
-                    <a href="{% url 'home_finder:home' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
-                        Home
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'home_finder:list_properties' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
-                        Properties
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'home_finder:how_it_works' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
-                        How It Works
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'home_finder:about' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
-                        About Us
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'home_finder:contact' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
-                        Contact
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- 3. Right Action Tools & Auth -->
-        <div class="vh-nav-actions">
-
-            <!-- Saved / Wishlist Icon -->
-            <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}"
-               class="vh-icon-btn vh-wishlist-btn"
-               title="Saved Properties"
-               aria-label="Saved Properties">
-                <i class="fa-regular fa-heart"></i>
-                {% if saved_count and saved_count > 0 %}
-                    <span class="vh-badge-count">{{ saved_count }}</span>
-                {% endif %}
-            </a>
-
-            <!-- Authenticated User Info / Actions -->
-            {% if request.user.is_authenticated %}
-                <div class="vh-user-pill-desktop">
-                    <span class="vh-user-avatar">
-                        {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
-                    </span>
-                    <span class="vh-user-greeting">
-                        Hi, <strong>{{ request.user.first_name|default:request.user.email|truncatechars:12 }}</strong>
-                    </span>
-                </div>
-
-                <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
-                   class="vh-btn vh-btn-primary vh-desktop-only">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-                <a href="{% url 'account:logout' %}" class="vh-btn vh-btn-outline vh-desktop-only">
-                    Logout
-                </a>
-            {% else %}
-                <a href="{% url 'account:login' %}" class="vh-btn vh-btn-ghost vh-desktop-only">
-                    Login
-                </a>
-                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-primary vh-desktop-only">
-                    <i class="fa-solid fa-user-plus"></i> Register
-                </a>
-            {% endif %}
-
-            <!-- Mobile Hamburger Toggle -->
-            <button class="vh-mobile-toggle"
-                    id="vhMobileToggle"
-                    type="button"
-                    aria-label="Toggle mobile menu"
-                    aria-expanded="false"
-                    aria-controls="vhMobileDrawer">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </div>
-
-    </div>
-</header>
-
-<!-- ==========================================================================
-     Mobile Off-Canvas Drawer Navigation
-     ========================================================================== -->
-<div class="vh-drawer-backdrop" id="vhDrawerBackdrop"></div>
-
-<aside class="vh-mobile-drawer" id="vhMobileDrawer" aria-hidden="true">
-    <!-- Drawer Header -->
-    <div class="vh-drawer-header">
-        <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-drawer-logo">
-        <button class="vh-drawer-close" id="vhDrawerClose" type="button" aria-label="Close menu">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-
-    <!-- Drawer User Status Block -->
-    <div class="vh-drawer-userbox">
-        {% if request.user.is_authenticated %}
-            <div class="vh-drawer-user-info">
-                <div class="vh-drawer-user-avatar">
-                    {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
-                </div>
-                <div class="vh-drawer-user-meta">
-                    <span class="vh-drawer-user-name">{{ request.user.get_full_name|default:request.user.email }}</span>
-                    <span class="vh-drawer-user-role">
-                        <i class="fa-solid fa-circle-check"></i> {{ request.user.get_role_display|default:request.user.role|title }}
-                    </span>
-                </div>
-            </div>
-        {% else %}
-            <div class="vh-drawer-guest-callout">
-                <p class="vh-guest-title">Welcome to VacantHommie</p>
-                <p class="vh-guest-sub">Find verified rental homes in Ghana.</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Drawer Navigation Links -->
-    <nav class="vh-drawer-nav">
-        <ul class="vh-drawer-links">
-            <li>
-                <a href="{% url 'home_finder:home' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Home</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'home_finder:list_properties' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
-                    <i class="fa-solid fa-building-circle-check"></i>
-                    <span>Browse Properties</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'home_finder:how_it_works' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
-                    <i class="fa-solid fa-circle-question"></i>
-                    <span>How It Works</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}" class="vh-drawer-link">
-                    <i class="fa-solid fa-heart"></i>
-                    <span>Saved Properties</span>
-                    {% if saved_count and saved_count > 0 %}
-                        <span class="vh-drawer-badge">{{ saved_count }}</span>
-                    {% endif %}
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'subscription:plans' %}" class="vh-drawer-link">
-                    <i class="fa-solid fa-tags"></i>
-                    <span>Pricing Plans</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'home_finder:about' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <span>About Us</span>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'home_finder:contact' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
-                    <i class="fa-solid fa-envelope"></i>
-                    <span>Contact Support</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Drawer Action Footer -->
-    <div class="vh-drawer-footer">
-        {% if request.user.is_authenticated %}
-            <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
-               class="vh-drawer-btn vh-btn-primary">
-                <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
-            </a>
-            <a href="{% url 'account:logout' %}" class="vh-drawer-btn vh-btn-outline">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-            </a>
-        {% else %}
-            <a href="{% url 'account:role_select' %}" class="vh-drawer-btn vh-btn-primary">
-                <i class="fa-solid fa-user-plus"></i> Create an Account
-            </a>
-            <a href="{% url 'account:login' %}" class="vh-drawer-btn vh-btn-outline">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
-            </a>
-        {% endif %}
-    </div>
-</aside>
-
+{% block extra_head %}
 <style>
     /* ==========================================================================
        VacantHommie — Ultra-Modern Responsive Navbar Styles
@@ -785,8 +584,214 @@
         }
     }
 </style>
+{% endblock %}
 
-<script>
+<header class="vh-navbar-header" id="siteHeader">
+    <div class="vh-navbar-container">
+
+        <!-- 1. Left Brand Logo -->
+        <a href="{% url 'home_finder:home' %}" class="vh-brand" aria-label="VacantHommie Home">
+            <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-brand-logo">
+        </a>
+
+        <!-- 2. Desktop Navigation Center Links -->
+        <nav class="vh-nav-desktop" aria-label="Primary navigation">
+            <ul class="vh-nav-links">
+                <li>
+                    <a href="{% url 'home_finder:home' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:list_properties' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
+                        Properties
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:how_it_works' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
+                        How It Works
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:pricing' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
+                        Pricing
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:about' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                        About Us
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'home_finder:contact' %}" class="vh-nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                        Contact
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 3. Right Action Tools & Auth -->
+        <div class="vh-nav-actions">
+
+            <!-- Saved / Wishlist Icon -->
+            <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}"
+               class="vh-icon-btn vh-wishlist-btn"
+               title="Saved Properties"
+               aria-label="Saved Properties">
+                <i class="fa-regular fa-heart"></i>
+                {% if saved_count and saved_count > 0 %}
+                    <span class="vh-badge-count">{{ saved_count }}</span>
+                {% endif %}
+            </a>
+
+            <!-- Authenticated User Info / Actions -->
+            {% if request.user.is_authenticated %}
+                <div class="vh-user-pill-desktop">
+                    <span class="vh-user-avatar">
+                        {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
+                    </span>
+                    <span class="vh-user-greeting">
+                        Hi, <strong>{{ request.user.first_name|default:request.user.email|truncatechars:12 }}</strong>
+                    </span>
+                </div>
+
+                <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
+                   class="vh-btn vh-btn-primary vh-desktop-only">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="{% url 'account:logout' %}" class="vh-btn vh-btn-outline vh-desktop-only">
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'account:login' %}" class="vh-btn vh-btn-ghost vh-desktop-only">
+                    Login
+                </a>
+                <a href="{% url 'account:role_select' %}" class="vh-btn vh-btn-primary vh-desktop-only">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </a>
+            {% endif %}
+
+            <!-- Mobile Hamburger Toggle -->
+            <button class="vh-mobile-toggle"
+                    id="vhMobileToggle"
+                    type="button"
+                    aria-label="Toggle mobile menu"
+                    aria-expanded="false"
+                    aria-controls="vhMobileDrawer">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+    </div>
+</header>
+
+<!-- ==========================================================================
+     Mobile Off-Canvas Drawer Navigation
+     ========================================================================== -->
+<div class="vh-drawer-backdrop" id="vhDrawerBackdrop"></div>
+
+<aside class="vh-mobile-drawer" id="vhMobileDrawer" aria-hidden="true">
+    <!-- Drawer Header -->
+    <div class="vh-drawer-header">
+        <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="vh-drawer-logo">
+        <button class="vh-drawer-close" id="vhDrawerClose" type="button" aria-label="Close menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Drawer User Status Block -->
+    <div class="vh-drawer-userbox">
+        {% if request.user.is_authenticated %}
+            <div class="vh-drawer-user-info">
+                <div class="vh-drawer-user-avatar">
+                    {{ request.user.first_name|default:request.user.email|slice:":1"|upper }}
+                </div>
+                <div class="vh-drawer-user-meta">
+                    <span class="vh-drawer-user-name">{{ request.user.get_full_name|default:request.user.email }}</span>
+                    <span class="vh-drawer-user-role">
+                        <i class="fa-solid fa-circle-check"></i> {{ request.user.get_role_display|default:request.user.role|title }}
+                    </span>
+                </div>
+            </div>
+        {% else %}
+            <div class="vh-drawer-guest-callout">
+                <p class="vh-guest-title">Welcome to VacantHommie</p>
+                <p class="vh-guest-sub">Find verified rental homes in Ghana.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Drawer Navigation Links -->
+    <nav class="vh-drawer-nav">
+        <ul class="vh-drawer-links">
+            <li>
+                <a href="{% url 'home_finder:home' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'home' and not request.GET %}active{% endif %}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:list_properties' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'list_properties' or 'properties' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                    <span>Browse Properties</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:how_it_works' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>How It Works</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}" class="vh-drawer-link">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>Saved Properties</span>
+                    {% if saved_count and saved_count > 0 %}
+                        <span class="vh-drawer-badge">{{ saved_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:pricing' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Pricing Plans</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:about' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About Us</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'home_finder:contact' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Contact Support</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Drawer Action Footer -->
+    <div class="vh-drawer-footer">
+        {% if request.user.is_authenticated %}
+            <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:dashboard' %}{% elif request.user.role == 'landlord' %}{% url 'landloards:landloards_dashboard' %}{% else %}/admin/{% endif %}"
+               class="vh-drawer-btn vh-btn-primary">
+                <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'account:logout' %}" class="vh-drawer-btn vh-btn-outline">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+            </a>
+        {% else %}
+            <a href="{% url 'account:role_select' %}" class="vh-drawer-btn vh-btn-primary">
+                <i class="fa-solid fa-user-plus"></i> Create an Account
+            </a>
+            <a href="{% url 'account:login' %}" class="vh-drawer-btn vh-btn-outline">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+            </a>
+        {% endif %}
+    </div>
+</aside><script>
     (function () {
         const toggle = document.getElementById('vhMobileToggle');
         const closeBtn = document.getElementById('vhDrawerClose');

@@ -1,136 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}{% if is_update %}Edit Amenity{% else %}Add Amenity{% endif %} - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="amenities-management-wrapper">
-
-    <!-- Page Header Row -->
-    <div class="page-header-row">
-        <div class="header-titles">
-            <h1>{% if is_update %}Edit Amenity{% else %}Add Amenity{% endif %}</h1>
-            <p>{% if is_update %}Update the details for this property amenity.{% else %}Create a new amenity that landlords can select when listing their properties.{% endif %}</p>
-        </div>
-        <div class="header-actions">
-            <a href="{% url 'landloards:amenity_list' %}" class="btn-secondary-action">
-                <i class="fa-solid fa-list"></i> View All Amenities
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content Layout (Form left, Tips & Preview right) -->
-    <div class="amenities-layout-grid">
-
-        <!-- Form Container Box -->
-        <div class="dashboard-card-box form-card-box">
-            <form method="POST" class="amenity-form" id="amenity-form">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="form-error-banner">
-                        <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-
-                <div class="form-section-group">
-                    <div class="card-header-row">
-                        <h3>Amenity Details</h3>
-                    </div>
-
-                    <!-- Name Field -->
-                    <div class="form-group mb-5 {% if form.name.errors %}has-error{% endif %}">
-                        <label for="{{ form.name.id_for_label }}">
-                            <i class="fa-solid fa-tag field-icon"></i> Name <span class="required-star">*</span>
-                        </label>
-                        {{ form.name }}
-                        {% if form.name.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.name.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">Enter a clear and concise name for the amenity.</small>
-                    </div>
-
-                    <!-- Description Field -->
-                    <div class="form-group mb-5 {% if form.description.errors %}has-error{% endif %}">
-                        <label for="{{ form.description.id_for_label }}">
-                            <i class="fa-solid fa-align-left field-icon"></i> Description <span class="required-star">*</span>
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.description.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">Provide a helpful description of this amenity and how it benefits tenants.</small>
-                    </div>
-
-                    <!-- Slug Field (If included in form or model) -->
-                    {% if form.slug %}
-                    <div class="form-group mb-3 {% if form.slug.errors %}has-error{% endif %}">
-                        <label for="{{ form.slug.id_for_label }}">
-                            <i class="fa-solid fa-link field-icon"></i> Slug (Auto-generated)
-                        </label>
-                        {{ form.slug }}
-                        {% if form.slug.errors %}
-                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.slug.errors.0 }}</span>
-                        {% endif %}
-                        <small class="help-text-hint">The slug is generated automatically from the amenity name.</small>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Form Actions Submission Footer -->
-                <div class="form-actions-footer">
-                    <a href="{% url 'landloards:amenity_list' %}" class="btn-cancel">Cancel</a>
-                    <button type="submit" class="btn-primary-action">
-                        <i class="fa-solid fa-floppy-disk"></i> {% if is_update %}Update Amenity{% else %}Save Amenity{% endif %}
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Sidebar Column (Tips & Preview Cards) -->
-        <div class="amenities-sidebar-col">
-            <!-- Tips Card -->
-            <div class="dashboard-card-box sidebar-tip-box mb-6">
-                <div class="sidebar-box-header">
-                    <i class="fa-solid fa-lightbulb text-green"></i>
-                    <h3>Tips</h3>
-                </div>
-                <ul class="tips-list">
-                    <li>
-                        <i class="fa-solid fa-check text-green"></i>
-                        <span>Choose a name that is short and easy to understand.</span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-check text-green"></i>
-                        <span>Write a clear description of the amenity.</span>
-                    </li>
-                    <li>
-                        <i class="fa-solid fa-check text-green"></i>
-                        <span>Amenities help tenants filter and find the right properties.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Preview Card -->
-            <div class="dashboard-card-box sidebar-preview-box">
-                <div class="sidebar-box-header">
-                    <i class="fa-solid fa-eye text-green"></i>
-                    <h3>Preview</h3>
-                </div>
-                <div class="preview-content-card">
-                    <div class="preview-icon-wrapper">
-                        <i class="fa-solid fa-couch text-green"></i>
-                    </div>
-                    <h4 id="preview-title">Amenity Name</h4>
-                    <p id="preview-desc">This is how the amenity will appear in the list.</p>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- Additional Styling & Live Preview Script -->
+{% block extra_head %}
 <style>
 /* ---------- PAGE HEADER ---------- */
 .page-header-row {
@@ -487,8 +357,139 @@
     color: var(--primary-green, #10b981);
 }
 </style>
+{% endblock %}
+{% load static %}
 
-<script>
+{% block title %}{% if is_update %}Edit Amenity{% else %}Add Amenity{% endif %} - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="amenities-management-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>{% if is_update %}Edit Amenity{% else %}Add Amenity{% endif %}</h1>
+            <p>{% if is_update %}Update the details for this property amenity.{% else %}Create a new amenity that landlords can select when listing their properties.{% endif %}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'landloards:amenity_list' %}" class="btn-secondary-action">
+                <i class="fa-solid fa-list"></i> View All Amenities
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Layout (Form left, Tips & Preview right) -->
+    <div class="amenities-layout-grid">
+
+        <!-- Form Container Box -->
+        <div class="dashboard-card-box form-card-box">
+            <form method="POST" class="amenity-form" id="amenity-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-error-banner">
+                        <i class="fa-solid fa-triangle-exclamation"></i> {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="form-section-group">
+                    <div class="card-header-row">
+                        <h3>Amenity Details</h3>
+                    </div>
+
+                    <!-- Name Field -->
+                    <div class="form-group mb-5 {% if form.name.errors %}has-error{% endif %}">
+                        <label for="{{ form.name.id_for_label }}">
+                            <i class="fa-solid fa-tag field-icon"></i> Name <span class="required-star">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.name.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">Enter a clear and concise name for the amenity.</small>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="form-group mb-5 {% if form.description.errors %}has-error{% endif %}">
+                        <label for="{{ form.description.id_for_label }}">
+                            <i class="fa-solid fa-align-left field-icon"></i> Description <span class="required-star">*</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.description.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">Provide a helpful description of this amenity and how it benefits tenants.</small>
+                    </div>
+
+                    <!-- Slug Field (If included in form or model) -->
+                    {% if form.slug %}
+                    <div class="form-group mb-3 {% if form.slug.errors %}has-error{% endif %}">
+                        <label for="{{ form.slug.id_for_label }}">
+                            <i class="fa-solid fa-link field-icon"></i> Slug (Auto-generated)
+                        </label>
+                        {{ form.slug }}
+                        {% if form.slug.errors %}
+                            <span class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ form.slug.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text-hint">The slug is generated automatically from the amenity name.</small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Actions Submission Footer -->
+                <div class="form-actions-footer">
+                    <a href="{% url 'landloards:amenity_list' %}" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-primary-action">
+                        <i class="fa-solid fa-floppy-disk"></i> {% if is_update %}Update Amenity{% else %}Save Amenity{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar Column (Tips & Preview Cards) -->
+        <div class="amenities-sidebar-col">
+            <!-- Tips Card -->
+            <div class="dashboard-card-box sidebar-tip-box mb-6">
+                <div class="sidebar-box-header">
+                    <i class="fa-solid fa-lightbulb text-green"></i>
+                    <h3>Tips</h3>
+                </div>
+                <ul class="tips-list">
+                    <li>
+                        <i class="fa-solid fa-check text-green"></i>
+                        <span>Choose a name that is short and easy to understand.</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-check text-green"></i>
+                        <span>Write a clear description of the amenity.</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-check text-green"></i>
+                        <span>Amenities help tenants filter and find the right properties.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="dashboard-card-box sidebar-preview-box">
+                <div class="sidebar-box-header">
+                    <i class="fa-solid fa-eye text-green"></i>
+                    <h3>Preview</h3>
+                </div>
+                <div class="preview-content-card">
+                    <div class="preview-icon-wrapper">
+                        <i class="fa-solid fa-couch text-green"></i>
+                    </div>
+                    <h4 id="preview-title">Amenity Name</h4>
+                    <p id="preview-desc">This is how the amenity will appear in the list.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Additional Styling & Live Preview Script --><script>
 document.addEventListener('DOMContentLoaded', function() {
     // Live preview binding for name, description and slug generation
     const nameInput = document.querySelector('input[name="name"]');
