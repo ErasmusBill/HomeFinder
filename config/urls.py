@@ -17,10 +17,8 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path,include
-
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.static import serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +31,15 @@ urlpatterns = [
     path('notifications/', include('apps.notifications.urls')),
     path('tenants/', include('apps.tenant.urls')),
     path('chatbot/', include('apps.chatbot.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Serve media files in production too.
+# In dev (DEBUG=True) this is also wired, but runserver handles it natively.
+# In prod (DEBUG=False) gunicorn does NOT serve media, so we mount it
+# explicitly. For higher-traffic deployments, move this behind nginx/CDN.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

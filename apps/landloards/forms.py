@@ -79,6 +79,12 @@ class PropertyDocumentForm(TailwindModelForm):
         # verified and they don't need to upload anything for this listing.
         # Skip file validation for such rows so the formset stays valid.
         if is_delete or (not file_val and not has_existing_instance):
+            # Brand-new empty rows must NOT be persisted — silently marking
+            # them for deletion here prevents a LandlordDocument row with
+            # `file=""` from being saved, which would later crash any template
+            # that renders `{{ doc.file.url }}`.
+            if not has_existing_instance and not is_delete:
+                cleaned_data["DELETE"] = True
             return cleaned_data
 
         if doc_type and not file_val:

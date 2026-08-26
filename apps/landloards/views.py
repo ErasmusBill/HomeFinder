@@ -800,7 +800,13 @@ def update_property(request, property_id: str):
                 saved_media_items = media_formset.save()
 
                 # Save property documents attached to this listing
-                saved_doc_items = doc_formset.save(commit=False)
+                # Skip any brand-new doc that has no file — this is defensive
+                # against legacy data and any edge case where the form's clean()
+                # could not flag a row for deletion.
+                saved_doc_items = [
+                    d for d in doc_formset.save(commit=False)
+                    if d.pk or (d.file and d.file.name)
+                ]
                 for doc in saved_doc_items:
                     doc.landlord = property_obj.landlord
                     doc.property = updated_property
