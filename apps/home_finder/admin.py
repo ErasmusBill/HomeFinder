@@ -96,7 +96,11 @@ class PropertyAdmin(admin.ModelAdmin):
             old_status = prop.verification_status
             if old_status != Property.VerificationStatus.VERIFIED:
                 prop.verification_status = Property.VerificationStatus.VERIFIED
-                prop.save(update_fields=["verification_status"])
+                # Verifying a listing implicitly approves it for publication,
+                # so flip Draft -> Published. (Archived stays Archived.)
+                if prop.publication_status != Property.PublicationStatus.ARCHIVED:
+                    prop.publication_status = Property.PublicationStatus.PUBLISHED
+                prop.save(update_fields=["verification_status", "publication_status"])
                 invalidate_property_cache(prop)
                 prop_id = str(prop.pk)
                 transaction.on_commit(lambda p_id=prop_id, o_st=old_status: notify_landlord_property_verified_task.delay(p_id, previous_status=o_st))

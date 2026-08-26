@@ -9,13 +9,21 @@ def invalidate_property_cache(property_obj=None, landlord_id=None, property_id=N
         if hasattr(cache, "delete_pattern"):
             cache.delete_pattern("properties:*")
             cache.delete_pattern("home_finder:properties:*")
-            cache.delete_pattern("home_featured_3_epoch_*")
+            # Match every minute-bucketed featured cache (3, 4, …) regardless of size.
+            cache.delete_pattern("home_featured_*_epoch_*")
         else:
             # Fallback (may leave wildcards like search/price stale)
             cache.delete("properties:published")
             cache.delete("properties:featured:8")
             cache.delete("properties:recent:12")
             cache.delete("home_finder:properties:all")
+            # Best-effort: clear the current and neighbouring minute buckets for
+            # every featured-size variant the homepage uses.
+            import time as _time
+            now = int(_time.time() // 60)
+            for bucket in (now - 1, now, now + 1):
+                for size in (3, 4, 6, 8):
+                    cache.delete(f"home_featured_{size}_epoch_{bucket}")
             
             p_id = property_obj.pk if property_obj else property_id
             l_id = property_obj.landlord_id if property_obj else landlord_id
