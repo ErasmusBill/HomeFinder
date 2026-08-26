@@ -1,0 +1,77 @@
+{% extends "home_finder/base.html" %}
+{% load static %}
+
+{% block title %}Pricing Plans - VacantHommie{% endblock %}
+
+{% block content %}
+<main class="bg-gray-50 pt-24 pb-32">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl tracking-tight mb-4">
+        Simple, Transparent Pricing
+      </h1>
+      <p class="text-xl text-gray-600">
+        Choose the right plan to list your properties and reach thousands of verified tenants. No hidden fees.
+      </p>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-3 max-w-md mx-auto lg:max-w-none">
+      {% for plan in plans %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col relative {% if plan.name|lower == 'premium' %}ring-2 ring-emerald-500/20{% endif %}">
+          
+          {% if plan.name|lower == 'premium' %}
+            <div class="bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider text-center py-1.5 w-full">
+              Most Popular
+            </div>
+          {% endif %}
+
+          <div class="p-8 sm:p-10 flex-1 flex flex-col">
+            <h3 class="text-2xl font-semibold text-gray-900 mb-2">{{ plan.name }}</h3>
+            
+            <p class="mt-4 mb-6">
+              <span class="text-4xl font-extrabold text-gray-900">GH₵ {{ plan.price }}</span>
+              {% if plan.duration_days > 0 %}
+                <span class="text-base font-medium text-gray-500">/ {{ plan.duration_days }} days</span>
+              {% endif %}
+            </p>
+            
+            <p class="text-gray-600 mb-8 min-h-[3rem]">
+              {{ plan.description|default:"Get access to our platform to list your properties." }}
+            </p>
+
+            <ul class="space-y-4 mb-8 flex-1">
+              <li class="flex items-start">
+                <i class="fa-solid fa-check text-emerald-500 mt-1 mr-3"></i>
+                <span class="text-gray-600">Up to <strong class="text-gray-900">{{ plan.maximum_listings }}</strong> active listings</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fa-solid fa-check text-emerald-500 mt-1 mr-3"></i>
+                <span class="text-gray-600">Direct tenant inquiries</span>
+              </li>
+              <li class="flex items-start">
+                <i class="fa-solid fa-check text-emerald-500 mt-1 mr-3"></i>
+                <span class="text-gray-600">Priority support</span>
+              </li>
+            </ul>
+
+            <a href="{% url 'account:register' %}" class="w-full block text-center rounded-xl py-3.5 px-4 text-base font-semibold transition-colors
+              {% if plan.name|lower == 'premium' %}
+                bg-emerald-600 text-white hover:bg-emerald-700
+              {% else %}
+                bg-emerald-50 text-emerald-700 hover:bg-emerald-100
+              {% endif %}">
+              Get Started
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-span-3 text-center py-12">
+          <p class="text-gray-500 text-lg">No pricing plans are currently available. Please check back later.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</main>
+{% endblock %}

@@ -7,6 +7,103 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        /* User profile dropdown menu (mirrors landlord base.html) */
+        .user-profile-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 220px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+            padding: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: all 0.15s ease;
+            z-index: 200;
+        }
+        .user-profile-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .user-profile-menu-header {
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px 10px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-profile-menu-header strong {
+            font-size: 13px;
+            color: #0f172a;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-header span {
+            font-size: 11px;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+        }
+        .user-profile-menu-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .user-profile-menu-item:hover {
+            background: #f0fdf4;
+            color: #059669;
+        }
+        .user-profile-menu-item:hover i {
+            color: #059669;
+        }
+        .logout-form {
+            padding: 0;
+            margin: 0;
+        }
+        .logout-item {
+            color: #ef4444;
+        }
+        .logout-item i {
+            color: #ef4444;
+        }
+        .logout-item:hover {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .logout-item:hover i {
+            color: #ef4444;
+        }
+        .user-profile-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 6px 4px;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 antialiased">
 
@@ -227,105 +324,7 @@
             </main>
         </div>
     </div>
-
-    <style>
-        /* User profile dropdown menu (mirrors landlord base.html) */
-        .user-profile-menu {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            min-width: 220px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-            padding: 8px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-6px);
-            transition: all 0.15s ease;
-            z-index: 200;
-        }
-        .user-profile-menu.open {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .user-profile-menu-header {
-            display: flex;
-            flex-direction: column;
-            padding: 8px 10px 10px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .user-profile-menu-header strong {
-            font-size: 13px;
-            color: #0f172a;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .user-profile-menu-header span {
-            font-size: 11px;
-            color: #64748b;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .user-profile-menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 9px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            text-decoration: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            text-align: left;
-        }
-        .user-profile-menu-item i {
-            width: 16px;
-            text-align: center;
-            font-size: 14px;
-            color: #64748b;
-        }
-        .user-profile-menu-item:hover {
-            background: #f0fdf4;
-            color: #059669;
-        }
-        .user-profile-menu-item:hover i {
-            color: #059669;
-        }
-        .logout-form {
-            padding: 0;
-            margin: 0;
-        }
-        .logout-item {
-            color: #ef4444;
-        }
-        .logout-item i {
-            color: #ef4444;
-        }
-        .logout-item:hover {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-        .logout-item:hover i {
-            color: #ef4444;
-        }
-        .user-profile-menu-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 6px 4px;
-        }
-    </style>
-
-    <script>
+<script>
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
 

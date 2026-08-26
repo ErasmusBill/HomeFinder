@@ -7,259 +7,8 @@
     {% load static tailwind_tags %}
     {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    {% block extra_head %}{% endblock %}
-</head>
-<body>
-
-    <div class="dashboard-wrapper">
-
-        <!-- Mobile Sidebar Backdrop Overlay -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-        <!-- Sidebar Navigation -->
-        <aside class="dashboard-sidebar" id="dashboardSidebar">
-            <div class="sidebar-header">
-                <a href="{% url 'home_finder:home' %}" class="sidebar-logo">
-                    <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="sidebar-logo-img">
-                    <span>VacantHommie</span>
-                </a>
-                <button class="mobile-close-btn" onclick="toggleSidebar()" aria-label="Close navigation menu">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="sidebar-menu-scroll">
-                <!-- Main Links -->
-                <ul class="sidebar-menu-list">
-                    <li>
-                        <a href="{% url 'landloards:landloards_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'landloards_dashboard' %}active{% endif %}">
-                            <i class="fa-solid fa-house"></i> <span>Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Property Setup Category -->
-                <div class="sidebar-section-title">Property Setup</div>
-                <ul class="sidebar-menu-list">
-                    <li>
-                        <a href="{% url 'locations:list_locations' %}" class="sidebar-item {% if request.resolver_match.namespace == 'locations' %}active{% endif %}">
-                            <i class="fa-solid fa-location-dot"></i> <span>Browse Locations</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'landloards:amenity_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'amenity_list,create_amenity,update_amenity,delete_amenity' %}active{% endif %}">
-                            <i class="fa-solid fa-layer-group"></i> <span>Amenities</span>
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Setup Alert Banner Box inside Sidebar -->
-                <div class="sidebar-setup-alert">
-                    <div class="alert-title"><i class="fa-solid fa-triangle-exclamation"></i> Complete Setup First</div>
-                    <p>Add amenities and verify your identity before creating your property.</p>
-                    <a href="{% url 'landloards:landloards_dashboard'%}" class="btn-setup-guide"><i class="fa-solid fa-book-open"></i> View Setup Guide</a>
-                </div>
-
-                <!-- Property Management Category -->
-                <div class="sidebar-section-title">Property Management</div>
-                <ul class="sidebar-menu-list">
-                    <li>
-                        <a href="{% url 'landloards:property_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'property_list,property_detail,update_property,delete_property,verify_property,add_property_media,delete_property_media' %}active{% endif %}">
-                            <i class="fa-solid fa-building"></i> <span>My Properties</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'landloards:create_property' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_property' %}active{% endif %}">
-                            <i class="fa-solid fa-circle-plus"></i> <span>Add New Property</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'landloards:viewing_requests' %}"
-                           class="sidebar-item {% if request.resolver_match.url_name in 'viewing_requests,viewing_request_detail,reschedule_viewing_request' %}active{% endif %}">
-                            <i class="fa-regular fa-calendar-check"></i> <span>Viewing Requests</span>
-                            {% if landlord_viewing_pending_count %}
-                                <span class="badge-pill amber">{{ landlord_viewing_pending_count }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> <span>Tenants</span></a></li>
-                </ul>
-
-                <!-- Account Category -->
-                <div class="sidebar-section-title">Account</div>
-                <ul class="sidebar-menu-list">
-                    <li>
-                        <a href="{% url 'landloards:list_landlord_subscription' %}" class="sidebar-item {% if request.resolver_match.namespace == 'subscription' or request.resolver_match.url_name == 'list_landlord_subscription' %}active{% endif %}">
-                            <i class="fa-solid fa-id-card"></i> <span>Subscription</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'landloards:landlord_document_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'landlord_document_list,create_landlord_document,update_landlord_document,delete_landlord_document' %}active{% endif %}">
-                            <i class="fa-solid fa-file-shield"></i> <span>Documents & Verification</span>
-                            {% if pending_documents_count %}
-                            <span class="badge-pill amber">{{ pending_documents_count }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-<!--                    <li>-->
-<!--                        <a href="#" class="sidebar-item">-->
-<!--                            <i class="fa-solid fa-message"></i> Messages-->
-<!--                            <span class="badge-pill green">5</span>-->
-<!--                        </a>-->
-<!--                    </li>-->
-                    <li>
-                        <a href="{% url 'notifications:list-notifications' %}" class="sidebar-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
-                            <i class="fa-regular fa-bell"></i> <span>Notifications</span>
-                        </a>
-                    </li>
-                    <li><a href="{% url 'account:settings' %}" class="sidebar-item"><i class="fa-solid fa-gear"></i> <span>Account Settings</span></a></li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-regular fa-circle-question"></i> <span>Help & Support</span></a></li>
-                </ul>
-            </div>
-
-            <!-- Sidebar Footer Logout -->
-            <div class="sidebar-footer">
-                <form method="POST" action="{% url 'account:logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn-action">
-                        <i class="fa-solid fa-right-from-bracket"></i> Log Out
-                    </button>
-                </form>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="dashboard-main-content">
-
-            <!-- Top Navbar -->
-            <header class="dashboard-top-navbar">
-                <div class="top-navbar-left">
-                    <button class="hamburger-menu-btn" onclick="toggleSidebar()" aria-label="Toggle navigation menu">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="welcome-text-block">
-                       {% if request.user.is_authenticated %}
-    <h1>Welcome back, {{ request.user.full_name }}!</h1>
-{% else %}
-    <h1>Welcome, Guest!</h1>
-{% endif %}
-                    </div>
-                </div>
-
-                <div class="top-navbar-right">
-                    <!-- Global Search -->
-                    <div class="top-search-bar">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search anything...">
-                    </div>
-
-                    <!-- Mobile Search Trigger (shown only on small screens) -->
-                    <button class="nav-icon-btn mobile-search-btn" type="button" aria-label="Search" onclick="toggleMobileSearch()">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-
-                    <!-- Action Icons -->
-                    <div class="top-nav-actions">
-                        {% if request.user.is_authenticated and request.user.role == 'landlord' %}
-                            {% if request.user.is_trial_active %}
-                            <span class="trial-status-pill active" title="Your free trial is still running">
-                                <i class="fa-solid fa-hourglass-half"></i>
-                                <span class="trial-status-text">{{ request.user.trial_days_remaining }} day{{ request.user.trial_days_remaining|pluralize }} left</span>
-                            </span>
-                            {% elif request.user.is_trial_expired %}
-                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="trial-status-pill expired" title="Your free trial has ended — subscribe to keep going">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                                <span class="trial-status-text">Trial ended</span>
-                            </a>
-                            {% endif %}
-                        {% endif %}
-
-                        {% if request.user.is_authenticated and not request.user.is_email_verified %}
-                        <a href="{% url 'account:settings' %}" class="nav-icon-btn unverified-badge" title="Your email is not verified yet">
-                            <i class="fa-solid fa-envelope-circle-check"></i>
-                        </a>
-                        {% endif %}
-
-                        <a href="#" class="nav-icon-btn nav-icon-messages" title="Messages">
-                            <i class="fa-regular fa-comment-dots"></i>
-                        </a>
-                        <a href="{% url 'notifications:list-notifications' %}" class="nav-icon-btn notification-bell" title="Notifications">
-                            <i class="fa-regular fa-bell"></i>
-                        </a>
-                    </div>
-
-                    <!-- User Profile Dropdown info -->
-                    {% if request.user.is_authenticated %}
-                    <div class="top-user-profile-wrap">
-                        <button type="button" class="top-user-profile" id="userProfileTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="userProfileMenu">
-                            {% if request.user.role == 'landlord' and request.user.landlord_profile.profile_picture %}
-                                <img src="{{ request.user.landlord_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
-                            {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
-                                <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
-                            {% else %}
-                                <span class="top-user-initials">{{ request.user.full_name|default:request.user.email|slice:":2"|upper }}</span>
-                            {% endif %}
-                            <div class="user-meta-info">
-                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
-                                <span>{{ request.user.get_role_display }}</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </button>
-
-                        <div class="user-profile-menu" id="userProfileMenu">
-                            <div class="user-profile-menu-header">
-                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
-                                <span>{{ request.user.email }}</span>
-                            </div>
-                            <a href="{% url 'account:settings' %}" class="user-profile-menu-item">
-                                <i class="fa-solid fa-gear"></i> Account Settings
-                            </a>
-                            <div class="user-profile-menu-divider"></div>
-                            <form method="POST" action="{% url 'account:logout' %}" class="user-profile-menu-item logout-form">
-                                {% csrf_token %}
-                                <button type="submit" class="user-profile-menu-item logout-item">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="top-user-profile">
-                        <a href="{% url 'account:login' %}" class="guest-login-link">Log In</a>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Mobile Search Expandable Row -->
-                <div class="mobile-search-row" id="mobileSearchRow">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search anything...">
-                </div>
-            </header>
-
-            <!-- Page Content Injection Block -->
-            <main class="dashboard-content-body">
-                {% if not hide_trial_banner %}{% include "landloards/_trial_banner.html" %}{% endif %}
-                {% block content %}
-                <!-- Child templates will insert content here -->
-                {% endblock %}
-            </main>
-
-            <!-- Dashboard Footer -->
-            <footer class="dashboard-footer-bar">
-                <p>&copy; 2026 VacantHommie. All rights reserved.</p>
-                <div class="footer-links-inline">
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Help Center</a>
-                </div>
-            </footer>
-
-        </div>
-
-    </div>
-
-    <!-- Scoped Dashboard Styles -->
+    <!-- Anti-FOUC: body hidden until all head CSS is parsed -->
+    <style>body { visibility: hidden; }</style>
     <style>
         :root {
             --sidebar-width: 265px;
@@ -1261,6 +1010,260 @@
             }
         }
     </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<script>document.body.style.visibility="visible";</script>
+
+    <div class="dashboard-wrapper">
+
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="dashboard-sidebar" id="dashboardSidebar">
+            <div class="sidebar-header">
+                <a href="{% url 'home_finder:home' %}" class="sidebar-logo">
+                    <img src="{% static 'images/logo.png' %}" alt="VacantHommie" class="sidebar-logo-img">
+                    <span>VacantHommie</span>
+                </a>
+                <button class="mobile-close-btn" onclick="toggleSidebar()" aria-label="Close navigation menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-menu-scroll">
+                <!-- Main Links -->
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <a href="{% url 'landloards:landloards_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'landloards_dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-house"></i> <span>Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Property Setup Category -->
+                <div class="sidebar-section-title">Property Setup</div>
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <a href="{% url 'locations:list_locations' %}" class="sidebar-item {% if request.resolver_match.namespace == 'locations' %}active{% endif %}">
+                            <i class="fa-solid fa-location-dot"></i> <span>Browse Locations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:amenity_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'amenity_list,create_amenity,update_amenity,delete_amenity' %}active{% endif %}">
+                            <i class="fa-solid fa-layer-group"></i> <span>Amenities</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Setup Alert Banner Box inside Sidebar -->
+                <div class="sidebar-setup-alert">
+                    <div class="alert-title"><i class="fa-solid fa-triangle-exclamation"></i> Complete Setup First</div>
+                    <p>Add amenities and verify your identity before creating your property.</p>
+                    <a href="{% url 'landloards:landloards_dashboard'%}" class="btn-setup-guide"><i class="fa-solid fa-book-open"></i> View Setup Guide</a>
+                </div>
+
+                <!-- Property Management Category -->
+                <div class="sidebar-section-title">Property Management</div>
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <a href="{% url 'landloards:property_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'property_list,property_detail,update_property,delete_property,verify_property,add_property_media,delete_property_media' %}active{% endif %}">
+                            <i class="fa-solid fa-building"></i> <span>My Properties</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:create_property' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_property' %}active{% endif %}">
+                            <i class="fa-solid fa-circle-plus"></i> <span>Add New Property</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:viewing_requests' %}"
+                           class="sidebar-item {% if request.resolver_match.url_name in 'viewing_requests,viewing_request_detail,reschedule_viewing_request' %}active{% endif %}">
+                            <i class="fa-regular fa-calendar-check"></i> <span>Viewing Requests</span>
+                            {% if landlord_viewing_pending_count %}
+                                <span class="badge-pill amber">{{ landlord_viewing_pending_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> <span>Tenants</span></a></li>
+                </ul>
+
+                <!-- Account Category -->
+                <div class="sidebar-section-title">Account</div>
+                <ul class="sidebar-menu-list">
+                    <li>
+                        <a href="{% url 'landloards:list_landlord_subscription' %}" class="sidebar-item {% if request.resolver_match.namespace == 'subscription' or request.resolver_match.url_name == 'list_landlord_subscription' %}active{% endif %}">
+                            <i class="fa-solid fa-id-card"></i> <span>Subscription</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'landloards:landlord_document_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'landlord_document_list,create_landlord_document,update_landlord_document,delete_landlord_document' %}active{% endif %}">
+                            <i class="fa-solid fa-file-shield"></i> <span>Documents & Verification</span>
+                            {% if pending_documents_count %}
+                            <span class="badge-pill amber">{{ pending_documents_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+<!--                    <li>-->
+<!--                        <a href="#" class="sidebar-item">-->
+<!--                            <i class="fa-solid fa-message"></i> Messages-->
+<!--                            <span class="badge-pill green">5</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+                    <li>
+                        <a href="{% url 'notifications:list-notifications' %}" class="sidebar-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
+                            <i class="fa-regular fa-bell"></i> <span>Notifications</span>
+                        </a>
+                    </li>
+                    <li><a href="{% url 'account:settings' %}" class="sidebar-item"><i class="fa-solid fa-gear"></i> <span>Account Settings</span></a></li>
+                    <li><a href="#" class="sidebar-item"><i class="fa-regular fa-circle-question"></i> <span>Help & Support</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Sidebar Footer Logout -->
+            <div class="sidebar-footer">
+                <form method="POST" action="{% url 'account:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn-action">
+                        <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="dashboard-main-content">
+
+            <!-- Top Navbar -->
+            <header class="dashboard-top-navbar">
+                <div class="top-navbar-left">
+                    <button class="hamburger-menu-btn" onclick="toggleSidebar()" aria-label="Toggle navigation menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="welcome-text-block">
+                       {% if request.user.is_authenticated %}
+    <h1>Welcome back, {{ request.user.full_name }}!</h1>
+{% else %}
+    <h1>Welcome, Guest!</h1>
+{% endif %}
+                    </div>
+                </div>
+
+                <div class="top-navbar-right">
+                    <!-- Global Search -->
+                    <div class="top-search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search anything...">
+                    </div>
+
+                    <!-- Mobile Search Trigger (shown only on small screens) -->
+                    <button class="nav-icon-btn mobile-search-btn" type="button" aria-label="Search" onclick="toggleMobileSearch()">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+
+                    <!-- Action Icons -->
+                    <div class="top-nav-actions">
+                        {% if request.user.is_authenticated and request.user.role == 'landlord' %}
+                            {% if request.user.is_trial_active %}
+                            <span class="trial-status-pill active" title="Your free trial is still running">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span class="trial-status-text">{{ request.user.trial_days_remaining }} day{{ request.user.trial_days_remaining|pluralize }} left</span>
+                            </span>
+                            {% elif request.user.is_trial_expired %}
+                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="trial-status-pill expired" title="Your free trial has ended — subscribe to keep going">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span class="trial-status-text">Trial ended</span>
+                            </a>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if request.user.is_authenticated and not request.user.is_email_verified %}
+                        <a href="{% url 'account:settings' %}" class="nav-icon-btn unverified-badge" title="Your email is not verified yet">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
+                        </a>
+                        {% endif %}
+
+                        <a href="#" class="nav-icon-btn nav-icon-messages" title="Messages">
+                            <i class="fa-regular fa-comment-dots"></i>
+                        </a>
+                        <a href="{% url 'notifications:list-notifications' %}" class="nav-icon-btn notification-bell" title="Notifications">
+                            <i class="fa-regular fa-bell"></i>
+                        </a>
+                    </div>
+
+                    <!-- User Profile Dropdown info -->
+                    {% if request.user.is_authenticated %}
+                    <div class="top-user-profile-wrap">
+                        <button type="button" class="top-user-profile" id="userProfileTrigger" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false" aria-controls="userProfileMenu">
+                            {% if request.user.role == 'landlord' and request.user.landlord_profile.profile_picture %}
+                                <img src="{{ request.user.landlord_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
+                            {% elif request.user.role == 'tenant' and request.user.tenant_profile.profile_picture %}
+                                <img src="{{ request.user.tenant_profile.profile_picture.url }}" alt="{{ request.user.full_name|default:request.user.email }}">
+                            {% else %}
+                                <span class="top-user-initials">{{ request.user.full_name|default:request.user.email|slice:":2"|upper }}</span>
+                            {% endif %}
+                            <div class="user-meta-info">
+                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
+                                <span>{{ request.user.get_role_display }}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+
+                        <div class="user-profile-menu" id="userProfileMenu">
+                            <div class="user-profile-menu-header">
+                                <strong>{{ request.user.full_name|default:request.user.email }}</strong>
+                                <span>{{ request.user.email }}</span>
+                            </div>
+                            <a href="{% url 'account:settings' %}" class="user-profile-menu-item">
+                                <i class="fa-solid fa-gear"></i> Account Settings
+                            </a>
+                            <div class="user-profile-menu-divider"></div>
+                            <form method="POST" action="{% url 'account:logout' %}" class="user-profile-menu-item logout-form">
+                                {% csrf_token %}
+                                <button type="submit" class="user-profile-menu-item logout-item">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="top-user-profile">
+                        <a href="{% url 'account:login' %}" class="guest-login-link">Log In</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Search Expandable Row -->
+                <div class="mobile-search-row" id="mobileSearchRow">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search anything...">
+                </div>
+            </header>
+
+            <!-- Page Content Injection Block -->
+            <main class="dashboard-content-body">
+                {% if not hide_trial_banner %}{% include "landloards/_trial_banner.html" %}{% endif %}
+                {% block content %}
+                <!-- Child templates will insert content here -->
+                {% endblock %}
+            </main>
+
+            <!-- Dashboard Footer -->
+            <footer class="dashboard-footer-bar">
+                <p>&copy; 2026 VacantHommie. All rights reserved.</p>
+                <div class="footer-links-inline">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Help Center</a>
+                </div>
+            </footer>
+
+        </div>
+
+    </div>
+
+    <!-- Scoped Dashboard Styles -->
 
     <!-- Mobile Drawer Script Handler -->
     <script>

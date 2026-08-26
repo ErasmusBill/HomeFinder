@@ -1,7 +1,6 @@
 {% extends 'home_finder/base.html' %}
-{% load static %}
-{% block content %}
 
+{% block extra_head %}
 <style>
     /* ============================================================
        Responsive layer for the home page.
@@ -247,8 +246,9 @@
         }
     }
 </style>
-
-    <section class="hero">
+{% endblock %}
+{% load static %}
+{% block content %}<section class="hero">
         <div class="hero-content">
             <h1>Find <span>Verified</span> Homes. Rent with Confidence.</h1>
             <p>VacantHommie connects you with verified landlords and quality properties across Ghana. No scams. No stress. Just the right place for you.</p>

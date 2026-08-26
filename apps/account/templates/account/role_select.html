@@ -1,88 +1,6 @@
 {% extends 'home_finder/base.html' %}
-{% load static %}
 
-{% block title %}Join VacantHommie — Find a Home or List Your Property{% endblock %}
-
-{% block content %}
-<section class="rs-section">
-
-    <div class="rs-container">
-
-        <!-- Header -->
-        <div class="rs-header">
-            {% for message in messages %}
-                {% if message.tags == 'success' %}
-                    <div class="rs-msg rs-msg-success" role="status" aria-live="polite">
-                        <i class="fa-solid fa-circle-check"></i> {{ message }}
-                    </div>
-                {% else %}
-                    <div class="rs-msg rs-msg-error" role="alert" aria-live="polite">
-                        <i class="fa-solid fa-circle-exclamation"></i> {{ message }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-
-            <a href="{% url 'home_finder:home' %}" class="rs-back-link">
-                <i class="fa-solid fa-arrow-left"></i> Back to Home
-            </a>
-            <div class="rs-logo-badge">
-                <i class="fa-solid fa-house-chimney"></i>
-            </div>
-            <h1>Welcome to <span>VacantHommie</span></h1>
-            <p>Tell us who you are so we can personalise your experience.</p>
-        </div>
-
-        <!-- Cards -->
-        <div class="rs-cards">
-
-            <!-- TENANT -->
-            <a href="{% url 'account:register' %}?role=tenant" class="rs-card rs-tenant" id="join-as-tenant">
-                <div class="rs-card-icon tenant-icon">
-                    <i class="fa-solid fa-magnifying-glass-location"></i>
-                </div>
-                <div class="rs-card-badge">Free forever</div>
-                <h2>I'm a <strong>Tenant</strong></h2>
-                <p>Find your perfect home, save favourites and apply directly to landlords.</p>
-                <ul class="rs-perks">
-                    <li><i class="fa-solid fa-check"></i> Browse thousands of listings</li>
-                    <li><i class="fa-solid fa-check"></i> Save favourite properties</li>
-                    <li><i class="fa-solid fa-check"></i> Contact landlords directly</li>
-                    <li><i class="fa-solid fa-check"></i> Set property alerts</li>
-                </ul>
-                <div class="rs-cta tenant-cta">
-                    Find a Home <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </a>
-
-            <!-- LANDLORD -->
-            <a href="{% url 'account:register' %}?role=landlord" class="rs-card rs-landlord" id="join-as-landlord">
-                <div class="rs-card-icon landlord-icon">
-                    <i class="fa-solid fa-building-user"></i>
-                </div>
-                <div class="rs-card-badge landlord-badge">30 -day free trial</div>
-                <h2>I'm a <strong>Landlord</strong></h2>
-                <p>List your properties, manage tenants and grow your rental portfolio.</p>
-                <ul class="rs-perks">
-                    <li><i class="fa-solid fa-check"></i> List unlimited properties</li>
-                    <li><i class="fa-solid fa-check"></i> Tenant screening tools</li>
-                    <li><i class="fa-solid fa-check"></i> Analytics dashboard</li>
-                    <li><i class="fa-solid fa-check"></i> Priority support</li>
-                </ul>
-                <div class="rs-cta landlord-cta">
-                    Start Free Trial <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </a>
-
-        </div>
-
-        <!-- Footer note -->
-        <p class="rs-footer-note">
-            Already have an account? <a href="{% url 'account:login' %}">Log in</a>
-        </p>
-
-    </div>
-</section>
-
+{% block extra_head %}
 <style>
 * { box-sizing: border-box; }
 
@@ -321,5 +239,87 @@
     .rs-card { padding: 30px 24px; }
 }
 </style>
-
 {% endblock %}
+{% load static %}
+
+{% block title %}Join VacantHommie — Find a Home or List Your Property{% endblock %}
+
+{% block content %}
+<section class="rs-section">
+
+    <div class="rs-container">
+
+        <!-- Header -->
+        <div class="rs-header">
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="rs-msg rs-msg-success" role="status" aria-live="polite">
+                        <i class="fa-solid fa-circle-check"></i> {{ message }}
+                    </div>
+                {% else %}
+                    <div class="rs-msg rs-msg-error" role="alert" aria-live="polite">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <a href="{% url 'home_finder:home' %}" class="rs-back-link">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </a>
+            <div class="rs-logo-badge">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <h1>Welcome to <span>VacantHommie</span></h1>
+            <p>Tell us who you are so we can personalise your experience.</p>
+        </div>
+
+        <!-- Cards -->
+        <div class="rs-cards">
+
+            <!-- TENANT -->
+            <a href="{% url 'account:register' %}?role=tenant" class="rs-card rs-tenant" id="join-as-tenant">
+                <div class="rs-card-icon tenant-icon">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </div>
+                <div class="rs-card-badge">Free forever</div>
+                <h2>I'm a <strong>Tenant</strong></h2>
+                <p>Find your perfect home, save favourites and apply directly to landlords.</p>
+                <ul class="rs-perks">
+                    <li><i class="fa-solid fa-check"></i> Browse thousands of listings</li>
+                    <li><i class="fa-solid fa-check"></i> Save favourite properties</li>
+                    <li><i class="fa-solid fa-check"></i> Contact landlords directly</li>
+                    <li><i class="fa-solid fa-check"></i> Set property alerts</li>
+                </ul>
+                <div class="rs-cta tenant-cta">
+                    Find a Home <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- LANDLORD -->
+            <a href="{% url 'account:register' %}?role=landlord" class="rs-card rs-landlord" id="join-as-landlord">
+                <div class="rs-card-icon landlord-icon">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div class="rs-card-badge landlord-badge">30 -day free trial</div>
+                <h2>I'm a <strong>Landlord</strong></h2>
+                <p>List your properties, manage tenants and grow your rental portfolio.</p>
+                <ul class="rs-perks">
+                    <li><i class="fa-solid fa-check"></i> List unlimited properties</li>
+                    <li><i class="fa-solid fa-check"></i> Tenant screening tools</li>
+                    <li><i class="fa-solid fa-check"></i> Analytics dashboard</li>
+                    <li><i class="fa-solid fa-check"></i> Priority support</li>
+                </ul>
+                <div class="rs-cta landlord-cta">
+                    Start Free Trial <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Footer note -->
+        <p class="rs-footer-note">
+            Already have an account? <a href="{% url 'account:login' %}">Log in</a>
+        </p>
+
+    </div>
+</section>{% endblock %}

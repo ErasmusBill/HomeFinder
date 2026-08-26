@@ -1,183 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}Pricing Plans | VacantHommie{% endblock %}
-
-{% block content %}
-<div class="pricing-page-wrapper">
-
-    <!-- Page Header -->
-    <div class="page-header-flex pricing-page-header">
-        <div>
-            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-                <ol>
-                    <li><a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a></li>
-                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
-                    <li class="current">Pricing Plans</li>
-                </ol>
-            </nav>
-            <h1 class="page-title">Choose Your Plan</h1>
-            <p class="page-subtitle">Simple, transparent pricing. Pick a plan that fits the size of your portfolio.</p>
-        </div>
-        <div class="pricing-header-actions">
-            {% if request.user.is_authenticated and active_subscription %}
-                <a href="{% url 'landloards:list_landlord_subscription' %}" class="header-pill-action">
-                    <i class="fa-solid fa-receipt"></i> My Subscription
-                </a>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Django messages -->
-    {% if messages %}
-    <div class="messages-stack">
-        {% for message in messages %}
-        <div class="django-message message-{{ message.tags|default:'info' }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Hero banner -->
-    <div class="pricing-hero-card">
-        <div class="pricing-hero-content">
-            <span class="hero-eyebrow"><i class="fa-solid fa-bolt"></i> Subscription Plans</span>
-            <h2 class="hero-title">List more properties, reach more tenants.</h2>
-            <p class="hero-subtitle">Every plan includes verified-listing badges, in-app messaging, and 24/7 support. Upgrade or downgrade anytime.</p>
-        </div>
-        <div class="pricing-hero-icon">
-            <i class="fa-solid fa-crown"></i>
-        </div>
-    </div>
-
-    <!-- Billing cycle note -->
-    <div class="pricing-billing-note">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>All prices are in <strong>Ghana Cedis (GH&#8373;)</strong> and billed per plan duration. Pay securely via Paystack.</span>
-    </div>
-
-    <!-- Plans grid -->
-    {% if plans %}
-        <div class="plans-grid pricing-plans-grid">
-            {% for plan in plans %}
-            <div class="plan-card {% if plan.is_free %}plan-card-free{% endif %} {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
-                {% if plan.is_free %}
-                <div class="plan-free-flag">
-                    <i class="fa-solid fa-gift"></i> Free
-                </div>
-                {% elif active_subscription and active_subscription.plan.id == plan.id %}
-                <div class="plan-current-flag">
-                    <i class="fa-solid fa-check"></i> Current Plan
-                </div>
-                {% endif %}
-
-                <div class="plan-card-body">
-                    <h4 class="plan-card-name">{{ plan.name }}</h4>
-                    <p class="plan-card-desc">{{ plan.description|default:"A great fit for landlords at this level." }}</p>
-
-                    <div class="plan-card-price-row">
-                        {% if plan.is_free %}
-                            <span class="plan-price-amount">Free</span>
-                            <span class="plan-price-period">forever</span>
-                        {% else %}
-                            <span class="plan-price-amount">GH&#8373; {{ plan.price|floatformat:2 }}</span>
-                            <span class="plan-price-period">/ {{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</span>
-                        {% endif %}
-                    </div>
-
-                    <ul class="plan-feature-list">
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            Up to <strong>{{ plan.maximum_listings }}</strong> active listing{{ plan.maximum_listings|pluralize }}
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            <strong>{{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</strong> of full access
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            Verified-listing badge
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            In-app tenant messaging
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            Email &amp; in-app support
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="plan-card-action">
-                    {% if active_subscription and active_subscription.plan.id == plan.id %}
-                        <button disabled class="plan-btn plan-btn-disabled">
-                            <i class="fa-solid fa-check"></i> Current Plan
-                        </button>
-                    {% elif plan.is_free %}
-                        {% if request.user.is_authenticated %}
-                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
-                                Activate Free Plan
-                            </a>
-                        {% else %}
-                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
-                                Sign in to activate
-                            </a>
-                        {% endif %}
-                    {% else %}
-                        {% if request.user.is_authenticated %}
-                            <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
-                                {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
-                            </a>
-                        {% else %}
-                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-primary">
-                                Sign in to subscribe
-                            </a>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="dashboard-card-box plans-empty-state-card">
-            <div class="plans-empty-state">
-                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
-                <p class="plans-empty-title">No subscription plans are currently available.</p>
-                <p class="plans-empty-sub">Please check back later, or contact support if you need help.</p>
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- Trust / FAQ footer -->
-    <div class="pricing-trust-grid">
-        <div class="trust-tile">
-            <div class="trust-icon green"><i class="fa-solid fa-shield-halved"></i></div>
-            <div>
-                <h4>Secure payments</h4>
-                <p>All payments are processed securely via Paystack &#8212; we never see your card details.</p>
-            </div>
-        </div>
-        <div class="trust-tile">
-            <div class="trust-icon blue"><i class="fa-solid fa-arrows-rotate"></i></div>
-            <div>
-                <h4>Switch anytime</h4>
-                <p>Upgrade instantly or schedule a downgrade to take effect at the end of your current cycle.</p>
-            </div>
-        </div>
-        <div class="trust-tile">
-            <div class="trust-icon purple"><i class="fa-solid fa-headset"></i></div>
-            <div>
-                <h4>Real support</h4>
-                <p>Email and in-app support is included on every plan &#8212; we answer in hours, not days.</p>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Page Specific Styling (matches dashboard / subscription design system) -->
+{% block extra_head %}
 <style>
     .pricing-page-wrapper {
         display: flex;
@@ -587,3 +410,182 @@
     }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block title %}Pricing Plans | VacantHommie{% endblock %}
+
+{% block content %}
+<div class="pricing-page-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header-flex pricing-page-header">
+        <div>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol>
+                    <li><a href="{% url 'landloards:landloards_dashboard' %}">Dashboard</a></li>
+                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
+                    <li class="current">Pricing Plans</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">Choose Your Plan</h1>
+            <p class="page-subtitle">Simple, transparent pricing. Pick a plan that fits the size of your portfolio.</p>
+        </div>
+        <div class="pricing-header-actions">
+            {% if request.user.is_authenticated and active_subscription %}
+                <a href="{% url 'landloards:list_landlord_subscription' %}" class="header-pill-action">
+                    <i class="fa-solid fa-receipt"></i> My Subscription
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages-stack">
+        {% for message in messages %}
+        <div class="django-message message-{{ message.tags|default:'info' }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero banner -->
+    <div class="pricing-hero-card">
+        <div class="pricing-hero-content">
+            <span class="hero-eyebrow"><i class="fa-solid fa-bolt"></i> Subscription Plans</span>
+            <h2 class="hero-title">List more properties, reach more tenants.</h2>
+            <p class="hero-subtitle">Every plan includes verified-listing badges, in-app messaging, and 24/7 support. Upgrade or downgrade anytime.</p>
+        </div>
+        <div class="pricing-hero-icon">
+            <i class="fa-solid fa-crown"></i>
+        </div>
+    </div>
+
+    <!-- Billing cycle note -->
+    <div class="pricing-billing-note">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>All prices are in <strong>Ghana Cedis (GH&#8373;)</strong> and billed per plan duration. Pay securely via Paystack.</span>
+    </div>
+
+    <!-- Plans grid -->
+    {% if plans %}
+        <div class="plans-grid pricing-plans-grid">
+            {% for plan in plans %}
+            <div class="plan-card {% if plan.is_free %}plan-card-free{% endif %} {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
+                {% if plan.is_free %}
+                <div class="plan-free-flag">
+                    <i class="fa-solid fa-gift"></i> Free
+                </div>
+                {% elif active_subscription and active_subscription.plan.id == plan.id %}
+                <div class="plan-current-flag">
+                    <i class="fa-solid fa-check"></i> Current Plan
+                </div>
+                {% endif %}
+
+                <div class="plan-card-body">
+                    <h4 class="plan-card-name">{{ plan.name }}</h4>
+                    <p class="plan-card-desc">{{ plan.description|default:"A great fit for landlords at this level." }}</p>
+
+                    <div class="plan-card-price-row">
+                        {% if plan.is_free %}
+                            <span class="plan-price-amount">Free</span>
+                            <span class="plan-price-period">forever</span>
+                        {% else %}
+                            <span class="plan-price-amount">GH&#8373; {{ plan.price|floatformat:2 }}</span>
+                            <span class="plan-price-period">/ {{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</span>
+                        {% endif %}
+                    </div>
+
+                    <ul class="plan-feature-list">
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Up to <strong>{{ plan.maximum_listings }}</strong> active listing{{ plan.maximum_listings|pluralize }}
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            <strong>{{ plan.duration_days }} day{{ plan.duration_days|pluralize }}</strong> of full access
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Verified-listing badge
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            In-app tenant messaging
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Email &amp; in-app support
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="plan-card-action">
+                    {% if active_subscription and active_subscription.plan.id == plan.id %}
+                        <button disabled class="plan-btn plan-btn-disabled">
+                            <i class="fa-solid fa-check"></i> Current Plan
+                        </button>
+                    {% elif plan.is_free %}
+                        {% if request.user.is_authenticated %}
+                            <a href="{% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
+                                Activate Free Plan
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-secondary">
+                                Sign in to activate
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {% if request.user.is_authenticated %}
+                            <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
+                                {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account:login' %}?next={% url 'landloards:list_landlord_subscription' %}" class="plan-btn plan-btn-primary">
+                                Sign in to subscribe
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="dashboard-card-box plans-empty-state-card">
+            <div class="plans-empty-state">
+                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
+                <p class="plans-empty-title">No subscription plans are currently available.</p>
+                <p class="plans-empty-sub">Please check back later, or contact support if you need help.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Trust / FAQ footer -->
+    <div class="pricing-trust-grid">
+        <div class="trust-tile">
+            <div class="trust-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+                <h4>Secure payments</h4>
+                <p>All payments are processed securely via Paystack &#8212; we never see your card details.</p>
+            </div>
+        </div>
+        <div class="trust-tile">
+            <div class="trust-icon blue"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <div>
+                <h4>Switch anytime</h4>
+                <p>Upgrade instantly or schedule a downgrade to take effect at the end of your current cycle.</p>
+            </div>
+        </div>
+        <div class="trust-tile">
+            <div class="trust-icon purple"><i class="fa-solid fa-headset"></i></div>
+            <div>
+                <h4>Real support</h4>
+                <p>Email and in-app support is included on every plan &#8212; we answer in hours, not days.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Page Specific Styling (matches dashboard / subscription design system) -->{% endblock %}

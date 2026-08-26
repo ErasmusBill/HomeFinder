@@ -1,7 +1,6 @@
 {% extends 'home_finder/base.html' %}
-{% load static %}
 
-{% block content %}
+{% block extra_head %}
 <style>
     /* ============================================================
         Responsive layout and sizing definitions for property_detail.html
@@ -707,8 +706,10 @@
         }
     }
 </style>
+{% endblock %}
+{% load static %}
 
-<!-- Breadcrumb Navigation -->
+{% block content %}<!-- Breadcrumb Navigation -->
 <div class="breadcrumb-container">
     <div class="breadcrumb">
         <a href="{% url 'home_finder:home' %}">Home</a>

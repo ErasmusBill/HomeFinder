@@ -1,95 +1,6 @@
 <section aria-labelledby="tenant-profile-heading" class="tp-card">
-    <header class="tp-header">
-        <div class="tp-header__intro">
-            <div class="tp-header__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            </div>
-            <div>
-                <h2 id="tenant-profile-heading" class="tp-header__title">Tenant profile</h2>
-                <p class="tp-header__subtitle">These optional details help us support you if we ever need to get in touch.</p>
-            </div>
-        </div>
-        <span class="tp-badge">Tenancy details</span>
-    </header>
 
-    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="tp-form" id="tenant-profile-form" novalidate>
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-        <div class="tp-alert">
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-            <span>{{ form.non_field_errors }}</span>
-        </div>
-        {% endif %}
-
-        <div class="tp-layout">
-            <div class="tp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
-                <div class="tp-photo__preview" id="tp-photo-preview">
-                    {% if form.instance.profile_picture %}
-                        <img src="{{ form.instance.profile_picture.url }}" alt="Tenant profile photo" id="tp-photo-img">
-                    {% else %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="tp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        <img src="" alt="Tenant profile photo" id="tp-photo-img" style="display:none;">
-                    {% endif %}
-                </div>
-                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
-                {{ form.profile_picture }}
-                {% if form.profile_picture.errors %}
-                    <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
-                {% else %}
-                    <p class="tp-hint">A photo is optional and only used on your account.</p>
-                {% endif %}
-            </div>
-
-            <div class="tp-grid">
-                <div class="tp-field{% if form.emergency_contact_name.errors %} has-error{% endif %}">
-                    <label for="{{ form.emergency_contact_name.id_for_label }}">
-                        Emergency contact name{% if form.emergency_contact_name.field.required %} <span class="tp-required">*</span>{% endif %}
-                    </label>
-                    {{ form.emergency_contact_name }}
-                    {% if form.emergency_contact_name.errors %}
-                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_name.errors.0 }}</p>
-                    {% else %}
-                        <p class="tp-hint">Someone we can contact if there is an urgent issue.</p>
-                    {% endif %}
-                </div>
-
-                <div class="tp-field{% if form.emergency_contact_phone.errors %} has-error{% endif %}">
-                    <label for="{{ form.emergency_contact_phone.id_for_label }}">
-                        Emergency contact phone{% if form.emergency_contact_phone.field.required %} <span class="tp-required">*</span>{% endif %}
-                    </label>
-                    {{ form.emergency_contact_phone }}
-                    {% if form.emergency_contact_phone.errors %}
-                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_phone.errors.0 }}</p>
-                    {% else %}
-                        <p class="tp-hint">Include a number that is currently active.</p>
-                    {% endif %}
-                </div>
-
-                <div class="tp-field tp-field--full{% if form.employer_name.errors %} has-error{% endif %}">
-                    <label for="{{ form.employer_name.id_for_label }}">
-                        Employer or company name <span class="tp-optional">(optional)</span>
-                    </label>
-                    {{ form.employer_name }}
-                    {% if form.employer_name.errors %}
-                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.employer_name.errors.0 }}</p>
-                    {% else %}
-                        <p class="tp-hint">This is optional and can be updated at any time.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <footer class="tp-footer">
-            <p class="tp-footer__note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Your emergency contact details are kept with your account.</p>
-            <button type="submit" class="tp-btn" id="tp-submit-btn">
-                <i class="fa-solid fa-check" aria-hidden="true"></i>
-                <span id="tp-submit-label">Save tenant profile</span>
-            </button>
-        </footer>
-    </form>
-</section>
-
+{% block extra_head %}
 <style>
     .tp-card {
         overflow: hidden;
@@ -311,8 +222,97 @@
     .tp-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); }
     .tp-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 </style>
+{% endblock %}
+    <header class="tp-header">
+        <div class="tp-header__intro">
+            <div class="tp-header__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <div>
+                <h2 id="tenant-profile-heading" class="tp-header__title">Tenant profile</h2>
+                <p class="tp-header__subtitle">These optional details help us support you if we ever need to get in touch.</p>
+            </div>
+        </div>
+        <span class="tp-badge">Tenancy details</span>
+    </header>
 
-<script>
+    <form method="post" enctype="multipart/form-data" action="{% url 'account:update_profile_information' %}" class="tp-form" id="tenant-profile-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="tp-alert">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span>{{ form.non_field_errors }}</span>
+        </div>
+        {% endif %}
+
+        <div class="tp-layout">
+            <div class="tp-photo{% if form.profile_picture.errors %} has-error{% endif %}">
+                <div class="tp-photo__preview" id="tp-photo-preview">
+                    {% if form.instance.profile_picture %}
+                        <img src="{{ form.instance.profile_picture.url }}" alt="Tenant profile photo" id="tp-photo-img">
+                    {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" id="tp-photo-placeholder"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <img src="" alt="Tenant profile photo" id="tp-photo-img" style="display:none;">
+                    {% endif %}
+                </div>
+                <label for="{{ form.profile_picture.id_for_label }}">Profile photo</label>
+                {{ form.profile_picture }}
+                {% if form.profile_picture.errors %}
+                    <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.profile_picture.errors.0 }}</p>
+                {% else %}
+                    <p class="tp-hint">A photo is optional and only used on your account.</p>
+                {% endif %}
+            </div>
+
+            <div class="tp-grid">
+                <div class="tp-field{% if form.emergency_contact_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}">
+                        Emergency contact name{% if form.emergency_contact_name.field.required %} <span class="tp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">Someone we can contact if there is an urgent issue.</p>
+                    {% endif %}
+                </div>
+
+                <div class="tp-field{% if form.emergency_contact_phone.errors %} has-error{% endif %}">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}">
+                        Emergency contact phone{% if form.emergency_contact_phone.field.required %} <span class="tp-required">*</span>{% endif %}
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.emergency_contact_phone.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">Include a number that is currently active.</p>
+                    {% endif %}
+                </div>
+
+                <div class="tp-field tp-field--full{% if form.employer_name.errors %} has-error{% endif %}">
+                    <label for="{{ form.employer_name.id_for_label }}">
+                        Employer or company name <span class="tp-optional">(optional)</span>
+                    </label>
+                    {{ form.employer_name }}
+                    {% if form.employer_name.errors %}
+                        <p class="tp-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ form.employer_name.errors.0 }}</p>
+                    {% else %}
+                        <p class="tp-hint">This is optional and can be updated at any time.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer class="tp-footer">
+            <p class="tp-footer__note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Your emergency contact details are kept with your account.</p>
+            <button type="submit" class="tp-btn" id="tp-submit-btn">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span id="tp-submit-label">Save tenant profile</span>
+            </button>
+        </footer>
+    </form>
+</section><script>
     (function() {
         const fileInput = document.querySelector('#tenant-profile-form input[type="file"]');
         const img = document.getElementById('tp-photo-img');

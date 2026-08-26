@@ -1,137 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
 
-{% block title %}Propose new time - {{ viewing_request.property.title }}{% endblock %}
-
-{% block content %}
-<div class="vr-reschedule-container">
-
-    <!-- Page Header -->
-    <div class="page-header-flex">
-        <div>
-            <div class="breadcrumb-trail">
-                <a href="{% url 'landloards:viewing_requests' %}">Viewing Requests</a>
-                <i class="fa-solid fa-chevron-right"></i>
-                <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}">{{ viewing_request.property.title }}</a>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span>Propose new time</span>
-            </div>
-            <h1 class="page-title">Propose a new time</h1>
-            <p class="page-subtitle">
-                Update the date or time for this viewing request. The tenant will be notified to confirm the new time.
-            </p>
-        </div>
-        <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}" class="btn-outline-action">
-            <i class="fa-solid fa-arrow-left"></i> Cancel
-        </a>
-    </div>
-
-    <div class="vr-reschedule-grid">
-
-        <!-- Form -->
-        <div class="vr-reschedule-form-card">
-            <h3 class="vr-form-title"><i class="fa-solid fa-calendar-plus"></i> New proposed time</h3>
-
-            <form method="POST" class="vr-form">
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="vr-form-errors">
-                        {% for error in form.non_field_errors %}
-                            <p><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <div class="vr-form-row">
-                    <label for="{{ form.preferred_date.id_for_label }}" class="vr-form-label">
-                        {{ form.preferred_date.label }}
-                    </label>
-                    {{ form.preferred_date }}
-                    {% if form.preferred_date.errors %}
-                        <p class="vr-field-error">{{ form.preferred_date.errors|join:", " }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="vr-form-row">
-                    <label for="{{ form.preferred_time.id_for_label }}" class="vr-form-label">
-                        {{ form.preferred_time.label }}
-                    </label>
-                    {{ form.preferred_time }}
-                    {% if form.preferred_time.errors %}
-                        <p class="vr-field-error">{{ form.preferred_time.errors|join:", " }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="vr-form-row">
-                    <label for="{{ form.notes.id_for_label }}" class="vr-form-label">
-                        {{ form.notes.label }}
-                    </label>
-                    {{ form.notes }}
-                    {% if form.notes.errors %}
-                        <p class="vr-field-error">{{ form.notes.errors|join:", " }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="vr-form-actions">
-                    <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}" class="btn-outline-action">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn-primary-green">
-                        <i class="fa-solid fa-paper-plane"></i> Send new proposal
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="vr-reschedule-side">
-
-            <div class="vr-detail-card">
-                <h3 class="vr-card-title"><i class="fa-regular fa-clock"></i> Currently scheduled</h3>
-                <div class="vr-current-time">
-                    <div class="vr-time-block">
-                        <span class="vr-time-label">Date</span>
-                        <span class="vr-time-value">{{ viewing_request.preferred_date|date:"l, F j, Y" }}</span>
-                    </div>
-                    <div class="vr-time-block">
-                        <span class="vr-time-label">Time</span>
-                        <span class="vr-time-value">{{ viewing_request.preferred_time|time:"g:i A" }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="vr-detail-card">
-                <h3 class="vr-card-title"><i class="fa-solid fa-user"></i> Tenant</h3>
-                <div class="vr-tenant-row">
-                    <div class="vr-tenant-avatar-sm">
-                        {% if viewing_request.tenant.full_name %}
-                            {{ viewing_request.tenant.full_name|slice:":1"|upper }}
-                        {% else %}
-                            {{ viewing_request.tenant.email|slice:":1"|upper }}
-                        {% endif %}
-                    </div>
-                    <div>
-                        <strong>{{ viewing_request.tenant.full_name|default:viewing_request.tenant.email }}</strong>
-                        <span>{{ viewing_request.tenant.email }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="vr-detail-card info">
-                <h3 class="vr-card-title"><i class="fa-solid fa-circle-info"></i> What happens next</h3>
-                <ol class="vr-info-list">
-                    <li>The status resets to <strong>pending</strong>.</li>
-                    <li>The tenant gets an email + in-app notification with the new time.</li>
-                    <li>They confirm or cancel from their Viewing Requests page.</li>
-                </ol>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
+{% block extra_head %}
 <style>
     .vr-reschedule-container {
         display: flex;
@@ -394,3 +263,135 @@
     }
 </style>
 {% endblock %}
+
+{% block title %}Propose new time - {{ viewing_request.property.title }}{% endblock %}
+
+{% block content %}
+<div class="vr-reschedule-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <div class="breadcrumb-trail">
+                <a href="{% url 'landloards:viewing_requests' %}">Viewing Requests</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}">{{ viewing_request.property.title }}</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span>Propose new time</span>
+            </div>
+            <h1 class="page-title">Propose a new time</h1>
+            <p class="page-subtitle">
+                Update the date or time for this viewing request. The tenant will be notified to confirm the new time.
+            </p>
+        </div>
+        <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}" class="btn-outline-action">
+            <i class="fa-solid fa-arrow-left"></i> Cancel
+        </a>
+    </div>
+
+    <div class="vr-reschedule-grid">
+
+        <!-- Form -->
+        <div class="vr-reschedule-form-card">
+            <h3 class="vr-form-title"><i class="fa-solid fa-calendar-plus"></i> New proposed time</h3>
+
+            <form method="POST" class="vr-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="vr-form-errors">
+                        {% for error in form.non_field_errors %}
+                            <p><i class="fa-solid fa-triangle-exclamation"></i> {{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="vr-form-row">
+                    <label for="{{ form.preferred_date.id_for_label }}" class="vr-form-label">
+                        {{ form.preferred_date.label }}
+                    </label>
+                    {{ form.preferred_date }}
+                    {% if form.preferred_date.errors %}
+                        <p class="vr-field-error">{{ form.preferred_date.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="vr-form-row">
+                    <label for="{{ form.preferred_time.id_for_label }}" class="vr-form-label">
+                        {{ form.preferred_time.label }}
+                    </label>
+                    {{ form.preferred_time }}
+                    {% if form.preferred_time.errors %}
+                        <p class="vr-field-error">{{ form.preferred_time.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="vr-form-row">
+                    <label for="{{ form.notes.id_for_label }}" class="vr-form-label">
+                        {{ form.notes.label }}
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="vr-field-error">{{ form.notes.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="vr-form-actions">
+                    <a href="{% url 'landloards:viewing_request_detail' viewing_request.id %}" class="btn-outline-action">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-primary-green">
+                        <i class="fa-solid fa-paper-plane"></i> Send new proposal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="vr-reschedule-side">
+
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-regular fa-clock"></i> Currently scheduled</h3>
+                <div class="vr-current-time">
+                    <div class="vr-time-block">
+                        <span class="vr-time-label">Date</span>
+                        <span class="vr-time-value">{{ viewing_request.preferred_date|date:"l, F j, Y" }}</span>
+                    </div>
+                    <div class="vr-time-block">
+                        <span class="vr-time-label">Time</span>
+                        <span class="vr-time-value">{{ viewing_request.preferred_time|time:"g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vr-detail-card">
+                <h3 class="vr-card-title"><i class="fa-solid fa-user"></i> Tenant</h3>
+                <div class="vr-tenant-row">
+                    <div class="vr-tenant-avatar-sm">
+                        {% if viewing_request.tenant.full_name %}
+                            {{ viewing_request.tenant.full_name|slice:":1"|upper }}
+                        {% else %}
+                            {{ viewing_request.tenant.email|slice:":1"|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>{{ viewing_request.tenant.full_name|default:viewing_request.tenant.email }}</strong>
+                        <span>{{ viewing_request.tenant.email }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vr-detail-card info">
+                <h3 class="vr-card-title"><i class="fa-solid fa-circle-info"></i> What happens next</h3>
+                <ol class="vr-info-list">
+                    <li>The status resets to <strong>pending</strong>.</li>
+                    <li>The tenant gets an email + in-app notification with the new time.</li>
+                    <li>They confirm or cancel from their Viewing Requests page.</li>
+                </ol>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>{% endblock %}

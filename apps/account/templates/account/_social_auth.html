@@ -1,4 +1,33 @@
 {# ------------------------------------------------------------------
+
+{% block extra_head %}
+<style>
+.social-auth-block { margin-bottom: 6px; }
+.social-auth-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.social-btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; cursor: pointer; overflow: hidden; user-select: none; transition: transform .12s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease; }
+.social-btn:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
+.social-btn-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.social-btn-label { white-space: nowrap; }
+.social-btn-spinner { position: absolute; display: none; align-items: center; justify-content: center; color: inherit; }
+.social-btn-spinner svg { animation: social-btn-spin 0.8s linear infinite; }
+@keyframes social-btn-spin { to { transform: rotate(360deg); } }
+.social-auth-block.is-submitting .social-btn { pointer-events: none; }
+.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-icon,
+.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-label { visibility: hidden; }
+.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-spinner { display: inline-flex; }
+.social-btn-google { background: #ffffff; color: #1f2937; border: 1.5px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+.social-btn-google:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
+.social-btn-facebook { background: #1877F2; color: #ffffff; border: 1.5px solid #1877F2; box-shadow: 0 1px 2px rgba(24, 119, 242, 0.20); }
+.social-btn-facebook:hover { background: #166FE5; border-color: #166FE5; box-shadow: 0 4px 10px rgba(24, 119, 242, 0.30); transform: translateY(-1px); }
+.fb-f-badge { width: 22px; height: 22px; border-radius: 6px; background: rgba(255, 255, 255, 0.18); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.social-auth-trust { display: flex; align-items: center; justify-content: center; gap: 6px; color: #94a3b8; font-size: 11.5px; line-height: 1.4; margin: 2px 0 18px; text-align: center; }
+.social-auth-trust i { color: #059669; font-size: 11px; }
+.divider-text { position: relative; text-align: center; margin: 18px 0 18px; }
+.divider-text::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #e2e8f0; }
+.divider-text span { position: relative; background: white; padding: 0 15px; font-size: 12px; color: #64748b; text-transform: lowercase; }
+@media (max-width: 520px) { .social-auth-buttons { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
     Reusable social-auth block (Google + Facebook).
 
     Used by both login.html and register.html. Renders side-by-side
@@ -67,36 +96,7 @@
     <div class="divider-text">
         <span>{{ divider_label|default:"or continue with email" }}</span>
     </div>
-</div>
-
-<style>
-.social-auth-block { margin-bottom: 6px; }
-.social-auth-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.social-btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; text-decoration: none; cursor: pointer; overflow: hidden; user-select: none; transition: transform .12s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease; }
-.social-btn:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
-.social-btn-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.social-btn-label { white-space: nowrap; }
-.social-btn-spinner { position: absolute; display: none; align-items: center; justify-content: center; color: inherit; }
-.social-btn-spinner svg { animation: social-btn-spin 0.8s linear infinite; }
-@keyframes social-btn-spin { to { transform: rotate(360deg); } }
-.social-auth-block.is-submitting .social-btn { pointer-events: none; }
-.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-icon,
-.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-label { visibility: hidden; }
-.social-auth-block.is-submitting .social-btn.is-clicked .social-btn-spinner { display: inline-flex; }
-.social-btn-google { background: #ffffff; color: #1f2937; border: 1.5px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
-.social-btn-google:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
-.social-btn-facebook { background: #1877F2; color: #ffffff; border: 1.5px solid #1877F2; box-shadow: 0 1px 2px rgba(24, 119, 242, 0.20); }
-.social-btn-facebook:hover { background: #166FE5; border-color: #166FE5; box-shadow: 0 4px 10px rgba(24, 119, 242, 0.30); transform: translateY(-1px); }
-.fb-f-badge { width: 22px; height: 22px; border-radius: 6px; background: rgba(255, 255, 255, 0.18); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.social-auth-trust { display: flex; align-items: center; justify-content: center; gap: 6px; color: #94a3b8; font-size: 11.5px; line-height: 1.4; margin: 2px 0 18px; text-align: center; }
-.social-auth-trust i { color: #059669; font-size: 11px; }
-.divider-text { position: relative; text-align: center; margin: 18px 0 18px; }
-.divider-text::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #e2e8f0; }
-.divider-text span { position: relative; background: white; padding: 0 15px; font-size: 12px; color: #64748b; text-transform: lowercase; }
-@media (max-width: 520px) { .social-auth-buttons { grid-template-columns: 1fr; } }
-</style>
-
-<script>
+</div><script>
 (function () {
     document.querySelectorAll('[data-social-auth] .social-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {

@@ -1,151 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
 
-{% block title %}My Properties - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="property-management-container">
-
-    <!-- Page Header -->
-    <div class="page-header-flex">
-        <div>
-            <h1 class="page-title">My Properties</h1>
-            <p class="page-subtitle">Manage all your listed properties.</p>
-        </div>
-        <a href="{% url 'landloards:create_property' %}" class="btn-primary-green">
-            <i class="fa-solid fa-circle-plus"></i> Add New Property
-        </a>
-    </div>
-
-    <!-- Filter & Search Bar Card -->
-    <div class="filter-card">
-        <div class="search-input-wrapper">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="propertySearch" placeholder="Search properties..." onkeyup="filterProperties()">
-        </div>
-        <div class="filter-dropdowns">
-            <select id="statusFilter" class="filter-select" onchange="filterProperties()">
-                <option value="">All Status</option>
-                <option value="published">Published</option>
-                <option value="pending">Pending</option>
-                <option value="draft">Draft</option>
-                <option value="rejected">Rejected</option>
-            </select>
-            <select id="roomTypeFilter" class="filter-select" onchange="filterProperties()">
-                <option value="">All Room Types</option>
-                <option value="apartment">Apartment</option>
-                <option value="self_contained">Self Contained</option>
-                <option value="chamber_and_hall">Chamber & Hall</option>
-                <option value="guest_house">Guest House</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Properties Table Card -->
-    <div class="table-responsive-card">
-        <table class="data-table" id="propertiesTable">
-            <thead>
-                <tr>
-                    <th>PROPERTY</th>
-                    <th>ROOM TYPE</th>
-                    <th>PRICE</th>
-                    <th>STATUS</th>
-                    <th>ADDED ON</th>
-                    <th class="text-right">ACTIONS</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if properties %}
-                    {% for prop in properties %}
-                    <tr data-status="{{ prop.publication_status }}" data-room="{{ prop.room_type }}" data-title="{{ prop.title|lower }}">
-                        <!-- Property Info -->
-                        <td>
-                            <div class="property-info-cell">
-                                {% if prop.cover_image %}
-                                    <img src="{{ prop.cover_image.url }}" alt="{{ prop.title }}" class="property-thumb">
-                                {% else %}
-                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=150&q=80" alt="Default" class="property-thumb">
-                                {% endif %}
-                                <div class="property-text-meta">
-                                    <strong>{{ prop.title }}</strong>
-                                    <span><i class="fa-solid fa-location-dot"></i> {{ prop.area.name }}, {{ prop.town.name }}</span>
-                                </div>
-                            </div>
-                        </td>
-
-                        <!-- Room Type -->
-                        <td>
-                            <span class="room-pill">
-                                <i class="fa-solid fa-door-open"></i> {{ prop.get_room_type_display }}
-                            </span>
-                        </td>
-
-                        <!-- Price -->
-                        <td>
-                            <strong>GHS {{ prop.price|floatformat:0 }}</strong>
-                            <span class="text-xs text-muted">/ {{ prop.payment_period }}</span>
-                        </td>
-
-                        <!-- Publication / Verification Status -->
-                        <td>
-                            {% if prop.publication_status == 'published' %}
-                                <span class="status-badge published"><span class="dot"></span> Published</span>
-                            {% elif prop.publication_status == 'draft' %}
-                                <span class="status-badge draft"><span class="dot"></span> Draft</span>
-                            {% elif prop.verification_status == 'pending' %}
-                                <span class="status-badge pending"><span class="dot"></span> Pending Verification</span>
-                            {% else %}
-                                <span class="status-badge rejected"><span class="dot"></span> Rejected</span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Created Date -->
-                        <td class="text-muted text-sm">
-                            {{ prop.created_at|date:"M j, Y" }}
-                        </td>
-
-                        <!-- Actions -->
-                        <td class="text-right">
-                            <div class="action-buttons-group">
-                                <a href="{% url 'landloards:update_property' prop.id %}" class="action-btn edit" title="Edit Property">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <a href="{% url 'landloards:verify_property' prop.id %}" class="action-btn view" title="View Details">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                <form action="{% url 'landloards:delete_property' prop.id %}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this property?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn delete" title="Delete Property">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="6" class="empty-state-cell">
-                            <div class="empty-state">
-                                <i class="fa-solid fa-building-circle-exclamation"></i>
-                                <h3>No properties found</h3>
-                                <p>You haven't added any properties yet. Get started by clicking the button above.</p>
-                            </div>
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Tip Footer Banner -->
-    <div class="tip-banner">
-        <i class="fa-solid fa-lightbulb"></i>
-        <span><strong>Tip:</strong> Keep your properties updated and respond to inquiries quickly to get more bookings.</span>
-    </div>
-
-</div>
-
-<!-- Page Specific CSS styling matching your design system -->
+{% block extra_head %}
 <style>
     .property-management-container {
         display: flex;
@@ -396,8 +251,154 @@
         color: var(--primary-green);
     }
 </style>
+{% endblock %}
 
-<!-- Client-side filter functionality -->
+{% block title %}My Properties - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="property-management-container">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <h1 class="page-title">My Properties</h1>
+            <p class="page-subtitle">Manage all your listed properties.</p>
+        </div>
+        <a href="{% url 'landloards:create_property' %}" class="btn-primary-green">
+            <i class="fa-solid fa-circle-plus"></i> Add New Property
+        </a>
+    </div>
+
+    <!-- Filter & Search Bar Card -->
+    <div class="filter-card">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="propertySearch" placeholder="Search properties..." onkeyup="filterProperties()">
+        </div>
+        <div class="filter-dropdowns">
+            <select id="statusFilter" class="filter-select" onchange="filterProperties()">
+                <option value="">All Status</option>
+                <option value="published">Published</option>
+                <option value="pending">Pending</option>
+                <option value="draft">Draft</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select id="roomTypeFilter" class="filter-select" onchange="filterProperties()">
+                <option value="">All Room Types</option>
+                <option value="apartment">Apartment</option>
+                <option value="self_contained">Self Contained</option>
+                <option value="chamber_and_hall">Chamber & Hall</option>
+                <option value="guest_house">Guest House</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Properties Table Card -->
+    <div class="table-responsive-card">
+        <table class="data-table" id="propertiesTable">
+            <thead>
+                <tr>
+                    <th>PROPERTY</th>
+                    <th>ROOM TYPE</th>
+                    <th>PRICE</th>
+                    <th>STATUS</th>
+                    <th>ADDED ON</th>
+                    <th class="text-right">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if properties %}
+                    {% for prop in properties %}
+                    <tr data-status="{{ prop.publication_status }}" data-room="{{ prop.room_type }}" data-title="{{ prop.title|lower }}">
+                        <!-- Property Info -->
+                        <td>
+                            <div class="property-info-cell">
+                                {% if prop.cover_image %}
+                                    <img src="{{ prop.cover_image.url }}" alt="{{ prop.title }}" class="property-thumb">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=150&q=80" alt="Default" class="property-thumb">
+                                {% endif %}
+                                <div class="property-text-meta">
+                                    <strong>{{ prop.title }}</strong>
+                                    <span><i class="fa-solid fa-location-dot"></i> {{ prop.area.name }}, {{ prop.town.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Room Type -->
+                        <td>
+                            <span class="room-pill">
+                                <i class="fa-solid fa-door-open"></i> {{ prop.get_room_type_display }}
+                            </span>
+                        </td>
+
+                        <!-- Price -->
+                        <td>
+                            <strong>GHS {{ prop.price|floatformat:0 }}</strong>
+                            <span class="text-xs text-muted">/ {{ prop.payment_period }}</span>
+                        </td>
+
+                        <!-- Publication / Verification Status -->
+                        <td>
+                            {% if prop.publication_status == 'published' %}
+                                <span class="status-badge published"><span class="dot"></span> Published</span>
+                            {% elif prop.publication_status == 'draft' %}
+                                <span class="status-badge draft"><span class="dot"></span> Draft</span>
+                            {% elif prop.verification_status == 'pending' %}
+                                <span class="status-badge pending"><span class="dot"></span> Pending Verification</span>
+                            {% else %}
+                                <span class="status-badge rejected"><span class="dot"></span> Rejected</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Created Date -->
+                        <td class="text-muted text-sm">
+                            {{ prop.created_at|date:"M j, Y" }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-right">
+                            <div class="action-buttons-group">
+                                <a href="{% url 'landloards:update_property' prop.id %}" class="action-btn edit" title="Edit Property">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'landloards:verify_property' prop.id %}" class="action-btn view" title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <form action="{% url 'landloards:delete_property' prop.id %}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this property?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn delete" title="Delete Property">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-building-circle-exclamation"></i>
+                                <h3>No properties found</h3>
+                                <p>You haven't added any properties yet. Get started by clicking the button above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tip Footer Banner -->
+    <div class="tip-banner">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span><strong>Tip:</strong> Keep your properties updated and respond to inquiries quickly to get more bookings.</span>
+    </div>
+
+</div>
+
+<!-- Page Specific CSS styling matching your design system --><!-- Client-side filter functionality -->
 <script>
     function filterProperties() {
         const searchText = document.getElementById('propertySearch').value.toLowerCase();

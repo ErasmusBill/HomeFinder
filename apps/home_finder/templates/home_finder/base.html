@@ -12,8 +12,12 @@
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <!-- Anti-FOUC: keep body hidden until head CSS is parsed -->
+    <style>body { visibility: hidden; }</style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
+<script>document.body.style.visibility="visible";</script>
 
     {% include 'home_finder/navbar.html' %}
 

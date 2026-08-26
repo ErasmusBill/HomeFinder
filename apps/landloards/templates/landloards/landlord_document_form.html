@@ -1,4 +1,61 @@
 {% extends 'landloards/landlord_base.html' %}
+
+{% block extra_head %}
+<style>
+    /* Style the Django-rendered inputs consistently with the rest of the dashboard.
+       Scoped to the document form to avoid bleeding into other forms. */
+    .document-form-field input[type="text"],
+    .document-form-field input[type="email"],
+    .document-form-field input[type="url"],
+    .document-form-field input[type="number"],
+    .document-form-field input[type="date"],
+    .document-form-field input[type="file"],
+    .document-form-field select,
+    .document-form-field textarea {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #0f172a;
+        background-color: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .document-form-field input[type="file"] {
+        padding: 9px 12px;
+        cursor: pointer;
+    }
+    .document-form-field input[type="file"]::file-selector-button {
+        margin-right: 12px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #047857;
+        background-color: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .document-form-field input[type="file"]::file-selector-button:hover {
+        background-color: #d1fae5;
+    }
+    .document-form-field textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .document-form-field input:focus,
+    .document-form-field select:focus,
+    .document-form-field textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+</style>
+{% endblock %}
 {% load static %}
 
 {% block title %}{% if is_update %}Update Document{% else %}Upload New Document{% endif %} | VacantHommie{% endblock %}
@@ -94,60 +151,4 @@
             </div>
         </form>
     </div>
-</div>
-
-<style>
-    /* Style the Django-rendered inputs consistently with the rest of the dashboard.
-       Scoped to the document form to avoid bleeding into other forms. */
-    .document-form-field input[type="text"],
-    .document-form-field input[type="email"],
-    .document-form-field input[type="url"],
-    .document-form-field input[type="number"],
-    .document-form-field input[type="date"],
-    .document-form-field input[type="file"],
-    .document-form-field select,
-    .document-form-field textarea {
-        display: block;
-        width: 100%;
-        padding: 10px 14px;
-        font-size: 14px;
-        line-height: 1.5;
-        color: #0f172a;
-        background-color: #fff;
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-    .document-form-field input[type="file"] {
-        padding: 9px 12px;
-        cursor: pointer;
-    }
-    .document-form-field input[type="file"]::file-selector-button {
-        margin-right: 12px;
-        padding: 6px 12px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #047857;
-        background-color: #ecfdf5;
-        border: 1px solid #a7f3d0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.15s ease;
-    }
-    .document-form-field input[type="file"]::file-selector-button:hover {
-        background-color: #d1fae5;
-    }
-    .document-form-field textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-    .document-form-field input:focus,
-    .document-form-field select:focus,
-    .document-form-field textarea:focus {
-        outline: none;
-        border-color: #10b981;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    }
-</style>
-{% endblock %}
+</div>{% endblock %}

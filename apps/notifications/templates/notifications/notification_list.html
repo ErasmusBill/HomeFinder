@@ -1,269 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block content %}
-<div class="notifications-list-wrapper">
-
-    {# ------------------------------------------------------------------ #}
-    {#  Flash messages                                                    #}
-    {# ------------------------------------------------------------------ #}
-    {% if messages %}
-        <div class="flash-stack">
-            {% for message in messages %}
-                <div class="flash flash-{{ message.tags|default:'info' }}">
-                    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-triangle-exclamation{% elif message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
-                    <span>{{ message }}</span>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <div class="page-header-row">
-        <div>
-            <h1>Notifications</h1>
-            <p class="page-subtitle">Stay updated with important activities about your properties and account.</p>
-        </div>
-        <div class="header-actions">
-            <a href="{% url 'notifications:create-notification' %}" class="btn btn-primary">
-                <i class="fa-solid fa-plus"></i> Create Notification
-            </a>
-            <form method="post" action="{% url 'notifications:mark-all-read' %}" class="inline-form">
-                {% csrf_token %}
-                <input type="hidden" name="return_filter" value="{{ active_filter }}">
-                <button type="submit" class="btn btn-outline" {% if unread_count == 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-check-double"></i>
-                    Mark all as read{% if unread_count %} ({{ unread_count }}){% endif %}
-                </button>
-            </form>
-            <form method="post" action="{% url 'notifications:clear-all' %}" class="inline-form"
-                  onsubmit="return confirm('This will permanently delete ALL of your notifications. Continue?');">
-                {% csrf_token %}
-                <input type="hidden" name="return_filter" value="{{ active_filter }}">
-                <button type="submit" class="btn btn-danger-outline" {% if total_count == 0 %}disabled{% endif %}>
-                    <i class="fa-solid fa-broom"></i> Clear all
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div class="notifications-layout">
-        <div class="notifications-main">
-
-            {# ------------------------------------------------------------- #}
-            {#  Filter tabs (real, server-side filter)                       #}
-            {# ------------------------------------------------------------- #}
-            <div class="filter-tabs-row">
-                <div class="filter-tabs">
-                    <a href="?filter=all" class="tab-btn {% if active_filter == 'all' %}active{% endif %}">
-                        All <span class="tab-count">{{ total_count }}</span>
-                    </a>
-                    <a href="?filter=unread" class="tab-btn {% if active_filter == 'unread' %}active{% endif %}">
-                        Unread <span class="tab-count tab-count-unread">{{ unread_count }}</span>
-                    </a>
-                    <a href="?filter=read" class="tab-btn {% if active_filter == 'read' %}active{% endif %}">
-                        Read <span class="tab-count">{{ read_count }}</span>
-                    </a>
-                </div>
-            </div>
-
-            {# ------------------------------------------------------------- #}
-            {#  Notifications list                                            #}
-            {# ------------------------------------------------------------- #}
-            <div class="notifications-card-list">
-                {% if notifications %}
-                    {% for notification in notifications %}
-                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.pk }}">
-                            <div class="notification-icon-wrap">
-                                <i class="fa-solid fa-bell"></i>
-                            </div>
-                            <div class="notification-content-wrap">
-                                <div class="notification-item-top">
-                                    <div class="notification-title-area">
-                                        <span class="unread-dot"></span>
-                                        <strong>{{ notification.title }}</strong>
-                                        {% if notification.is_read %}
-                                            <span class="status-badge status-read">
-                                                <i class="fa-solid fa-circle-check"></i> Read
-                                            </span>
-                                        {% else %}
-                                            <span class="status-badge status-unread">
-                                                <i class="fa-solid fa-circle-dot"></i> Unread
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    <span class="notification-timestamp">{{ notification.created_at|date:"M j, Y, g:i a" }}</span>
-                                </div>
-                                <p>{{ notification.content }}</p>
-                                <div class="notification-user-meta">
-                                    <small>
-                                        <i class="fa-regular fa-user"></i> Recipient:
-                                        {{ notification.user.get_full_name|default:notification.user.email }}
-                                    </small>
-                                    {% if notification.is_read and notification.read_at %}
-                                        <small class="read-at-meta">
-                                            <i class="fa-regular fa-clock"></i>
-                                            Read {{ notification.read_at|date:"M j, Y, g:i a" }}
-                                        </small>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="notification-actions">
-                                {# Toggle read / unread -- POST forms so they can't be #}
-                                {# triggered by a stray <img> tag, and so CSRF covers #}
-                                {# them. The hidden `return_filter` field sends the #}
-                                {# user back to the same tab they were on. #}
-                                {% if notification.is_read %}
-                                    <form method="post"
-                                          action="{% url 'notifications:mark-unread' notification.pk %}"
-                                          class="inline-form"
-                                          title="Mark as unread">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="return_filter" value="{{ active_filter }}">
-                                        <button type="submit" class="action-icon-btn" aria-label="Mark as unread">
-                                            <i class="fa-regular fa-envelope"></i>
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <form method="post"
-                                          action="{% url 'notifications:mark-read' notification.pk %}"
-                                          class="inline-form"
-                                          title="Mark as read">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="return_filter" value="{{ active_filter }}">
-                                        <button type="submit" class="action-icon-btn action-icon-btn-primary" aria-label="Mark as read">
-                                            <i class="fa-solid fa-check"></i>
-                                        </button>
-                                    </form>
-                                {% endif %}
-                                <a href="{% url 'notifications:update-notification' notification.pk %}"
-                                   class="action-icon-btn" title="Edit">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <form method="post"
-                                      action="{% url 'notifications:delete-notification' notification.pk %}"
-                                      class="inline-form"
-                                      onsubmit="return confirm('Delete this notification?');"
-                                      title="Delete">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="return_filter" value="{{ active_filter }}">
-                                    <button type="submit" class="action-icon-btn delete" aria-label="Delete">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            {% if active_filter == 'unread' %}
-                                <i class="fa-regular fa-circle-check"></i>
-                            {% else %}
-                                <i class="fa-regular fa-bell-slash"></i>
-                            {% endif %}
-                        </div>
-                        <h3>
-                            {% if active_filter == 'unread' %}
-                                You're all caught up
-                            {% elif active_filter == 'read' %}
-                                No read notifications yet
-                            {% else %}
-                                No notifications found
-                            {% endif %}
-                        </h3>
-                        <p>
-                            {% if active_filter == 'unread' %}
-                                You have no unread notifications right now.
-                            {% elif active_filter == 'read' %}
-                                Notifications you've read will show up here.
-                            {% else %}
-                                You have no notifications at this time. Click the button above to create one.
-                            {% endif %}
-                        </p>
-                    </div>
-                {% endif %}
-            </div>
-
-            {# ------------------------------------------------------------- #}
-            {#  Pagination -- preserves the active filter in the links      #}
-            {# ------------------------------------------------------------- #}
-            {% if notifications.has_other_pages %}
-                <div class="pagination-container">
-                    <div class="pagination">
-                        {% if notifications.has_previous %}
-                            <a href="?filter={{ active_filter }}&amp;page={{ notifications.previous_page_number }}" class="page-btn">
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </a>
-                        {% endif %}
-                        <span class="page-info">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
-                        {% if notifications.has_next %}
-                            <a href="?filter={{ active_filter }}&amp;page={{ notifications.next_page_number }}" class="page-btn">
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="notifications-sidebar">
-            <div class="summary-card">
-                <h4><i class="fa-solid fa-bell"></i> Notification Summary</h4>
-                <div class="summary-big-number">
-                    <strong>{{ unread_count }}</strong>
-                    <span>Unread Notification{{ unread_count|pluralize }}</span>
-                </div>
-                <div class="summary-stats-grid">
-                    <div class="stat-box">
-                        <span class="stat-num">{{ total_count }}</span>
-                        <span class="stat-lbl">Total</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-num">{{ read_count }}</span>
-                        <span class="stat-lbl">Read</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-num">{{ unread_count }}</span>
-                        <span class="stat-lbl">Unread</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quick-actions-card">
-                <h4>Quick Actions</h4>
-                <a href="{% url 'landloards:landloards_dashboard' %}" class="quick-action-link">
-                    <div class="qa-icon"><i class="fa-solid fa-house"></i></div>
-                    <div class="qa-text">
-                        <strong>View My Properties</strong>
-                        <span>Manage your property listings</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-                <a href="{% url 'landloards:landloards_dashboard' %}" class="quick-action-link">
-                    <div class="qa-icon"><i class="fa-solid fa-plus"></i></div>
-                    <div class="qa-text">
-                        <strong>Add New Property</strong>
-                        <span>List a new property for rent</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-            </div>
-
-            <div class="help-card">
-                <div class="help-icon">
-                    <i class="fa-regular fa-circle-question"></i>
-                </div>
-                <div>
-                    <strong>Need Help?</strong>
-                    <p>Visit our Help Center or contact support if you have questions about notifications.</p>
-                    <a href="#" class="help-link">Visit Help Center</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_head %}
 <style>
     .notifications-list-wrapper {
         padding: 24px 32px;
@@ -825,3 +562,267 @@
     }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="notifications-list-wrapper">
+
+    {# ------------------------------------------------------------------ #}
+    {#  Flash messages                                                    #}
+    {# ------------------------------------------------------------------ #}
+    {% if messages %}
+        <div class="flash-stack">
+            {% for message in messages %}
+                <div class="flash flash-{{ message.tags|default:'info' }}">
+                    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-triangle-exclamation{% elif message.tags == 'warning' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="page-header-row">
+        <div>
+            <h1>Notifications</h1>
+            <p class="page-subtitle">Stay updated with important activities about your properties and account.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'notifications:create-notification' %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Create Notification
+            </a>
+            <form method="post" action="{% url 'notifications:mark-all-read' %}" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="return_filter" value="{{ active_filter }}">
+                <button type="submit" class="btn btn-outline" {% if unread_count == 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-check-double"></i>
+                    Mark all as read{% if unread_count %} ({{ unread_count }}){% endif %}
+                </button>
+            </form>
+            <form method="post" action="{% url 'notifications:clear-all' %}" class="inline-form"
+                  onsubmit="return confirm('This will permanently delete ALL of your notifications. Continue?');">
+                {% csrf_token %}
+                <input type="hidden" name="return_filter" value="{{ active_filter }}">
+                <button type="submit" class="btn btn-danger-outline" {% if total_count == 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-broom"></i> Clear all
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="notifications-layout">
+        <div class="notifications-main">
+
+            {# ------------------------------------------------------------- #}
+            {#  Filter tabs (real, server-side filter)                       #}
+            {# ------------------------------------------------------------- #}
+            <div class="filter-tabs-row">
+                <div class="filter-tabs">
+                    <a href="?filter=all" class="tab-btn {% if active_filter == 'all' %}active{% endif %}">
+                        All <span class="tab-count">{{ total_count }}</span>
+                    </a>
+                    <a href="?filter=unread" class="tab-btn {% if active_filter == 'unread' %}active{% endif %}">
+                        Unread <span class="tab-count tab-count-unread">{{ unread_count }}</span>
+                    </a>
+                    <a href="?filter=read" class="tab-btn {% if active_filter == 'read' %}active{% endif %}">
+                        Read <span class="tab-count">{{ read_count }}</span>
+                    </a>
+                </div>
+            </div>
+
+            {# ------------------------------------------------------------- #}
+            {#  Notifications list                                            #}
+            {# ------------------------------------------------------------- #}
+            <div class="notifications-card-list">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.pk }}">
+                            <div class="notification-icon-wrap">
+                                <i class="fa-solid fa-bell"></i>
+                            </div>
+                            <div class="notification-content-wrap">
+                                <div class="notification-item-top">
+                                    <div class="notification-title-area">
+                                        <span class="unread-dot"></span>
+                                        <strong>{{ notification.title }}</strong>
+                                        {% if notification.is_read %}
+                                            <span class="status-badge status-read">
+                                                <i class="fa-solid fa-circle-check"></i> Read
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-unread">
+                                                <i class="fa-solid fa-circle-dot"></i> Unread
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="notification-timestamp">{{ notification.created_at|date:"M j, Y, g:i a" }}</span>
+                                </div>
+                                <p>{{ notification.content }}</p>
+                                <div class="notification-user-meta">
+                                    <small>
+                                        <i class="fa-regular fa-user"></i> Recipient:
+                                        {{ notification.user.get_full_name|default:notification.user.email }}
+                                    </small>
+                                    {% if notification.is_read and notification.read_at %}
+                                        <small class="read-at-meta">
+                                            <i class="fa-regular fa-clock"></i>
+                                            Read {{ notification.read_at|date:"M j, Y, g:i a" }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="notification-actions">
+                                {# Toggle read / unread -- POST forms so they can't be #}
+                                {# triggered by a stray <img> tag, and so CSRF covers #}
+                                {# them. The hidden `return_filter` field sends the #}
+                                {# user back to the same tab they were on. #}
+                                {% if notification.is_read %}
+                                    <form method="post"
+                                          action="{% url 'notifications:mark-unread' notification.pk %}"
+                                          class="inline-form"
+                                          title="Mark as unread">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="return_filter" value="{{ active_filter }}">
+                                        <button type="submit" class="action-icon-btn" aria-label="Mark as unread">
+                                            <i class="fa-regular fa-envelope"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="post"
+                                          action="{% url 'notifications:mark-read' notification.pk %}"
+                                          class="inline-form"
+                                          title="Mark as read">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="return_filter" value="{{ active_filter }}">
+                                        <button type="submit" class="action-icon-btn action-icon-btn-primary" aria-label="Mark as read">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{% url 'notifications:update-notification' notification.pk %}"
+                                   class="action-icon-btn" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form method="post"
+                                      action="{% url 'notifications:delete-notification' notification.pk %}"
+                                      class="inline-form"
+                                      onsubmit="return confirm('Delete this notification?');"
+                                      title="Delete">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="return_filter" value="{{ active_filter }}">
+                                    <button type="submit" class="action-icon-btn delete" aria-label="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            {% if active_filter == 'unread' %}
+                                <i class="fa-regular fa-circle-check"></i>
+                            {% else %}
+                                <i class="fa-regular fa-bell-slash"></i>
+                            {% endif %}
+                        </div>
+                        <h3>
+                            {% if active_filter == 'unread' %}
+                                You're all caught up
+                            {% elif active_filter == 'read' %}
+                                No read notifications yet
+                            {% else %}
+                                No notifications found
+                            {% endif %}
+                        </h3>
+                        <p>
+                            {% if active_filter == 'unread' %}
+                                You have no unread notifications right now.
+                            {% elif active_filter == 'read' %}
+                                Notifications you've read will show up here.
+                            {% else %}
+                                You have no notifications at this time. Click the button above to create one.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# ------------------------------------------------------------- #}
+            {#  Pagination -- preserves the active filter in the links      #}
+            {# ------------------------------------------------------------- #}
+            {% if notifications.has_other_pages %}
+                <div class="pagination-container">
+                    <div class="pagination">
+                        {% if notifications.has_previous %}
+                            <a href="?filter={{ active_filter }}&amp;page={{ notifications.previous_page_number }}" class="page-btn">
+                                <i class="fa-solid fa-chevron-left"></i> Previous
+                            </a>
+                        {% endif %}
+                        <span class="page-info">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+                        {% if notifications.has_next %}
+                            <a href="?filter={{ active_filter }}&amp;page={{ notifications.next_page_number }}" class="page-btn">
+                                Next <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="notifications-sidebar">
+            <div class="summary-card">
+                <h4><i class="fa-solid fa-bell"></i> Notification Summary</h4>
+                <div class="summary-big-number">
+                    <strong>{{ unread_count }}</strong>
+                    <span>Unread Notification{{ unread_count|pluralize }}</span>
+                </div>
+                <div class="summary-stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-num">{{ total_count }}</span>
+                        <span class="stat-lbl">Total</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">{{ read_count }}</span>
+                        <span class="stat-lbl">Read</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-num">{{ unread_count }}</span>
+                        <span class="stat-lbl">Unread</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions-card">
+                <h4>Quick Actions</h4>
+                <a href="{% url 'landloards:landloards_dashboard' %}" class="quick-action-link">
+                    <div class="qa-icon"><i class="fa-solid fa-house"></i></div>
+                    <div class="qa-text">
+                        <strong>View My Properties</strong>
+                        <span>Manage your property listings</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                <a href="{% url 'landloards:landloards_dashboard' %}" class="quick-action-link">
+                    <div class="qa-icon"><i class="fa-solid fa-plus"></i></div>
+                    <div class="qa-text">
+                        <strong>Add New Property</strong>
+                        <span>List a new property for rent</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </div>
+
+            <div class="help-card">
+                <div class="help-icon">
+                    <i class="fa-regular fa-circle-question"></i>
+                </div>
+                <div>
+                    <strong>Need Help?</strong>
+                    <p>Visit our Help Center or contact support if you have questions about notifications.</p>
+                    <a href="#" class="help-link">Visit Help Center</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>{% endblock %}

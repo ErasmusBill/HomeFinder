@@ -1,153 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}Amenities Management - VacantHommie{% endblock %}
-
-{% block content %}
-<div class="amenities-list-wrapper">
-
-    <!-- Page Header Row -->
-    <div class="page-header-row">
-        <div class="header-titles">
-            <h1>Amenities</h1>
-            <p>Manage all amenities that landlords can select when listing their properties.</p>
-        </div>
-        <div class="header-actions">
-            <a href="{% url 'landloards:create_amenity' %}" class="btn-primary-action">
-                <i class="fa-solid fa-plus"></i> Add New Amenity
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Table Card Box -->
-    <div class="dashboard-card-box amenities-table-box">
-
-        <!-- Filter & Search Toolbar -->
-        <div class="table-toolbar-row">
-            <div class="toolbar-search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="amenity-search-input" placeholder="Search amenities..." autocomplete="off">
-            </div>
-
-            <div class="toolbar-filters-group">
-                <div class="dropdown-filter-wrapper">
-                    <select id="category-filter" class="toolbar-select">
-                        <option value="">All Categories</option>
-                        <!-- Add category options dynamically if applicable -->
-                    </select>
-                    <i class="fa-solid fa-chevron-down select-chevron"></i>
-                </div>
-
-                <div class="dropdown-filter-wrapper">
-                    <select id="status-filter" class="toolbar-select">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down select-chevron"></i>
-                </div>
-
-                <button type="button" class="btn-export" title="Export Amenities Data">
-                    <i class="fa-solid fa-download"></i> Export
-                </button>
-            </div>
-        </div>
-
-        <!-- Table Container -->
-        <div class="table-responsive">
-            <table class="styled-amenity-table" id="amenities-table">
-                <thead>
-                    <tr>
-                        <th class="col-num">#</th>
-                        <th>Amenity</th>
-                        <th>Description</th>
-                        <th>Slug</th>
-                        <th>Date Added</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for amenity in amenities %}
-                        <tr class="amenity-row" data-search-text="{{ amenity.name }} {{ amenity.description }} {{ amenity.slug }}">
-                            <td class="col-num text-muted">{{ forloop.counter0|add:amenities.start_index }}</td>
-                            <td>
-                                <div class="amenity-name-cell">
-                                    <div class="amenity-icon-badge">
-                                        <i class="fa-solid fa-couch text-green"></i>
-                                    </div>
-                                    <strong>{{ amenity.name }}</strong>
-                                </div>
-                            </td>
-                            <td class="description-cell">{{ amenity.description|truncatechars:50 }}</td>
-                            <td>
-                                <span class="slug-pill">{{ amenity.slug }}</span>
-                            </td>
-                            <td class="date-cell">{{ amenity.created_at|date:"M d, Y"|default:"May 20, 2025" }}</td>
-                            <td class="text-right actions-cell">
-                                <a href="{% url 'landloards:update_amenity' amenity.id %}" class="btn-action-icon btn-edit" title="Edit Amenity">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <a href="{% url 'landloards:delete_amenity' amenity.id %}" class="btn-action-icon btn-delete" title="Delete Amenity" data-amenity-name="{{ amenity.name }}">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <div class="empty-state-container">
-                                    <i class="fa-solid fa-layer-group empty-icon"></i>
-                                    <p>No amenities found. Click "Add New Amenity" to create one.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <div id="no-search-results" class="no-search-results" style="display:none;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <p>No amenities match your search query.</p>
-            </div>
-        </div>
-
-        <!-- Table Footer / Pagination -->
-        <div class="table-footer-row">
-            <div class="table-count-info">
-                Showing {{ amenities.start_index|default:1 }} to {{ amenities.end_index|default:amenities|length }} of {{ amenities.paginator.count|default:amenities|length }} amenities
-            </div>
-
-            {% if amenities.has_other_pages %}
-                <div class="pagination-container">
-                    {% if amenities.has_previous %}
-                        <a href="?page={{ amenities.previous_page_number }}" class="btn-page">Previous</a>
-                    {% else %}
-                        <button class="btn-page disabled" disabled>Previous</button>
-                    {% endif %}
-
-                    <div class="page-numbers-group">
-                        {% for i in amenities.paginator.page_range %}
-                            {% if amenities.number == i %}
-                                <span class="btn-page active">{{ i }}</span>
-                            {% elif i > amenities.number|add:'-3' and i < amenities.number|add:'3' %}
-                                <a href="?page={{ i }}" class="btn-page">{{ i }}</a>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-
-                    {% if amenities.has_next %}
-                        <a href="?page={{ amenities.next_page_number }}" class="btn-page">Next</a>
-                    {% else %}
-                        <button class="btn-page disabled" disabled>Next</button>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-
-    </div>
-</div>
-
-<!-- Styling and Layout Styles -->
+{% block extra_head %}
 <style>
 /* ---------- PAGE HEADER (was missing — h1/p/button rendered unstyled) ---------- */
 .page-header-row {
@@ -551,8 +404,156 @@
     }
 }
 </style>
+{% endblock %}
+{% load static %}
 
-<!-- Live Search JavaScript -->
+{% block title %}Amenities Management - VacantHommie{% endblock %}
+
+{% block content %}
+<div class="amenities-list-wrapper">
+
+    <!-- Page Header Row -->
+    <div class="page-header-row">
+        <div class="header-titles">
+            <h1>Amenities</h1>
+            <p>Manage all amenities that landlords can select when listing their properties.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'landloards:create_amenity' %}" class="btn-primary-action">
+                <i class="fa-solid fa-plus"></i> Add New Amenity
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Table Card Box -->
+    <div class="dashboard-card-box amenities-table-box">
+
+        <!-- Filter & Search Toolbar -->
+        <div class="table-toolbar-row">
+            <div class="toolbar-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="amenity-search-input" placeholder="Search amenities..." autocomplete="off">
+            </div>
+
+            <div class="toolbar-filters-group">
+                <div class="dropdown-filter-wrapper">
+                    <select id="category-filter" class="toolbar-select">
+                        <option value="">All Categories</option>
+                        <!-- Add category options dynamically if applicable -->
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-chevron"></i>
+                </div>
+
+                <div class="dropdown-filter-wrapper">
+                    <select id="status-filter" class="toolbar-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-chevron"></i>
+                </div>
+
+                <button type="button" class="btn-export" title="Export Amenities Data">
+                    <i class="fa-solid fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive">
+            <table class="styled-amenity-table" id="amenities-table">
+                <thead>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th>Amenity</th>
+                        <th>Description</th>
+                        <th>Slug</th>
+                        <th>Date Added</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for amenity in amenities %}
+                        <tr class="amenity-row" data-search-text="{{ amenity.name }} {{ amenity.description }} {{ amenity.slug }}">
+                            <td class="col-num text-muted">{{ forloop.counter0|add:amenities.start_index }}</td>
+                            <td>
+                                <div class="amenity-name-cell">
+                                    <div class="amenity-icon-badge">
+                                        <i class="fa-solid fa-couch text-green"></i>
+                                    </div>
+                                    <strong>{{ amenity.name }}</strong>
+                                </div>
+                            </td>
+                            <td class="description-cell">{{ amenity.description|truncatechars:50 }}</td>
+                            <td>
+                                <span class="slug-pill">{{ amenity.slug }}</span>
+                            </td>
+                            <td class="date-cell">{{ amenity.created_at|date:"M d, Y"|default:"May 20, 2025" }}</td>
+                            <td class="text-right actions-cell">
+                                <a href="{% url 'landloards:update_amenity' amenity.id %}" class="btn-action-icon btn-edit" title="Edit Amenity">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'landloards:delete_amenity' amenity.id %}" class="btn-action-icon btn-delete" title="Delete Amenity" data-amenity-name="{{ amenity.name }}">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <div class="empty-state-container">
+                                    <i class="fa-solid fa-layer-group empty-icon"></i>
+                                    <p>No amenities found. Click "Add New Amenity" to create one.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div id="no-search-results" class="no-search-results" style="display:none;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <p>No amenities match your search query.</p>
+            </div>
+        </div>
+
+        <!-- Table Footer / Pagination -->
+        <div class="table-footer-row">
+            <div class="table-count-info">
+                Showing {{ amenities.start_index|default:1 }} to {{ amenities.end_index|default:amenities|length }} of {{ amenities.paginator.count|default:amenities|length }} amenities
+            </div>
+
+            {% if amenities.has_other_pages %}
+                <div class="pagination-container">
+                    {% if amenities.has_previous %}
+                        <a href="?page={{ amenities.previous_page_number }}" class="btn-page">Previous</a>
+                    {% else %}
+                        <button class="btn-page disabled" disabled>Previous</button>
+                    {% endif %}
+
+                    <div class="page-numbers-group">
+                        {% for i in amenities.paginator.page_range %}
+                            {% if amenities.number == i %}
+                                <span class="btn-page active">{{ i }}</span>
+                            {% elif i > amenities.number|add:'-3' and i < amenities.number|add:'3' %}
+                                <a href="?page={{ i }}" class="btn-page">{{ i }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if amenities.has_next %}
+                        <a href="?page={{ amenities.next_page_number }}" class="btn-page">Next</a>
+                    {% else %}
+                        <button class="btn-page disabled" disabled>Next</button>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Styling and Layout Styles --><!-- Live Search JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Delete Confirmation Handler

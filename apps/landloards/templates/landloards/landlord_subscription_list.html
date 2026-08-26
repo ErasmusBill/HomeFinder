@@ -1,279 +1,6 @@
 {% extends 'landloards/landlord_base.html' %}
-{% load static %}
 
-{% block title %}My Subscription & Billing | VacantHommie{% endblock %}
-
-{% block content %}
-<div class="subscription-page-wrapper">
-
-    <!-- Page Header -->
-    <div class="page-header-flex">
-        <div>
-            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-                <ol>
-                    <li>Dashboard</li>
-                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
-                    <li class="current">Subscriptions</li>
-                </ol>
-            </nav>
-            <h1 class="page-title">My Subscription</h1>
-            <p class="page-subtitle">Manage your subscription plan and billing details.</p>
-        </div>
-    </div>
-
-    <!-- Django messages -->
-    {% if messages %}
-    <div class="messages-stack">
-        {% for message in messages %}
-        <div class="django-message message-{{ message.tags|default:'info' }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if active_subscription %}
-        <!-- Active Subscription Main Card -->
-        <div class="subscription-grid">
-            <div class="subscription-grid-main">
-                <div class="dashboard-card-box subscription-current-card">
-                    <div class="subscription-current-header">
-                        <div class="subscription-plan-info">
-                            <div class="subscription-plan-label-row">
-                                <span class="label-eyebrow">Current Plan</span>
-                                <span class="status-badge published"><span class="dot"></span> Active</span>
-                            </div>
-                            <h2 class="subscription-plan-name">{{ active_subscription.plan.name }}</h2>
-                            <div class="subscription-plan-price">
-                                <span class="price-amount">GH₵ {{ active_subscription.plan.price }}</span>
-                                <span class="price-period">/ {{ active_subscription.plan.duration_days }} days</span>
-                            </div>
-                            <p class="subscription-plan-desc">
-                                You have up to {{ active_subscription.plan.maximum_listings }} active property listings.
-                            </p>
-                        </div>
-                        <div class="subscription-dates">
-                            <div class="date-meta-box">
-                                <span class="date-meta-label">Start Date</span>
-                                <span class="date-meta-value">{{ active_subscription.start_date|date:"M d, Y"|default:active_subscription.created_at|date:"M d, Y" }}</span>
-                            </div>
-                            <div class="date-meta-box">
-                                <span class="date-meta-label">Next Billing Date</span>
-                                <span class="date-meta-value">{{ active_subscription.end_date|date:"M d, Y"|default:"—" }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Plan Usage Bar -->
-                    <div class="subscription-usage-section">
-                        <div class="usage-header-row">
-                            <span class="usage-title">Plan Usage</span>
-                            <span class="usage-count">{{ active_listings_count|default:"0" }} / {{ active_subscription.plan.maximum_listings }} listings</span>
-                        </div>
-                        <div class="usage-bar-track">
-                            <div class="usage-bar-fill" style="width: {% widthratio active_listings_count|default:0 active_subscription.plan.maximum_listings 100 %}%;"></div>
-                        </div>
-                        <div class="usage-footer-row">
-                            <p class="usage-footer-text">You have used {{ active_listings_count|default:"0" }} of {{ active_subscription.plan.maximum_listings }} active listings.</p>
-                            <a href="{% url 'landloards:property_list' %}" class="usage-footer-link">Manage Listings <i class="fa-solid fa-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Billing Information & Quick Actions -->
-            <div class="subscription-grid-side">
-                <div class="dashboard-card-box">
-                    <h3 class="side-card-title">Billing Information</h3>
-                    <div class="billing-info-list">
-                        <div class="billing-info-row">
-                            <span class="billing-info-label">Amount</span>
-                            <span class="billing-info-value">GH₵ {{ active_subscription.plan.price }}</span>
-                        </div>
-                        <div class="billing-info-row">
-                            <span class="billing-info-label">Billing Cycle</span>
-                            <span class="billing-info-value">Every {{ active_subscription.plan.duration_days }} days</span>
-                        </div>
-                        <div class="billing-info-row">
-                            <span class="billing-info-label">Payment Method</span>
-                            <span class="billing-info-value">Paystack</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card-box">
-                    <h3 class="side-card-title">Actions</h3>
-                    <div class="actions-list">
-                        <a href="#change-plan-section" class="action-link-row">
-                            <span>Change Plan</span>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        <a href="#billing-history-section" class="action-link-row">
-                            <span>Billing History</span>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                        {% if active_subscription.cancel_at_period_end %}
-                        <form method="post" action="{% url 'subscription:reactivate' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="action-link-row action-row-success">
-                                <span>Reactivate Subscription</span>
-                                <i class="fa-solid fa-rotate-left"></i>
-                            </button>
-                        </form>
-                        {% else %}
-                        <form method="post" action="{% url 'subscription:cancel' %}" onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
-                            {% csrf_token %}
-                            <button type="submit" class="action-link-row action-row-danger">
-                                <span>Cancel Subscription</span>
-                                <i class="fa-solid fa-ban"></i>
-                            </button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- Change Your Plan Section (Fetches and Renders all Plans from DB) -->
-    <div id="change-plan-section" class="dashboard-card-box plans-section-card">
-        <div class="section-header-block">
-            <h3 class="section-title">{% if active_subscription %}Change Your Plan{% else %}Available Subscription Plans{% endif %}</h3>
-            <p class="section-subtitle">{% if active_subscription %}Choose a new plan. Your new plan will take effect at the end of your current billing cycle.{% else %}Select a subscription plan below to activate your landlord account and start listing properties.{% endif %}</p>
-        </div>
-
-        <div class="plans-grid">
-            <!-- Loops through plans fetched from the database with built-in fallbacks -->
-            {% for plan in available_plans|default:plans|default:subscription_plans %}
-            <div class="plan-card {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
-                {% if active_subscription and active_subscription.plan.id == plan.id %}
-                <div class="plan-current-flag">
-                    <i class="fa-solid fa-check"></i> Current Plan
-                </div>
-                {% endif %}
-                <div class="plan-card-body">
-                    <h4 class="plan-card-name">{{ plan.name }}</h4>
-                    <p class="plan-card-desc">{{ plan.description|default:"Great for landlords who want more visibility and listings." }}</p>
-                    <div class="plan-card-price-row">
-                        <span class="plan-price-amount">GH₵ {{ plan.price }}</span>
-                        <span class="plan-price-period">/ {{ plan.duration_days }} days</span>
-                    </div>
-                    <ul class="plan-feature-list">
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            Up to <strong>{{ plan.maximum_listings }}</strong> active listings
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
-                            <strong>{{ plan.duration_days }}</strong> days duration
-                        </li>
-                    </ul>
-                </div>
-                <div class="plan-card-action">
-                    {% if active_subscription and active_subscription.plan.id == plan.id %}
-                    <button disabled class="plan-btn plan-btn-disabled">
-                        Current Plan
-                    </button>
-                    {% else %}
-                    <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
-                        {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% empty %}
-            <div class="plans-empty-state">
-                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
-                <p class="plans-empty-title">No subscription plans are currently available.</p>
-                <p class="plans-empty-sub">Please add subscription plans via the Django admin panel.</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Billing & Subscription History Table -->
-    <div id="billing-history-section" class="dashboard-card-box billing-history-card">
-        <div class="section-header-block billing-section-header">
-            <div class="section-header-text">
-                <h3 class="section-title">Subscription &amp; Billing History</h3>
-                <p class="section-subtitle">Record of all your active, expired, and past subscriptions.</p>
-            </div>
-            <div class="billing-history-count">
-                <i class="fa-solid fa-receipt"></i>
-                <span>{{ subscriptions|length }} record{{ subscriptions|length|pluralize }}</span>
-            </div>
-        </div>
-
-        <div class="table-responsive-card billing-table-wrap">
-            <table class="data-table billing-table">
-                <colgroup>
-                    <col class="col-ref">
-                    <col class="col-plan">
-                    <col class="col-amount">
-                    <col class="col-status">
-                    <col class="col-date">
-                    <col class="col-date">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>Reference ID</th>
-                        <th>Plan Name</th>
-                        <th class="text-right">Amount</th>
-                        <th>Status</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for subscription in subscriptions %}
-                    <tr>
-                        <td class="ref-cell">
-                            {% if subscription.payment_reference %}
-                                <span class="ref-mono" title="{{ subscription.payment_reference }}">{{ subscription.payment_reference }}</span>
-                            {% else %}
-                                <span class="ref-empty">—</span>
-                            {% endif %}
-                        </td>
-                        <td class="plan-name-cell">
-                            <div class="plan-cell-stack">
-                                <span class="plan-cell-icon"><i class="fa-solid fa-crown"></i></span>
-                                <span class="plan-cell-name">{{ subscription.plan.name }}</span>
-                            </div>
-                        </td>
-                        <td class="amount-cell text-right">GH₵ {{ subscription.plan.price }}</td>
-                        <td>
-                            {% if subscription.status == 'success' or subscription.status == 'active' %}
-                                <span class="status-badge-lg published"><span class="dot"></span> Active</span>
-                            {% elif subscription.status == 'pending' %}
-                                <span class="status-badge-lg pending"><span class="dot"></span> Pending</span>
-                            {% elif subscription.status == 'expired' %}
-                                <span class="status-badge-lg draft"><span class="dot"></span> Expired</span>
-                            {% else %}
-                                <span class="status-badge-lg rejected"><span class="dot"></span> {{ subscription.status|title|default:"Failed" }}</span>
-                            {% endif %}
-                        </td>
-                        <td class="date-cell">{{ subscription.start_date|date:"M d, Y"|default:subscription.created_at|date:"M d, Y" }}</td>
-                        <td class="date-cell">{{ subscription.end_date|date:"M d, Y"|default:"—" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="empty-state-cell">
-                            <div class="empty-state">
-                                <i class="fa-solid fa-file-invoice"></i>
-                                <h3>No subscription history found</h3>
-                                <p>Once you subscribe, your billing history will appear here.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
-
-<!-- Page Specific Styling (matches dashboard / properties list design system) -->
+{% block extra_head %}
 <style>
     .subscription-page-wrapper {
         display: flex;
@@ -953,3 +680,278 @@
     }
 </style>
 {% endblock %}
+{% load static %}
+
+{% block title %}My Subscription & Billing | VacantHommie{% endblock %}
+
+{% block content %}
+<div class="subscription-page-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header-flex">
+        <div>
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol>
+                    <li>Dashboard</li>
+                    <li><i class="fa-solid fa-chevron-right breadcrumb-sep"></i></li>
+                    <li class="current">Subscriptions</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">My Subscription</h1>
+            <p class="page-subtitle">Manage your subscription plan and billing details.</p>
+        </div>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages-stack">
+        {% for message in messages %}
+        <div class="django-message message-{{ message.tags|default:'info' }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if active_subscription %}
+        <!-- Active Subscription Main Card -->
+        <div class="subscription-grid">
+            <div class="subscription-grid-main">
+                <div class="dashboard-card-box subscription-current-card">
+                    <div class="subscription-current-header">
+                        <div class="subscription-plan-info">
+                            <div class="subscription-plan-label-row">
+                                <span class="label-eyebrow">Current Plan</span>
+                                <span class="status-badge published"><span class="dot"></span> Active</span>
+                            </div>
+                            <h2 class="subscription-plan-name">{{ active_subscription.plan.name }}</h2>
+                            <div class="subscription-plan-price">
+                                <span class="price-amount">GH₵ {{ active_subscription.plan.price }}</span>
+                                <span class="price-period">/ {{ active_subscription.plan.duration_days }} days</span>
+                            </div>
+                            <p class="subscription-plan-desc">
+                                You have up to {{ active_subscription.plan.maximum_listings }} active property listings.
+                            </p>
+                        </div>
+                        <div class="subscription-dates">
+                            <div class="date-meta-box">
+                                <span class="date-meta-label">Start Date</span>
+                                <span class="date-meta-value">{{ active_subscription.start_date|date:"M d, Y"|default:active_subscription.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="date-meta-box">
+                                <span class="date-meta-label">Next Billing Date</span>
+                                <span class="date-meta-value">{{ active_subscription.end_date|date:"M d, Y"|default:"—" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plan Usage Bar -->
+                    <div class="subscription-usage-section">
+                        <div class="usage-header-row">
+                            <span class="usage-title">Plan Usage</span>
+                            <span class="usage-count">{{ active_listings_count|default:"0" }} / {{ active_subscription.plan.maximum_listings }} listings</span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" style="width: {% widthratio active_listings_count|default:0 active_subscription.plan.maximum_listings 100 %}%;"></div>
+                        </div>
+                        <div class="usage-footer-row">
+                            <p class="usage-footer-text">You have used {{ active_listings_count|default:"0" }} of {{ active_subscription.plan.maximum_listings }} active listings.</p>
+                            <a href="{% url 'landloards:property_list' %}" class="usage-footer-link">Manage Listings <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Billing Information & Quick Actions -->
+            <div class="subscription-grid-side">
+                <div class="dashboard-card-box">
+                    <h3 class="side-card-title">Billing Information</h3>
+                    <div class="billing-info-list">
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Amount</span>
+                            <span class="billing-info-value">GH₵ {{ active_subscription.plan.price }}</span>
+                        </div>
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Billing Cycle</span>
+                            <span class="billing-info-value">Every {{ active_subscription.plan.duration_days }} days</span>
+                        </div>
+                        <div class="billing-info-row">
+                            <span class="billing-info-label">Payment Method</span>
+                            <span class="billing-info-value">Paystack</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card-box">
+                    <h3 class="side-card-title">Actions</h3>
+                    <div class="actions-list">
+                        <a href="#change-plan-section" class="action-link-row">
+                            <span>Change Plan</span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        <a href="#billing-history-section" class="action-link-row">
+                            <span>Billing History</span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                        {% if active_subscription.cancel_at_period_end %}
+                        <form method="post" action="{% url 'subscription:reactivate' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="action-link-row action-row-success">
+                                <span>Reactivate Subscription</span>
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'subscription:cancel' %}" onsubmit="return confirm('Are you sure you want to cancel your subscription?');">
+                            {% csrf_token %}
+                            <button type="submit" class="action-link-row action-row-danger">
+                                <span>Cancel Subscription</span>
+                                <i class="fa-solid fa-ban"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Change Your Plan Section (Fetches and Renders all Plans from DB) -->
+    <div id="change-plan-section" class="dashboard-card-box plans-section-card">
+        <div class="section-header-block">
+            <h3 class="section-title">{% if active_subscription %}Change Your Plan{% else %}Available Subscription Plans{% endif %}</h3>
+            <p class="section-subtitle">{% if active_subscription %}Choose a new plan. Your new plan will take effect at the end of your current billing cycle.{% else %}Select a subscription plan below to activate your landlord account and start listing properties.{% endif %}</p>
+        </div>
+
+        <div class="plans-grid">
+            <!-- Loops through plans fetched from the database with built-in fallbacks -->
+            {% for plan in available_plans|default:plans|default:subscription_plans %}
+            <div class="plan-card {% if active_subscription and active_subscription.plan.id == plan.id %}plan-card-current{% endif %}">
+                {% if active_subscription and active_subscription.plan.id == plan.id %}
+                <div class="plan-current-flag">
+                    <i class="fa-solid fa-check"></i> Current Plan
+                </div>
+                {% endif %}
+                <div class="plan-card-body">
+                    <h4 class="plan-card-name">{{ plan.name }}</h4>
+                    <p class="plan-card-desc">{{ plan.description|default:"Great for landlords who want more visibility and listings." }}</p>
+                    <div class="plan-card-price-row">
+                        <span class="plan-price-amount">GH₵ {{ plan.price }}</span>
+                        <span class="plan-price-period">/ {{ plan.duration_days }} days</span>
+                    </div>
+                    <ul class="plan-feature-list">
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            Up to <strong>{{ plan.maximum_listings }}</strong> active listings
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check plan-feature-icon"></i>
+                            <strong>{{ plan.duration_days }}</strong> days duration
+                        </li>
+                    </ul>
+                </div>
+                <div class="plan-card-action">
+                    {% if active_subscription and active_subscription.plan.id == plan.id %}
+                    <button disabled class="plan-btn plan-btn-disabled">
+                        Current Plan
+                    </button>
+                    {% else %}
+                    <a href="{% url 'subscription:initiate_payment' plan.id %}" class="plan-btn plan-btn-primary">
+                        {% if active_subscription %}Switch to {{ plan.name }}{% else %}Choose {{ plan.name }}{% endif %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="plans-empty-state">
+                <i class="fa-solid fa-rectangle-list plans-empty-icon"></i>
+                <p class="plans-empty-title">No subscription plans are currently available.</p>
+                <p class="plans-empty-sub">Please add subscription plans via the Django admin panel.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Billing & Subscription History Table -->
+    <div id="billing-history-section" class="dashboard-card-box billing-history-card">
+        <div class="section-header-block billing-section-header">
+            <div class="section-header-text">
+                <h3 class="section-title">Subscription &amp; Billing History</h3>
+                <p class="section-subtitle">Record of all your active, expired, and past subscriptions.</p>
+            </div>
+            <div class="billing-history-count">
+                <i class="fa-solid fa-receipt"></i>
+                <span>{{ subscriptions|length }} record{{ subscriptions|length|pluralize }}</span>
+            </div>
+        </div>
+
+        <div class="table-responsive-card billing-table-wrap">
+            <table class="data-table billing-table">
+                <colgroup>
+                    <col class="col-ref">
+                    <col class="col-plan">
+                    <col class="col-amount">
+                    <col class="col-status">
+                    <col class="col-date">
+                    <col class="col-date">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Reference ID</th>
+                        <th>Plan Name</th>
+                        <th class="text-right">Amount</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subscription in subscriptions %}
+                    <tr>
+                        <td class="ref-cell">
+                            {% if subscription.payment_reference %}
+                                <span class="ref-mono" title="{{ subscription.payment_reference }}">{{ subscription.payment_reference }}</span>
+                            {% else %}
+                                <span class="ref-empty">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="plan-name-cell">
+                            <div class="plan-cell-stack">
+                                <span class="plan-cell-icon"><i class="fa-solid fa-crown"></i></span>
+                                <span class="plan-cell-name">{{ subscription.plan.name }}</span>
+                            </div>
+                        </td>
+                        <td class="amount-cell text-right">GH₵ {{ subscription.plan.price }}</td>
+                        <td>
+                            {% if subscription.status == 'success' or subscription.status == 'active' %}
+                                <span class="status-badge-lg published"><span class="dot"></span> Active</span>
+                            {% elif subscription.status == 'pending' %}
+                                <span class="status-badge-lg pending"><span class="dot"></span> Pending</span>
+                            {% elif subscription.status == 'expired' %}
+                                <span class="status-badge-lg draft"><span class="dot"></span> Expired</span>
+                            {% else %}
+                                <span class="status-badge-lg rejected"><span class="dot"></span> {{ subscription.status|title|default:"Failed" }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="date-cell">{{ subscription.start_date|date:"M d, Y"|default:subscription.created_at|date:"M d, Y" }}</td>
+                        <td class="date-cell">{{ subscription.end_date|date:"M d, Y"|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                <h3>No subscription history found</h3>
+                                <p>Once you subscribe, your billing history will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Page Specific Styling (matches dashboard / properties list design system) -->{% endblock %}
