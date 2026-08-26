@@ -194,9 +194,22 @@ def _get_filter_context(request):
       - `room_type_choices`, `payment_period_choices` : model choices
       - `total_count` : total matching properties (pre-pagination)
 
-    This queryset intentionally does NOT filter by publication_status,
-    verification_status, or is_available — all properties in the database
-    are visible so visitors can browse the full catalogue.
+    Public-visibility gate:
+      The /properties/ page only shows properties that are eligible for
+      visitors — i.e. verified+published+available. Drafts, archived,
+      rejected, and currently-unavailable properties are filtered out so
+      tenants never see listings that aren't actually ready to be rented.
+
+      Landlord-doc verification (verified Ghana Card etc.) is NOT part of
+      this gate — that "trustworthy landlord" check is enforced separately
+      on the homepage's Featured Properties section and was a deliberate
+      product split. This page mirrors the detail page's looser gate so
+      a property that's been verified by an admin shows up the moment
+      it's published, even before landlord docs are approved.
+
+      NB: landlord dashboards and admin views intentionally bypass this
+      gate via get_admin_property_queryset() / Property.objects.all() so
+      landlords can still see their own drafts and pending listings.
     """
     filters = {
         "q": request.GET.get("q", ""),
@@ -213,8 +226,12 @@ def _get_filter_context(request):
         "unfurnished": request.GET.get("unfurnished", ""),
     }
 
-    # Build the base queryset — ALL properties, no status gate
-    qs = Property.objects.all().select_related(
+    # Build the base queryset — only properties eligible for public viewing.
+    qs = Property.objects.filter(
+        publication_status=Property.PublicationStatus.PUBLISHED,
+        verification_status=Property.VerificationStatus.VERIFIED,
+        is_available=True,
+    ).select_related(
         "region", "district", "town", "area", "landlord"
     ).prefetch_related("amenities", "media")
 
