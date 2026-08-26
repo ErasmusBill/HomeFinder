@@ -41,7 +41,7 @@
             <form method="POST" action="{% url 'account:login' %}" class="login-main-form" novalidate>
                 {% csrf_token %}
 
-                {% if form.non_field_errors or form.errors or messages %}
+                {% if form.non_field_errors or form.errors %}
                     <div class="form-errors-box" role="alert" aria-live="polite">
                         {% if form.non_field_errors %}
                             {% for error in form.non_field_errors %}
@@ -53,11 +53,20 @@
                                 <p><i class="fa-solid fa-circle-exclamation"></i> <strong>{{ field.label }}:</strong> {{ error }}</p>
                             {% endfor %}
                         {% endfor %}
-                        {% for message in messages %}
-                            <p><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</p>
-                        {% endfor %}
                     </div>
                 {% endif %}
+
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        <div class="form-success-box" role="status" aria-live="polite">
+                            <p><i class="fa-solid fa-circle-check"></i> {{ message }}</p>
+                        </div>
+                    {% else %}
+                        <div class="form-errors-box" role="alert" aria-live="polite">
+                            <p><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
 
                 <!-- Identifier / Email or Phone -->
                 <div class="form-group-item">
@@ -190,6 +199,10 @@
 .form-errors-box { margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; }
 .form-errors-box p { display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 13px; font-weight: 500; margin: 0; }
 .form-errors-box p + p { margin-top: 6px; }
+
+.form-success-box { margin-bottom: 18px; padding: 12px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; }
+.form-success-box p { display: flex; align-items: center; gap: 8px; color: #047857; font-size: 13px; font-weight: 600; margin: 0; }
+.form-success-box p + p { margin-top: 6px; }
 
 .form-group-item { margin-bottom: 20px; }
 .form-group-item label { display: block; font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 8px; letter-spacing: 0.01em; }

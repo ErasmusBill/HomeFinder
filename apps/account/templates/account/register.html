@@ -73,6 +73,18 @@
                     </div>
                 {% endif %}
 
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        <div class="form-success-box" role="status" aria-live="polite">
+                            <p><i class="fa-solid fa-circle-check"></i> {{ message }}</p>
+                        </div>
+                    {% else %}
+                        <div class="form-errors-box" role="alert" aria-live="polite">
+                            <p><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
                 <!-- Full Name -->
                 <div class="form-group-item {% if form.full_name.errors %}has-error{% endif %}">
                     <label for="{{ form.full_name.id_for_label }}">Full Name</label>
@@ -295,6 +307,9 @@
 
 .form-errors-box { margin-bottom: 18px; padding: 12px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; }
 .form-errors-box p { display: flex; align-items: center; gap: 8px; color: #dc2626; font-size: 13px; font-weight: 500; margin: 0; }
+
+.form-success-box { margin-bottom: 18px; padding: 12px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; }
+.form-success-box p { display: flex; align-items: center; gap: 8px; color: #047857; font-size: 13px; font-weight: 600; margin: 0; }
 
 .social-auth-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 .social-btn { width: 100%; padding: 12px; background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 600; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; transition: background .15s ease, border-color .15s ease, transform .08s ease; }

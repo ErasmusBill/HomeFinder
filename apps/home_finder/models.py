@@ -33,7 +33,7 @@ def generate_unique_slug(model_instance, source_field_value, slug_field_name="sl
 
 class Amenity(BaseModel):
     name = models.CharField(max_length=100, unique=True)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
 
     class Meta:

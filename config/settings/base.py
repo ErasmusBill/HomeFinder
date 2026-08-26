@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'apps.Subscription',
     'apps.notifications',
     'apps.tenant',
+    'apps.chatbot',
     'apps.account.apps.AccountConfig',
 
     'allauth',
@@ -259,7 +260,6 @@ SOCIALACCOUNT_PROVIDERS = {
         "APP": {
             "client_id": env("FACEBOOK_CLIENT_ID", default=''),
             "secret": env("FACEBOOK_CLIENT_SECRET", default=''),
-            "key": "",
         }
     },
 }
@@ -279,3 +279,5 @@ PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
 
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://127.0.0.1:8000")
+
+OPENAI_API_KEY = env("OPENAI_API_KEY")

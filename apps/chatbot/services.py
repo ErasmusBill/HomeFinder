@@ -2,7 +2,7 @@ from openai import OpenAI
 from django.conf import settings
 
 client = OpenAI(
-    api_key="k-proj-K4hD_4DH_nyHQDUbNrWZbzbADG8eDcinCP_gaXSywFHVSLVT9USD7dv-uumzuWqUjMnpqQZHUIT3BlbkFJ_GVq1WJ9lbxEWGBlR2LvL5Q5HROg8ffZYpJqg9kiIQsHe6SsPObO6xlReItu5WUUlP3IVwSyAA"
+    api_key=settings.OPENAI_API_KEY,
 )
 
 def generate_chat_response(message:str):
@@ -13,4 +13,3 @@ def generate_chat_response(message:str):
     return response.output_text
 
 
-print(generate_chat_response("Hey, how are you doing?"))

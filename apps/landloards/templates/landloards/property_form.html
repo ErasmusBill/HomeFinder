@@ -838,12 +838,25 @@
     --radius-sm: 10px;
 }
 
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+img, svg {
+    max-width: 100%;
+    height: auto;
 }
 
 .property-form-wrapper {
     padding: 4px;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .page-header-row {
@@ -853,6 +866,10 @@
     flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 28px;
+}
+
+.header-titles {
+    min-width: 0;
 }
 
 .header-titles h1 {
@@ -906,12 +923,8 @@
     grid-template-columns: 2.2fr 1fr;
     gap: 28px;
     align-items: start;
-}
-
-@media (max-width: 1100px) {
-    .property-layout-grid {
-        grid-template-columns: 1fr;
-    }
+    width: 100%;
+    min-width: 0;
 }
 
 /* ---------- Main form card ---------- */
@@ -922,13 +935,339 @@
     padding: 32px;
     border: 1.5px solid var(--border-color);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    min-width: 0;
+}
+
+.property-sidebar-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* ===================== RESPONSIVE BREAKPOINTS ===================== */
+/* Large tablet / small laptop: stack the sidebar under the form */
+@media (max-width: 1100px) {
+    .property-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Sticky only makes sense in a two-column layout; once stacked,
+       a sticky sidebar card would float awkwardly over the form. */
+    .preview-summary-card.sticky-sidebar-card {
+        position: static;
+        top: auto;
+    }
+
+    .property-sidebar-col {
+        gap: 0;
+    }
+}
+
+/* Tablet / narrow desktop: keep 4-column location grid readable by
+   dropping to 2 columns before it gets too cramped for full-width stack */
+@media (max-width: 900px) {
+    .form-grid-4col {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 640px) {
     .property-form-card {
         padding: 20px;
     }
+
+    .sidebar-card {
+        padding: 18px;
+    }
 }
+
+/* ---------- Mobile responsiveness: Property Gallery & Media ---------- */
+
+@media (max-width: 768px) {
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .header-titles h1 {
+        font-size: 22px;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn-secondary-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-section-block {
+        padding: 18px 18px 20px 18px;
+    }
+
+    .media-form-row {
+        padding: 14px;
+    }
+
+    .file-preview-inline {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .file-preview-info {
+        flex-basis: calc(100% - 70px);
+        min-width: 0;
+    }
+
+    .cover-preview-thumb {
+        max-height: 220px;
+    }
+
+    .cover-preview-meta {
+        font-size: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .section-badge-title h3 {
+        font-size: 15.5px;
+    }
+
+    .form-grid-2col,
+    .form-grid-3col,
+    .form-grid-4col {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .form-group select[multiple] {
+        min-height: 120px;
+    }
+
+    .input-with-prefix {
+        flex-wrap: nowrap;
+    }
+
+    .input-with-prefix .prefix-tag {
+        padding: 0 10px;
+        font-size: 12.5px;
+    }
+
+    .existing-doc-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .existing-doc-meta {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .doc-row-hint {
+        width: 100%;
+    }
+
+    .status-badge-display {
+        width: 100%;
+    }
+
+    .status-pill {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .property-form-wrapper {
+        padding: 0;
+    }
+
+    .form-section-block {
+        padding: 14px 14px 16px 14px;
+        border-radius: var(--radius-sm);
+    }
+
+    .property-form-card {
+        padding: 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .sidebar-card {
+        padding: 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .media-form-row {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .header-titles h1 {
+        font-size: 20px;
+    }
+
+    .header-titles p {
+        font-size: 13px;
+    }
+
+    .section-badge-title {
+        gap: 10px;
+    }
+
+    .section-badge-title h3 {
+        font-size: 14.5px;
+        line-height: 1.3;
+    }
+
+    .step-num {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+
+    .section-subtitle {
+        font-size: 12px;
+    }
+
+    .file-preview-thumb,
+    .file-preview-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .file-preview-info {
+        flex-basis: calc(100% - 64px);
+    }
+
+    .file-preview-filename {
+        font-size: 12px;
+    }
+
+    .file-upload-dropzone {
+        padding: 18px 10px;
+    }
+
+    .dropzone-mock-content i {
+        font-size: 22px;
+    }
+
+    .dropzone-mock-content span {
+        font-size: 12.5px;
+    }
+
+    .dropzone-mock-content small {
+        font-size: 11px;
+    }
+
+    .dropzone-mock-content span {
+        word-break: break-word;
+        max-width: 100%;
+        padding: 0 4px;
+    }
+
+    .cover-preview-replace {
+        font-size: 11px;
+        padding: 5px 8px;
+        top: 6px;
+        right: 6px;
+    }
+
+    .media-row-badge {
+        font-size: 11.5px;
+        padding: 5px 10px;
+    }
+
+    .media-row-footer-actions {
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .delete-checkbox-label {
+        font-size: 12.5px;
+        flex-wrap: wrap;
+    }
+
+    .btn-sub-action {
+        width: 100%;
+        justify-content: center;
+        padding: 11px 14px;
+        font-size: 12.5px;
+    }
+
+    .form-section-block .form-actions-footer,
+    .form-actions-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions-footer .btn-cancel,
+    .form-actions-footer .btn-primary-action {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .summary-item {
+        flex-wrap: wrap;
+    }
+
+    .summary-val {
+        text-align: left;
+    }
+
+    .existing-doc-view-btn {
+        padding: 6px 10px;
+        font-size: 11.5px;
+    }
+
+    .identity-verification-box,
+    .doc-tip-banner {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .room-guide-item {
+        gap: 10px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+    .header-titles h1 {
+        font-size: 18px;
+    }
+
+    .btn-primary-action,
+    .btn-cancel {
+        font-size: 12.5px;
+        padding: 11px 16px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="email"],
+    .form-group input[type="date"],
+    .form-group input:not([type]),
+    .form-group textarea,
+    .form-group select {
+        padding: 11px 12px;
+    }
+}
+
+/* Prevent iOS auto-zoom on form fields when adding a property on mobile */
+@media (max-width: 768px) {
+    .property-creation-form input,
+    .property-creation-form select,
+    .property-creation-form textarea,
+    .property-creation-form button {
+        font-size: 16px;
+    }
+}
+/* ===================== END RESPONSIVE BREAKPOINTS ===================== */
 
 .form-error-banner {
     display: flex;
@@ -951,6 +1290,7 @@
     padding: 22px 24px 26px 24px;
     margin-bottom: 20px;
     transition: border-color 0.2s ease;
+    min-width: 0;
 }
 
 .form-section-block:hover {
@@ -997,6 +1337,7 @@
 
 .section-body {
     padding-left: 40px;
+    min-width: 0;
 }
 
 @media (max-width: 640px) {
@@ -1021,6 +1362,7 @@
 .form-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .form-group label {
@@ -1031,6 +1373,7 @@
     font-weight: 600;
     color: var(--text-main);
     margin-bottom: 8px;
+    flex-wrap: wrap;
 }
 
 .required-star {
@@ -1130,6 +1473,7 @@
     border: 1.5px solid var(--border-color);
     border-radius: var(--radius-sm);
     overflow: hidden;
+    min-width: 0;
 }
 
 .input-with-prefix .prefix-tag {
@@ -1140,12 +1484,14 @@
     color: var(--primary-green-dark);
     font-weight: 700;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 .input-with-prefix input {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    min-width: 0;
 }
 
 .input-with-icon-right {
@@ -1178,6 +1524,7 @@
     padding: 12px 16px;
     font-size: 12.5px;
     color: var(--text-main);
+    flex-wrap: wrap;
 }
 
 .checkbox-label {
@@ -1208,6 +1555,7 @@
 .status-pill {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding: 8px 14px;
     border-radius: 999px;
     font-size: 12.5px;
@@ -1254,10 +1602,15 @@
     border-radius: var(--radius-sm);
     padding: 18px;
     margin-bottom: 16px;
+    min-width: 0;
 }
 
 .media-row-header {
     margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .media-row-badge {
@@ -1317,6 +1670,7 @@
     margin-top: 26px;
     padding-top: 22px;
     border-top: 1.5px solid var(--border-color-soft);
+    flex-wrap: wrap;
 }
 
 .btn-cancel {
@@ -1357,17 +1711,13 @@
 
 /* ---------- Sidebar ---------- */
 
-.property-sidebar-col {
-    display: flex;
-    flex-direction: column;
-}
-
 .sidebar-card {
     background: #ffffff;
     border-radius: var(--radius-lg);
     padding: 22px;
     border: 1.5px solid var(--border-color);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    min-width: 0;
 }
 
 .mb-5 { margin-bottom: 22px; }
@@ -1377,6 +1727,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .sidebar-box-header h3 {
@@ -1469,6 +1820,7 @@
     color: var(--text-main);
     font-weight: 700;
     text-align: right;
+    word-break: break-word;
 }
 
 .review-warning-banner {
@@ -1613,6 +1965,16 @@
     color: var(--primary-green-dark);
     font-weight: 600;
     pointer-events: auto;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.cover-preview-meta span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
 }
 
 .cover-preview-meta i {
@@ -1753,6 +2115,7 @@
 
 .identity-box-content {
     flex: 1;
+    min-width: 0;
 }
 
 .identity-box-content h4 {
@@ -1760,6 +2123,10 @@
     font-weight: 700;
     color: var(--text-main);
     margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .identity-box-content p {
@@ -1799,6 +2166,7 @@
     border-radius: var(--radius-sm);
     padding: 16px;
     margin-bottom: 14px;
+    min-width: 0;
 }
 
 /* ---------- Existing Documents Card ---------- */
@@ -1821,6 +2189,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .existing-docs-header small {
@@ -1843,12 +2212,14 @@
     border: 1px solid var(--border-color-soft);
     border-radius: var(--radius-sm);
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .existing-doc-info {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    min-width: 0;
 }
 
 .existing-doc-name {
@@ -1866,6 +2237,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
 }
 
 .existing-doc-meta {
@@ -1887,6 +2259,7 @@
     border-radius: var(--radius-sm);
     text-decoration: none;
     transition: background-color 0.15s ease;
+    white-space: nowrap;
 }
 
 .existing-doc-view-btn:hover {
@@ -1913,6 +2286,10 @@
     padding-top: 2px;
 }
 
+.doc-tip-body {
+    min-width: 0;
+}
+
 .doc-tip-body strong {
     display: block;
     font-size: 13.5px;
@@ -1928,14 +2305,6 @@
 }
 
 /* ---------- Doc row hint ---------- */
-.media-row-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-
 .doc-row-hint {
     font-size: 12px;
     color: var(--text-muted);

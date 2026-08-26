@@ -10,6 +10,18 @@
 
         <!-- Header -->
         <div class="rs-header">
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="rs-msg rs-msg-success" role="status" aria-live="polite">
+                        <i class="fa-solid fa-circle-check"></i> {{ message }}
+                    </div>
+                {% else %}
+                    <div class="rs-msg rs-msg-error" role="alert" aria-live="polite">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
             <a href="{% url 'home_finder:home' %}" class="rs-back-link">
                 <i class="fa-solid fa-arrow-left"></i> Back to Home
             </a>
@@ -134,6 +146,24 @@
     color: #64748b;
     line-height: 1.6;
 }
+
+/* Django message banners (green for success, red for errors) */
+.rs-msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 20px;
+    padding: 12px 16px;
+    max-width: 600px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+}
+.rs-msg-success { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.rs-msg-error   { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
 /* Cards */
 .rs-cards {

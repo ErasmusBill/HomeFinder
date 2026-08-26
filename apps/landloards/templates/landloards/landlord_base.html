@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Landlord Dashboard - VacantHommie{% endblock %}</title>
     {% load static tailwind_tags %}
     {% tailwind_css %}
@@ -33,7 +33,7 @@
                 <ul class="sidebar-menu-list">
                     <li>
                         <a href="{% url 'landloards:landloards_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'landloards_dashboard' %}active{% endif %}">
-                            <i class="fa-solid fa-house"></i> Dashboard
+                            <i class="fa-solid fa-house"></i> <span>Dashboard</span>
                         </a>
                     </li>
                 </ul>
@@ -43,12 +43,12 @@
                 <ul class="sidebar-menu-list">
                     <li>
                         <a href="{% url 'locations:list_locations' %}" class="sidebar-item {% if request.resolver_match.namespace == 'locations' %}active{% endif %}">
-                            <i class="fa-solid fa-location-dot"></i> Browse Locations
+                            <i class="fa-solid fa-location-dot"></i> <span>Browse Locations</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'landloards:amenity_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'amenity_list,create_amenity,update_amenity,delete_amenity' %}active{% endif %}">
-                            <i class="fa-solid fa-layer-group"></i> Amenities
+                            <i class="fa-solid fa-layer-group"></i> <span>Amenities</span>
                         </a>
                     </li>
                 </ul>
@@ -65,24 +65,24 @@
                 <ul class="sidebar-menu-list">
                     <li>
                         <a href="{% url 'landloards:property_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'property_list,property_detail,update_property,delete_property,verify_property,add_property_media,delete_property_media' %}active{% endif %}">
-                            <i class="fa-solid fa-building"></i> My Properties
+                            <i class="fa-solid fa-building"></i> <span>My Properties</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'landloards:create_property' %}" class="sidebar-item {% if request.resolver_match.url_name == 'create_property' %}active{% endif %}">
-                            <i class="fa-solid fa-circle-plus"></i> Add New Property
+                            <i class="fa-solid fa-circle-plus"></i> <span>Add New Property</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'landloards:viewing_requests' %}"
                            class="sidebar-item {% if request.resolver_match.url_name in 'viewing_requests,viewing_request_detail,reschedule_viewing_request' %}active{% endif %}">
-                            <i class="fa-regular fa-calendar-check"></i> Viewing Requests
+                            <i class="fa-regular fa-calendar-check"></i> <span>Viewing Requests</span>
                             {% if landlord_viewing_pending_count %}
                                 <span class="badge-pill amber">{{ landlord_viewing_pending_count }}</span>
                             {% endif %}
                         </a>
                     </li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> Tenants</a></li>
+                    <li><a href="#" class="sidebar-item"><i class="fa-solid fa-users"></i> <span>Tenants</span></a></li>
                 </ul>
 
                 <!-- Account Category -->
@@ -90,12 +90,12 @@
                 <ul class="sidebar-menu-list">
                     <li>
                         <a href="{% url 'landloards:list_landlord_subscription' %}" class="sidebar-item {% if request.resolver_match.namespace == 'subscription' or request.resolver_match.url_name == 'list_landlord_subscription' %}active{% endif %}">
-                            <i class="fa-solid fa-id-card"></i> Subscription
+                            <i class="fa-solid fa-id-card"></i> <span>Subscription</span>
                         </a>
                     </li>
                     <li>
                         <a href="{% url 'landloards:landlord_document_list' %}" class="sidebar-item {% if request.resolver_match.url_name in 'landlord_document_list,create_landlord_document,update_landlord_document,delete_landlord_document' %}active{% endif %}">
-                            <i class="fa-solid fa-file-shield"></i> Documents & Verification
+                            <i class="fa-solid fa-file-shield"></i> <span>Documents & Verification</span>
                             {% if pending_documents_count %}
                             <span class="badge-pill amber">{{ pending_documents_count }}</span>
                             {% endif %}
@@ -109,11 +109,11 @@
 <!--                    </li>-->
                     <li>
                         <a href="{% url 'notifications:list-notifications' %}" class="sidebar-item {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
-                            <i class="fa-regular fa-bell"></i> Notifications
+                            <i class="fa-regular fa-bell"></i> <span>Notifications</span>
                         </a>
                     </li>
-                    <li><a href="{% url 'account:settings' %}" class="sidebar-item"><i class="fa-solid fa-gear"></i> Account Settings</a></li>
-                    <li><a href="#" class="sidebar-item"><i class="fa-regular fa-circle-question"></i> Help & Support</a></li>
+                    <li><a href="{% url 'account:settings' %}" class="sidebar-item"><i class="fa-solid fa-gear"></i> <span>Account Settings</span></a></li>
+                    <li><a href="#" class="sidebar-item"><i class="fa-regular fa-circle-question"></i> <span>Help & Support</span></a></li>
                 </ul>
             </div>
 
@@ -180,7 +180,7 @@
                         </a>
                         {% endif %}
 
-                        <a href="#" class="nav-icon-btn" title="Messages">
+                        <a href="#" class="nav-icon-btn nav-icon-messages" title="Messages">
                             <i class="fa-regular fa-comment-dots"></i>
                         </a>
                         <a href="{% url 'notifications:list-notifications' %}" class="nav-icon-btn notification-bell" title="Notifications">
@@ -271,11 +271,27 @@
             --border-color: #e2e8f0;
         }
 
-        * {
+        /*
+          IMPORTANT: font-family is intentionally NOT set here.
+          Font Awesome renders icon glyphs via the `content` property on
+          the ::before pseudo-element of <i> tags, using the
+          "Font Awesome 6 Free/Pro" font-family declared by fa-solid /
+          fa-regular / fa-brands. A font-family set directly on the
+          universal selector (including *::before, *::after) is a direct
+          declaration on that pseudo-element and overrides inheritance
+          from the FA classes, even though .fa-solid has higher
+          specificity than *::before — specificity only matters when two
+          rules target the exact same element; a direct declaration on
+          the pseudo always wins over an inherited one. That silently
+          breaks every icon (blank glyphs / tofu boxes). Font-family is
+          set on body below instead, which inherits normally.
+        */
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif, system-ui;
         }
 
         html, body {
@@ -285,17 +301,24 @@
         }
 
         body {
+            font-family: 'Inter', sans-serif, system-ui;
             background-color: var(--bg-body);
             color: var(--text-main);
         }
 
         img { max-width: 100%; display: block; }
 
+        button, input, a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .dashboard-wrapper {
             display: flex;
             min-height: 100vh;
             min-height: 100dvh;
             position: relative;
+            width: 100%;
+            max-width: 100%;
         }
 
         /* Sidebar Styling */
@@ -313,6 +336,7 @@
             flex-direction: column;
             z-index: 1000;
             transition: transform 0.3s ease-in-out;
+            padding-left: env(safe-area-inset-left);
         }
 
         .sidebar-header {
@@ -322,6 +346,7 @@
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .sidebar-logo {
@@ -342,6 +367,7 @@
             height: 32px;
             object-fit: contain;
             border-radius: 6px;
+            flex-shrink: 0;
         }
         .sidebar-logo span {
             overflow: hidden;
@@ -357,6 +383,14 @@
             cursor: pointer;
             display: none; /* hidden on desktop */
             flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .mobile-close-btn:hover {
+            background: #f1f5f9;
         }
 
         .sidebar-menu-scroll {
@@ -364,6 +398,7 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding: 15px;
+            min-height: 0;
         }
 
         .sidebar-section-title {
@@ -386,7 +421,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 12px;
+            padding: 11px 12px;
             border-radius: 8px;
             text-decoration: none;
             color: #334155;
@@ -394,6 +429,7 @@
             font-weight: 600;
             transition: all 0.2s;
             position: relative;
+            min-height: 42px;
         }
 
         .sidebar-item i {
@@ -404,9 +440,12 @@
             flex-shrink: 0;
         }
 
-        .sidebar-item span,
-        .sidebar-item {
+        .sidebar-item span {
             min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
         }
 
         .sidebar-item:hover, .sidebar-item.active {
@@ -477,7 +516,7 @@
             color: white;
             font-size: 11px;
             font-weight: 600;
-            padding: 6px 10px;
+            padding: 8px 10px;
             border-radius: 6px;
             text-decoration: none;
             width: 100%;
@@ -487,6 +526,8 @@
         .sidebar-footer {
             padding: 15px;
             border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
         }
         .logout-btn-action {
             width: 100%;
@@ -499,9 +540,10 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            padding: 10px;
+            padding: 11px 10px;
             border-radius: 8px;
             transition: background 0.2s;
+            min-height: 42px;
         }
         .logout-btn-action:hover {
             background: #fef2f2;
@@ -514,6 +556,7 @@
             display: flex;
             flex-direction: column;
             min-width: 0;
+            width: 100%;
         }
 
         /* Top Navbar */
@@ -529,6 +572,7 @@
             top: 0;
             z-index: 99;
             gap: 10px;
+            padding-top: calc(15px + env(safe-area-inset-top));
         }
 
         .top-navbar-left {
@@ -542,8 +586,8 @@
             background: none;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             display: none; /* hidden on desktop */
             align-items: center;
             justify-content: center;
@@ -551,6 +595,10 @@
             color: var(--text-main);
             cursor: pointer;
             flex-shrink: 0;
+        }
+        .hamburger-menu-btn:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
         }
 
         .welcome-text-block {
@@ -574,6 +622,7 @@
             align-items: center;
             gap: 20px;
             flex-shrink: 0;
+            min-width: 0;
         }
 
         .top-search-bar {
@@ -629,7 +678,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 10px 12px 10px 36px;
-            font-size: 13px;
+            font-size: 16px; /* prevents iOS auto-zoom on focus */
             outline: none;
         }
         .mobile-search-row input:focus {
@@ -687,6 +736,7 @@
             padding: 8px 14px;
             border: 1px solid var(--primary-green);
             border-radius: 8px;
+            white-space: nowrap;
         }
         .guest-login-link:hover {
             background: var(--primary-green);
@@ -695,6 +745,7 @@
         .nav-icon-btn {
             width: 38px;
             height: 38px;
+            min-width: 38px;
             border: 1px solid var(--border-color);
             border-radius: 50%;
             display: flex;
@@ -789,6 +840,7 @@
             color: var(--text-muted);
             margin-left: 5px;
             transition: transform 0.2s;
+            flex-shrink: 0;
         }
         .top-user-profile[aria-expanded="true"] > i {
             transform: rotate(180deg);
@@ -800,6 +852,7 @@
             top: calc(100% + 8px);
             right: 0;
             min-width: 220px;
+            max-width: min(280px, 92vw);
             background: white;
             border: 1px solid var(--border-color);
             border-radius: 10px;
@@ -822,6 +875,7 @@
             padding: 8px 10px 10px;
             margin-bottom: 6px;
             border-bottom: 1px solid var(--border-color);
+            min-width: 0;
         }
         .user-profile-menu-header strong {
             font-size: 13px;
@@ -842,7 +896,7 @@
             align-items: center;
             gap: 10px;
             width: 100%;
-            padding: 9px 10px;
+            padding: 10px 10px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
@@ -852,12 +906,14 @@
             border: none;
             cursor: pointer;
             text-align: left;
+            min-height: 40px;
         }
         .user-profile-menu-item i {
             width: 16px;
             text-align: center;
             font-size: 14px;
             color: #64748b;
+            flex-shrink: 0;
         }
         .user-profile-menu-item:hover {
             background: #f0fdf4;
@@ -895,6 +951,7 @@
             flex: 1;
             min-width: 0;
             overflow-x: hidden;
+            width: 100%;
         }
 
         /* Footer bar */
@@ -909,6 +966,7 @@
             gap: 10px;
             font-size: 12px;
             color: var(--text-muted);
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
         }
         .footer-links-inline {
             display: flex;
@@ -943,8 +1001,22 @@
 
         /* ===== Responsive Breakpoints ===== */
 
+        /* Small laptops: trim the sidebar a bit and give content more room */
+        @media (max-width: 1280px) {
+            :root {
+                --sidebar-width: 240px;
+            }
+            .dashboard-top-navbar {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+        }
+
         /* Tablets and below: collapse sidebar into a drawer */
         @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 265px;
+            }
             .dashboard-sidebar {
                 transform: translateX(-100%);
             }
@@ -958,7 +1030,7 @@
                 display: flex;
             }
             .mobile-close-btn {
-                display: block;
+                display: flex;
             }
             .top-search-bar {
                 display: none; /* Hide inline search bar on compact viewports */
@@ -967,7 +1039,8 @@
                 display: flex;
             }
             .dashboard-top-navbar {
-                padding: 15px 20px;
+                padding: 14px 20px;
+                padding-top: calc(14px + env(safe-area-inset-top));
             }
             .dashboard-content-body {
                 padding: 20px 15px;
@@ -978,31 +1051,59 @@
         @media (max-width: 768px) {
             .dashboard-top-navbar {
                 padding: 12px 16px;
+                padding-top: calc(12px + env(safe-area-inset-top));
+                flex-wrap: nowrap; /* keep header on one line on mobile */
             }
-            .welcome-text-block h1 {
-                font-size: 16px;
-                max-width: 45vw;
-            }
-            .top-navbar-right {
+            .top-navbar-left {
+                flex-shrink: 0;
                 gap: 10px;
             }
-            .top-nav-actions {
-                gap: 8px;
+            /* Hide the "Welcome back, X!" greeting on the left;
+               the user's name will instead appear at the far right
+               inside the profile button. */
+            .welcome-text-block {
+                display: none;
             }
+            .top-navbar-right {
+                gap: 8px;
+                margin-left: auto; /* push right cluster to the far edge */
+                min-width: 0;
+                flex: 1;
+                justify-content: flex-end;
+            }
+            .top-nav-actions {
+                gap: 6px;
+            }
+            /* Show the user's name on the right (currently hidden on mobile). */
             .user-meta-info {
-                display: none; /* keep avatar only, hide name/role text */
+                display: flex;
+                min-width: 0;
+            }
+            /* Hide the role line to keep the header compact on phones. */
+            .user-meta-info span {
+                display: none;
+            }
+            .user-meta-info strong {
+                max-width: 110px;
+                font-size: 12.5px;
             }
             .top-user-profile {
-                padding-left: 6px;
-                gap: 6px;
+                padding-left: 8px;
+                padding-right: 6px;
+                gap: 8px;
+                border-left: none;
             }
             .top-user-profile > i {
                 display: none;
+            }
+            .user-profile-menu {
+                right: -8px;
             }
             .dashboard-footer-bar {
                 flex-direction: column;
                 align-items: flex-start;
                 text-align: left;
+                padding: 18px 16px;
             }
             .footer-links-inline {
                 gap: 14px;
@@ -1010,41 +1111,83 @@
             .trial-status-text {
                 display: none; /* icon-only pill to save header space */
             }
+            /* Unify every circular control in the action row (search
+               trigger, trial pill, verified badge, message, bell, avatar)
+               to the same fixed diameter. Sizing the trial pill by padding
+               alone made it render larger than its neighbors once its
+               text was hidden — a fixed box fixes that. */
+            .nav-icon-btn,
+            .trial-status-pill,
+            .top-user-initials,
+            .top-user-profile img {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                flex-shrink: 0;
+            }
             .trial-status-pill {
-                padding: 8px;
+                padding: 0;
+                justify-content: center;
                 border-radius: 50%;
+            }
+            .hamburger-menu-btn,
+            .mobile-close-btn {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
             }
         }
 
         /* Phones */
         @media (max-width: 480px) {
             .dashboard-sidebar {
-                width: min(260px, 85vw);
+                width: min(280px, 88vw);
+                max-width: 88vw;
             }
             .dashboard-top-navbar {
-                padding: 10px 14px;
+                padding: 10px 12px;
+                padding-top: calc(10px + env(safe-area-inset-top));
             }
-            .welcome-text-block h1 {
-                font-size: 14px;
-                max-width: 38vw;
-            }
-            .nav-icon-btn {
-                width: 34px;
-                height: 34px;
-                font-size: 13px;
-            }
+            .nav-icon-btn,
+            .trial-status-pill,
             .top-user-profile img,
             .top-user-initials {
-                width: 32px;
-                height: 32px;
+                width: 34px;
+                height: 34px;
+                min-width: 34px;
+                font-size: 12.5px;
+            }
+            .trial-status-pill {
+                padding: 0;
+                justify-content: center;
+            }
+            .hamburger-menu-btn,
+            .mobile-close-btn {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+            }
+            .user-meta-info strong {
+                max-width: 82px;
                 font-size: 12px;
+            }
+            .top-navbar-right {
+                gap: 6px;
+            }
+            .top-nav-actions {
+                gap: 5px;
             }
             .dashboard-content-body {
                 padding: 16px 12px;
             }
             .dashboard-footer-bar {
-                padding: 16px;
+                padding: 16px 12px;
                 font-size: 11px;
+                padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            }
+            .footer-links-inline {
+                gap: 12px;
+                flex-wrap: wrap;
             }
             .sidebar-header {
                 padding: 16px;
@@ -1052,22 +1195,69 @@
             .sidebar-menu-scroll {
                 padding: 12px;
             }
+            .user-profile-menu {
+                right: -4px;
+                min-width: 200px;
+            }
+            .mobile-search-row {
+                margin-top: 10px;
+            }
         }
 
         /* Very small phones */
         @media (max-width: 360px) {
-            .welcome-text-block h1 {
-                max-width: 30vw;
-                font-size: 13px;
-            }
             .top-navbar-right {
-                gap: 6px;
+                gap: 5px;
             }
             .top-nav-actions {
-                gap: 6px;
+                gap: 5px;
             }
             .unverified-badge {
                 display: none; /* keep chevron row focused on essentials at the smallest sizes */
+            }
+            .user-meta-info strong {
+                max-width: 64px;
+                font-size: 11.5px;
+            }
+            .top-user-profile {
+                gap: 6px;
+                padding-left: 6px;
+                padding-right: 4px;
+            }
+            /* Drop the inline messages icon at the smallest sizes;
+               it remains accessible from the profile dropdown menu. */
+            .nav-icon-messages {
+                display: none;
+            }
+            .nav-icon-btn,
+            .trial-status-pill,
+            .top-user-profile img,
+            .top-user-initials {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                font-size: 12px;
+            }
+            .dashboard-content-body {
+                padding: 14px 10px;
+            }
+        }
+
+        /* Landscape phones with limited height: keep the drawer usable */
+        @media (max-height: 480px) and (max-width: 900px) {
+            .sidebar-header {
+                padding: 12px 16px;
+            }
+            .sidebar-menu-scroll {
+                padding: 10px;
+            }
+            .sidebar-item {
+                min-height: 36px;
+                padding: 8px 12px;
+            }
+            .sidebar-setup-alert {
+                margin: 10px 0;
+                padding: 10px;
             }
         }
     </style>
@@ -1077,8 +1267,11 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('dashboardSidebar');
             const overlay = document.getElementById('sidebarOverlay');
+            const isOpening = !sidebar.classList.contains('mobile-open');
             sidebar.classList.toggle('mobile-open');
             overlay.classList.toggle('active');
+            // Prevent the page behind the drawer from scrolling while it's open
+            document.body.style.overflow = isOpening ? 'hidden' : '';
         }
 
         function toggleMobileSearch() {
@@ -1115,6 +1308,21 @@
                 const trigger = document.getElementById('userProfileTrigger');
                 if (menu) menu.classList.remove('open');
                 if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+                const sidebar = document.getElementById('dashboardSidebar');
+                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Close the mobile drawer automatically if the viewport is resized
+        // past the tablet breakpoint (e.g. rotating a tablet, or resizing
+        // a desktop window back up) so it doesn't stay stuck open.
+        window.addEventListener('resize', function () {
+            const sidebar = document.getElementById('dashboardSidebar');
+            if (window.innerWidth > 1024 && sidebar && sidebar.classList.contains('mobile-open')) {
+                toggleSidebar();
             }
         });
     </script>
