@@ -1,178 +1,279 @@
 {% extends "home_finder/base.html" %}
 {% load static %}
+
 {% block title %}Pricing Plans - VacantHommie{% endblock %}
+
+{% block extra_head %}
+<style>
+    .pricing-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 80px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .pricing-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .pricing-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--secondary, #0f172a);
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+
+    .pricing-header p {
+        font-size: 1.25rem;
+        color: var(--text-muted, #64748b);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        align-items: stretch;
+    }
+
+    .pricing-card {
+        background: var(--white, #ffffff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 20px;
+        padding: 40px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Highlighted / Popular Plan */
+    .pricing-card.popular {
+        border: 2px solid var(--primary, #10b981);
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.15);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--primary, #10b981);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--secondary, #0f172a);
+        margin-bottom: 12px;
+    }
+
+    .plan-price-wrapper {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: baseline;
+    }
+
+    .plan-price {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--secondary, #0f172a);
+        letter-spacing: -0.02em;
+    }
+
+    .plan-currency {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-right: 4px;
+        color: var(--secondary, #0f172a);
+    }
+
+    .plan-duration {
+        font-size: 1rem;
+        color: var(--text-muted, #64748b);
+        margin-left: 8px;
+        font-weight: 500;
+    }
+
+    .plan-description {
+        font-size: 1rem;
+        color: var(--text-muted, #64748b);
+        margin-bottom: 30px;
+        line-height: 1.6;
+        min-height: 50px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 40px 0;
+        flex: 1;
+    }
+
+    .plan-features li {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        font-size: 1.05rem;
+        color: var(--text-dark, #1e293b);
+    }
+
+    .plan-features li i {
+        color: var(--primary, #10b981);
+        font-size: 1.1rem;
+        margin-top: 3px;
+        margin-right: 12px;
+    }
+
+    .plan-features li strong {
+        font-weight: 700;
+        color: var(--secondary, #0f172a);
+    }
+
+    .plan-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .plan-btn.primary {
+        background: var(--primary, #10b981);
+        color: white;
+    }
+
+    .plan-btn.primary:hover {
+        background: var(--primary-dark, #059669);
+    }
+
+    .plan-btn.secondary {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--primary-dark, #059669);
+    }
+
+    .plan-btn.secondary:hover {
+        background: rgba(16, 185, 129, 0.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        grid-column: 1 / -1;
+        background: var(--bg-light, #f8fafc);
+        border-radius: 20px;
+        border: 2px dashed var(--border-color, #e2e8f0);
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-muted, #64748b);
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        font-size: 1.25rem;
+        color: var(--text-muted, #64748b);
+    }
+
+    @media (max-width: 768px) {
+        .pricing-header h1 {
+            font-size: 2.25rem;
+        }
+        .pricing-header {
+            margin-bottom: 40px;
+        }
+        .pricing-card {
+            padding: 30px 24px;
+        }
+        .plan-price {
+            font-size: 2.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="bg-gray-50 pt-24 pb-32">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    {# ---------- Header ---------- #}
-    <div class="text-center max-w-3xl mx-auto mb-6">
-      <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
-        <i class="fa-solid fa-house-circle-check"></i>
-        List with confidence
-      </span>
-      <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl tracking-tight mb-4">
-        Simple, transparent pricing
-      </h1>
-      <p class="text-xl text-gray-600">
-        Pick a plan, list your properties, and start hearing from verified tenants today. No hidden fees, no surprises.
-      </p>
+<main class="pricing-container">
+    
+    <div class="pricing-header">
+        <h1>Simple, Transparent Pricing</h1>
+        <p>Choose the right plan to list your properties and reach thousands of verified tenants. No hidden fees.</p>
     </div>
 
-    {# ---------- Trust strip ---------- #}
-    <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-gray-500 mb-16">
-      <span class="flex items-center gap-2"><i class="fa-solid fa-shield-halved text-emerald-500"></i> Secure payments</span>
-      <span class="flex items-center gap-2"><i class="fa-solid fa-rotate-left text-emerald-500"></i> Cancel anytime</span>
-      <span class="flex items-center gap-2"><i class="fa-solid fa-headset text-emerald-500"></i> Human support</span>
-    </div>
-
-    {# ---------- Plans ---------- #}
-    <div class="grid gap-8 lg:grid-cols-3 max-w-md mx-auto lg:max-w-none items-stretch">
-      {% for plan in plans %}
-        {% with plan_key=plan.name|lower %}
-        <div class="group bg-white rounded-2xl border overflow-hidden flex flex-col relative transition-all duration-300 hover:-translate-y-1
-          {% if plan_key == 'premium' %}
-            border-emerald-500 shadow-lg shadow-emerald-100
-          {% else %}
-            border-gray-200 shadow-sm hover:shadow-md
-          {% endif %}">
-
-          {% if plan_key == 'premium' %}
-            <div class="bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider text-center py-2 w-full flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-star text-[10px]"></i> Most popular choice
-            </div>
-          {% endif %}
-
-          <div class="p-8 sm:p-10 flex-1 flex flex-col">
-
-            {# Icon + name #}
-            <div class="flex items-center gap-3 mb-2">
-              <span class="w-10 h-10 rounded-full flex items-center justify-center text-lg
-                {% if plan_key == 'premium' %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-600{% endif %}">
-                {% if plan_key == 'premium' %}
-                  <i class="fa-solid fa-crown"></i>
-                {% elif plan_key == 'standard' %}
-                  <i class="fa-solid fa-building"></i>
-                {% else %}
-                  <i class="fa-solid fa-house"></i>
+    <div class="pricing-grid">
+        {% for plan in plans %}
+            <div class="pricing-card {% if plan.name|lower == 'premium' or plan.price > 100 %}popular{% endif %}">
+                
+                {% if plan.name|lower == 'premium' or plan.price > 100 %}
+                    <div class="popular-badge">Most Popular</div>
                 {% endif %}
-              </span>
-              <h3 class="text-2xl font-semibold text-gray-900">{{ plan.name }}</h3>
+
+                <h3 class="plan-name">{{ plan.name }}</h3>
+                
+                <div class="plan-price-wrapper">
+                    <span class="plan-currency">GH₵</span>
+                    <span class="plan-price">{{ plan.price|floatformat:"0" }}</span>
+                    {% if plan.duration_days > 0 %}
+                        <span class="plan-duration">/ {{ plan.duration_days }} days</span>
+                    {% endif %}
+                </div>
+                
+                <p class="plan-description">
+                    {{ plan.description|default:"Get full access to our platform to list your properties and manage tenant inquiries." }}
+                </p>
+
+                <ul class="plan-features">
+                    <li>
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>Up to <strong>{{ plan.maximum_listings }}</strong> active listings</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>Direct tenant inquiries via WhatsApp/Call</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>Dashboard analytics & tracking</span>
+                    </li>
+                    <li>
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>Priority support</span>
+                    </li>
+                </ul>
+
+                <a href="{% url 'account:register' %}?role=landlord" class="plan-btn {% if plan.name|lower == 'premium' or plan.price > 100 %}primary{% else %}secondary{% endif %}">
+                    Get Started
+                </a>
             </div>
-
-            {# Price #}
-            <p class="mt-4 mb-1 flex items-end gap-1">
-              <span class="text-4xl font-extrabold text-gray-900">GH₵ {{ plan.price }}</span>
-              {% if plan.duration_days > 0 %}
-                <span class="text-base font-medium text-gray-500 mb-1">/ {{ plan.duration_days }} days</span>
-              {% endif %}
-            </p>
-            {% if plan.duration_days > 0 %}
-              <p class="text-sm text-gray-400 mb-6">
-                that's about GH₵ {{ plan.price|floatformat:2|default:plan.price }} ÷ {{ plan.duration_days }} days &mdash;
-                roughly <strong class="text-gray-500">GH₵ {{ plan.price|add:0|floatformat:0 }}</strong> a day
-              </p>
-            {% else %}
-              <p class="text-sm text-gray-400 mb-6">One-time payment, no expiry</p>
-            {% endif %}
-
-            <p class="text-gray-600 mb-8 min-h-[3rem]">
-              {{ plan.description|default:"Everything you need to list your properties and reach renters fast." }}
-            </p>
-
-            {# Features #}
-            <ul class="space-y-4 mb-8 flex-1">
-              <li class="flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                <span class="text-gray-600">Up to <strong class="text-gray-900">{{ plan.maximum_listings }}</strong> active listing{{ plan.maximum_listings|pluralize }}</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                <span class="text-gray-600">Direct messages from verified tenants</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                <span class="text-gray-600">Listing visible in tenant search &amp; alerts</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                <span class="text-gray-600">Priority support when you need help</span>
-              </li>
-              {% if plan_key == 'premium' %}
-                <li class="flex items-start gap-3">
-                  <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                  <span class="text-gray-600">Featured placement for faster inquiries</span>
-                </li>
-              {% endif %}
-            </ul>
-
-            <a href="{% url 'account:register' %}?plan={{ plan.id }}"
-               class="w-full block text-center rounded-xl py-3.5 px-4 text-base font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2
-              {% if plan_key == 'premium' %}
-                bg-emerald-600 text-white hover:bg-emerald-700
-              {% else %}
-                bg-emerald-50 text-emerald-700 hover:bg-emerald-100
-              {% endif %}">
-              Get started with {{ plan.name }}
-            </a>
-            <p class="text-center text-xs text-gray-400 mt-3">No card required to sign up</p>
-          </div>
-        </div>
-        {% endwith %}
-      {% empty %}
-        <div class="col-span-3 text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
-          <i class="fa-regular fa-face-frown text-3xl text-gray-300 mb-3"></i>
-          <p class="text-gray-500 text-lg">No pricing plans are available right now.</p>
-          <p class="text-gray-400 text-sm mt-1">Please check back shortly, or contact us if you'd like help listing a property.</p>
-        </div>
-      {% endfor %}
+        {% empty %}
+            <div class="empty-state">
+                <i class="fa-solid fa-tags"></i>
+                <p>No pricing plans are currently available. Please check back later.</p>
+            </div>
+        {% endfor %}
     </div>
 
-    {# ---------- FAQ ---------- #}
-    {% if plans %}
-    <div class="max-w-3xl mx-auto mt-24">
-      <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Common questions</h2>
-      <div class="space-y-3">
-        <details class="group bg-white border border-gray-200 rounded-xl px-6 py-4 open:shadow-sm">
-          <summary class="flex items-center justify-between cursor-pointer font-medium text-gray-900 list-none">
-            Can I change my plan later?
-            <i class="fa-solid fa-chevron-down text-gray-400 text-sm transition-transform group-open:rotate-180"></i>
-          </summary>
-          <p class="text-gray-600 mt-3 text-sm">
-            Yes. You can upgrade or switch plans at any time from your account settings — your new plan takes effect immediately.
-          </p>
-        </details>
-        <details class="group bg-white border border-gray-200 rounded-xl px-6 py-4 open:shadow-sm">
-          <summary class="flex items-center justify-between cursor-pointer font-medium text-gray-900 list-none">
-            What happens when my plan expires?
-            <i class="fa-solid fa-chevron-down text-gray-400 text-sm transition-transform group-open:rotate-180"></i>
-          </summary>
-          <p class="text-gray-600 mt-3 text-sm">
-            Your existing listings stay saved to your account, but they're hidden from tenant search until you renew or choose a new plan.
-          </p>
-        </details>
-        <details class="group bg-white border border-gray-200 rounded-xl px-6 py-4 open:shadow-sm">
-          <summary class="flex items-center justify-between cursor-pointer font-medium text-gray-900 list-none">
-            Is there a limit on inquiries I can receive?
-            <i class="fa-solid fa-chevron-down text-gray-400 text-sm transition-transform group-open:rotate-180"></i>
-          </summary>
-          <p class="text-gray-600 mt-3 text-sm">
-            No. Every plan gives you unlimited tenant inquiries on your active listings — you only pay for how many listings you post.
-          </p>
-        </details>
-      </div>
-    </div>
-    {% endif %}
-
-    {# ---------- Bottom CTA ---------- #}
-    <div class="max-w-3xl mx-auto mt-16 text-center bg-white border border-gray-200 rounded-2xl p-8">
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">Managing many properties?</h3>
-      <p class="text-gray-600 mb-4">Get in touch and we'll help you find a plan that fits your portfolio.</p>
-      <a href="{% url 'home_finder:contact' %}" class="inline-flex items-center gap-2 text-emerald-700 font-semibold hover:text-emerald-800">
-        Talk to our team <i class="fa-solid fa-arrow-right text-sm"></i>
-      </a>
-    </div>
-
-  </div>
 </main>
 {% endblock %}
