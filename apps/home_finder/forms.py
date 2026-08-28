@@ -31,21 +31,21 @@ class TailwindModelForm(forms.ModelForm):
             # otherwise their `type="date"/"time"/"datetime-local"` attrs get
             # swallowed by the TextInput branch and the field renders as a
             # plain text box instead of a native calendar/time picker.
+            #
+            # We also have to set `widget.input_type` directly (not just
+            # `widget.attrs['type']`), because Django's `Input.__init__`
+            # already popped `type` out of attrs and stored it on
+            # `input_type` at widget construction time — mutating attrs
+            # afterwards has no effect on the rendered HTML.
             if isinstance(field.widget, forms.DateTimeInput):
-                field.widget.attrs.update({
-                    "class": INPUT_CLASSES,
-                    "type": "datetime-local",
-                })
+                field.widget.input_type = "datetime-local"
+                field.widget.attrs["class"] = INPUT_CLASSES
             elif isinstance(field.widget, forms.TimeInput):
-                field.widget.attrs.update({
-                    "class": INPUT_CLASSES,
-                    "type": "time",
-                })
+                field.widget.input_type = "time"
+                field.widget.attrs["class"] = INPUT_CLASSES
             elif isinstance(field.widget, forms.DateInput):
-                field.widget.attrs.update({
-                    "class": INPUT_CLASSES,
-                    "type": "date",
-                })
+                field.widget.input_type = "date"
+                field.widget.attrs["class"] = INPUT_CLASSES
             elif isinstance(field.widget, forms.TextInput):
                 field.widget.attrs["class"] = INPUT_CLASSES
             elif isinstance(field.widget, forms.NumberInput):
