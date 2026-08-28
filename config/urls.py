@@ -30,7 +30,7 @@ urlpatterns = [
     path('subscription/', include('apps.Subscription.urls')),
     path('notifications/', include('apps.notifications.urls')),
     path('tenants/', include('apps.tenant.urls')),
-    path('chatbot/', include('apps.chatbot.urls')),
+    path('chatbot/', include('apps.chatbot.urls', namespace='chatbot')),
 ]
 
 # Serve media files in production too.

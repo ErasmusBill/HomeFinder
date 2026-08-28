@@ -1,15 +1,25 @@
-from openai import OpenAI
-from django.conf import settings
+from .models import ChatConversation
+from .providers.fake import FakeAIProvider
+from .providers.openai import OpenAIProvider
 
-client = OpenAI(
-    api_key=settings.OPENAI_API_KEY,
-)
 
-def generate_chat_response(message:str):
-    response = client.responses.create(
-        model="gpt-5.6",
-        input=message,
+def get_ai_provider():
+    provider = getattr(
+        __import__("django.conf").conf.settings,
+        "CHATBOT_AI_PROVIDER",
+        "fake",
     )
-    return response.output_text
+
+    if provider == "openai":
+        return OpenAIProvider()
+
+    return FakeAIProvider()
 
 
+def generate_chat_response(conversation: ChatConversation,) -> str:
+    
+    provider = get_ai_provider()
+
+    messages = conversation.messages.all()
+
+    return provider.generate_response(messages)

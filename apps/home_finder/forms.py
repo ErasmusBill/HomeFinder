@@ -26,15 +26,30 @@ class TailwindModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            if isinstance(field.widget, forms.TextInput):
-                field.widget.attrs["class"] = INPUT_CLASSES
-            elif isinstance(field.widget, forms.NumberInput):
-                field.widget.attrs["class"] = INPUT_CLASSES
+            # NOTE: order matters here. DateInput/TimeInput/DateTimeInput all
+            # subclass TextInput, so the more specific checks MUST run first,
+            # otherwise their `type="date"/"time"/"datetime-local"` attrs get
+            # swallowed by the TextInput branch and the field renders as a
+            # plain text box instead of a native calendar/time picker.
+            if isinstance(field.widget, forms.DateTimeInput):
+                field.widget.attrs.update({
+                    "class": INPUT_CLASSES,
+                    "type": "datetime-local",
+                })
+            elif isinstance(field.widget, forms.TimeInput):
+                field.widget.attrs.update({
+                    "class": INPUT_CLASSES,
+                    "type": "time",
+                })
             elif isinstance(field.widget, forms.DateInput):
                 field.widget.attrs.update({
                     "class": INPUT_CLASSES,
                     "type": "date",
                 })
+            elif isinstance(field.widget, forms.TextInput):
+                field.widget.attrs["class"] = INPUT_CLASSES
+            elif isinstance(field.widget, forms.NumberInput):
+                field.widget.attrs["class"] = INPUT_CLASSES
             elif isinstance(field.widget, forms.Select):
                 field.widget.attrs["class"] = SELECT_CLASSES
             elif isinstance(field.widget, forms.SelectMultiple):

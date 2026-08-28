@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VacantHommie AI</title>
+</head>
+
+<body>
+
+<h1>VacantHommie AI Assistant</h1>
+
+<div id="chat-messages"></div>
+
+<form id="chat-form">
+    {% csrf_token %}
+
+    <input
+        type="text"
+        id="message"
+        name="message"
+        placeholder="Ask VacantHommie..."
+        autocomplete="off"
+        required
+    >
+
+    <button type="submit">
+        Send
+    </button>
+</form>
+
+
+<script>
+const form = document.getElementById("chat-form");
+const messageInput = document.getElementById("message");
+const chatMessages = document.getElementById("chat-messages");
+
+form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const message = messageInput.value.trim();
+
+    if (!message) {
+        return;
+    }
+
+    const csrfToken = document.querySelector(
+        "[name=csrfmiddlewaretoken]"
+    ).value;
+
+    const response = await fetch(
+        "{% url 'chatbot:chat' %}",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken,
+            },
+
+            body: new URLSearchParams({
+                message: message,
+            }),
+        }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+        chatMessages.innerHTML += `
+            <p><strong>You:</strong> ${message}</p>
+            <p><strong>AI:</strong> ${data.response}</p>
+        `;
+    } else {
+        chatMessages.innerHTML += `
+            <p><strong>Error:</strong> ${data.error || "Something went wrong."}</p>
+        `;
+    }
+
+    messageInput.value = "";
+});
+</script>
+
+</body>
+</html>

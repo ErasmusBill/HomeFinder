@@ -1,5 +1,20 @@
 from django.urls import path
 
-app_name = 'chatbot'
+from . import views
 
-urlpatterns = []
+
+app_name = "chatbot"
+
+
+urlpatterns = [
+    path(
+        "",
+        views.chatbot_page,
+        name="page",
+    ),
+    path(
+        "chat/",
+        views.chat_view,
+        name="chat",
+    ),
+]
