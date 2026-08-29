@@ -633,16 +633,18 @@
         <!-- 3. Right Action Tools & Auth -->
         <div class="vh-nav-actions">
 
-            <!-- Saved / Wishlist Icon -->
-            <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}"
-               class="vh-icon-btn vh-wishlist-btn"
-               title="Saved Properties"
-               aria-label="Saved Properties">
-                <i class="fa-regular fa-heart"></i>
-                {% if saved_count and saved_count > 0 %}
-                    <span class="vh-badge-count">{{ saved_count }}</span>
-                {% endif %}
-            </a>
+            <!-- Saved / Wishlist Icon (authenticated users only) -->
+            {% if request.user.is_authenticated %}
+                <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}#{% endif %}"
+                   class="vh-icon-btn vh-wishlist-btn"
+                   title="Saved Properties"
+                   aria-label="Saved Properties">
+                    <i class="fa-regular fa-heart"></i>
+                    {% if saved_count and saved_count > 0 %}
+                        <span class="vh-badge-count">{{ saved_count }}</span>
+                    {% endif %}
+                </a>
+            {% endif %}
 
             <!-- Authenticated User Info / Actions -->
             {% if request.user.is_authenticated %}
@@ -742,8 +744,9 @@
                     <span>How It Works</span>
                 </a>
             </li>
+            {% if request.user.is_authenticated %}
             <li>
-                <a href="{% if request.user.is_authenticated and request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}{% url 'account:login' %}{% endif %}" class="vh-drawer-link">
+                <a href="{% if request.user.role == 'tenant' %}{% url 'tenant:saved_properties_list' %}{% else %}#{% endif %}" class="vh-drawer-link">
                     <i class="fa-solid fa-heart"></i>
                     <span>Saved Properties</span>
                     {% if saved_count and saved_count > 0 %}
@@ -751,6 +754,7 @@
                     {% endif %}
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="{% url 'home_finder:pricing' %}" class="vh-drawer-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
                     <i class="fa-solid fa-tags"></i>
