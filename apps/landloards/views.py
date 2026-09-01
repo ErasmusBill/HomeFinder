@@ -219,6 +219,19 @@ def create_landlord_document(request):
         if form.is_valid():
             document = form.save(commit=False)
             document.landlord = user
+            
+            # Auto-verify National ID, and auto-verify other docs if National ID is already verified
+            if document.document_type == LandlordDocument.DocumentType.NATIONAL_ID:
+                document.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+            else:
+                has_verified_id = LandlordDocument.objects.filter(
+                    landlord=user,
+                    document_type=LandlordDocument.DocumentType.NATIONAL_ID,
+                    verification_status=LandlordDocument.VerificationStatus.VERIFIED
+                ).exists()
+                if has_verified_id:
+                    document.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+
             document.save()
             _invalidate_document_cache(user.id)
             messages.success(request, 'Document uploaded and pending review.')
@@ -264,7 +277,20 @@ def update_landlord_document(request, document_id: str):
             updated_document = form.save(commit=False)
             # Editing resets verification — a changed file/type needs
             # re-review, it can't stay marked verified against new content.
-            updated_document.verification_status = LandlordDocument.VerificationStatus.PENDING
+            # Auto-verify National ID, and auto-verify other docs if National ID is already verified
+            if updated_document.document_type == LandlordDocument.DocumentType.NATIONAL_ID:
+                updated_document.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+            else:
+                has_verified_id = LandlordDocument.objects.filter(
+                    landlord=updated_document.landlord,
+                    document_type=LandlordDocument.DocumentType.NATIONAL_ID,
+                    verification_status=LandlordDocument.VerificationStatus.VERIFIED
+                ).exists()
+                if has_verified_id:
+                    updated_document.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+                else:
+                    updated_document.verification_status = LandlordDocument.VerificationStatus.PENDING
+
             updated_document.rejection_reason = ""
             updated_document.reviewed_by = None
             updated_document.reviewed_at = None
@@ -692,13 +718,20 @@ def create_property(request):
                 doc_formset.instance = property_obj
                 saved_doc_items = doc_formset.save(commit=False)
 
+                new_national_id_verified = False
                 for doc in saved_doc_items:
                     doc.landlord = request.user
                     if doc.document_type == LandlordDocument.DocumentType.NATIONAL_ID:
                         # Save as a landlord-level identity doc (not property-specific)
                         doc.property = None
+                        doc.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+                        new_national_id_verified = True
                     else:
                         doc.property = property_obj
+                        if identity_verified or new_national_id_verified:
+                            doc.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+                        else:
+                            doc.verification_status = LandlordDocument.VerificationStatus.PENDING
                     doc.save()
 
                 for doc in doc_formset.deleted_objects:
@@ -809,7 +842,19 @@ def update_property(request, property_id: str):
                 ]
                 for doc in saved_doc_items:
                     doc.landlord = property_obj.landlord
-                    doc.property = updated_property
+                    
+                    if doc.document_type == LandlordDocument.DocumentType.NATIONAL_ID:
+                        doc.property = None
+                        doc.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+                    else:
+                        doc.property = updated_property
+                        if identity_verified or doc.document_type == LandlordDocument.DocumentType.NATIONAL_ID:
+                            doc.verification_status = LandlordDocument.VerificationStatus.VERIFIED
+                        else:
+                            # It's an update or new, if identity is not verified, it stays pending unless already verified
+                            if doc.verification_status != LandlordDocument.VerificationStatus.VERIFIED:
+                                doc.verification_status = LandlordDocument.VerificationStatus.PENDING
+
                     doc.save()
                 for doc in doc_formset.deleted_objects:
                     doc.delete()
