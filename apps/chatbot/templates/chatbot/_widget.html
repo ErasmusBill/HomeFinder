@@ -1,0 +1,928 @@
+{% load static %}
+<!-- ========================================================================= -->
+<!-- VacantHommie Floating Movable & Toggleable Chatbot Widget                -->
+<!-- ========================================================================= -->
+<div id="vh-chatbot-root">
+    <!-- Floating Draggable Toggle Launcher Icon -->
+    <div id="vh-chatbot-launcher"
+         title="Chat with Hommie AI (Drag to move)"
+         aria-label="Open Hommie AI Chat"
+         role="button"
+         tabindex="0">
+        <div class="vh-launcher-avatar">
+            <svg viewBox="0 0 24 24" fill="none" class="vh-robot-svg" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="6" width="18" height="12" rx="4" fill="#059669"/>
+                <circle cx="8.5" cy="11.5" r="1.75" fill="#FFFFFF"/>
+                <circle cx="15.5" cy="11.5" r="1.75" fill="#FFFFFF"/>
+                <circle cx="8.5" cy="11.5" r="0.75" fill="#0f172a"/>
+                <circle cx="15.5" cy="11.5" r="0.75" fill="#0f172a"/>
+                <path d="M9 15.5C9 15.5 10.5 16.5 12 16.5C13.5 16.5 15 15.5 15 15.5" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M12 2V6" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="2" r="1.5" fill="#10b981"/>
+                <path d="M1 11H3" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+                <path d="M21 11H23" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="vh-online-badge"></span>
+        </div>
+        <span class="vh-launcher-unread" id="vh-chat-unread" style="display: none;">1</span>
+    </div>
+
+    <!-- Floating Chat Window Panel -->
+    <div id="vh-chatbot-window" class="vh-chat-closed">
+        <!-- Header -->
+        <div class="vh-chat-header">
+            <div class="vh-header-info">
+                <div class="vh-header-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" class="vh-robot-svg-sm" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="6" width="18" height="12" rx="4" fill="#FFFFFF"/>
+                        <circle cx="8.5" cy="11.5" r="1.5" fill="#047857"/>
+                        <circle cx="15.5" cy="11.5" r="1.5" fill="#047857"/>
+                        <path d="M9 15.5C9 15.5 10.5 16.5 12 16.5C13.5 16.5 15 15.5 15 15.5" stroke="#047857" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M12 2V6" stroke="#FFFFFF" stroke-width="2"/>
+                        <circle cx="12" cy="2" r="1.5" fill="#10b981"/>
+                    </svg>
+                </div>
+                <div class="vh-header-text">
+                    <h3>Hommie AI</h3>
+                    <span class="vh-status-online"><span class="vh-dot"></span> Online</span>
+                </div>
+            </div>
+            <div class="vh-header-actions">
+                <button type="button" id="vh-chat-minimize-btn" title="Minimize chat" aria-label="Minimize chat">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button type="button" id="vh-chat-close-btn" title="Close chat" aria-label="Close chat">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Transcript Body -->
+        <div class="vh-chat-body" id="vh-chat-messages">
+            <!-- Welcome Greeting Message -->
+            <div class="vh-msg vh-msg-ai">
+                <div class="vh-msg-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" class="vh-robot-mini" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="6" width="18" height="12" rx="4" fill="#059669"/>
+                        <circle cx="8.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                        <circle cx="15.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+                <div class="vh-msg-content-wrapper">
+                    <div class="vh-msg-bubble">
+                        Hi!! 👋<br>
+                        I'm <strong>Hommie AI</strong>, your property assistant.<br>
+                        I can help you find properties, answer questions, and guide you through renting or buying.<br><br>
+                        What would you like to know?
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="vh-typing-indicator" id="vh-chat-typing" style="display: none;">
+            <div class="vh-msg-avatar">
+                <svg viewBox="0 0 24 24" fill="none" class="vh-robot-mini" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="6" width="18" height="12" rx="4" fill="#059669"/>
+                    <circle cx="8.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                    <circle cx="15.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                </svg>
+            </div>
+            <div class="vh-typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- Chat Input Footer -->
+        <form id="vh-chat-form" class="vh-chat-input-area" autocomplete="off">
+            {% csrf_token %}
+            <button type="button" class="vh-attach-btn" title="Attach details" aria-label="Attachment">
+                <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <input type="text"
+                   id="vh-chat-input"
+                   name="message"
+                   placeholder="Type a message..."
+                   required>
+            <button type="submit" id="vh-chat-send-btn" title="Send message" aria-label="Send">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Widget Stylesheet -->
+<style>
+/* Chatbot Container Root */
+#vh-chatbot-root {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    z-index: 99999;
+    position: fixed;
+}
+
+/* Draggable Launcher Icon */
+#vh-chatbot-launcher {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4), 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    z-index: 99999;
+}
+#vh-chatbot-launcher:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 28px rgba(5, 150, 105, 0.5), 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+#vh-chatbot-launcher:active {
+    cursor: grabbing;
+    transform: scale(0.96);
+}
+.vh-launcher-avatar {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.vh-robot-svg {
+    width: 32px;
+    height: 32px;
+}
+.vh-online-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background-color: #10b981;
+    border: 2px solid #047857;
+    border-radius: 50%;
+}
+.vh-launcher-unread {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+
+/* Floating Chat Window Panel */
+#vh-chatbot-window {
+    position: fixed;
+    bottom: 95px;
+    right: 24px;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    height: 560px;
+    max-height: calc(100vh - 120px);
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+    z-index: 99998;
+}
+#vh-chatbot-window.vh-chat-closed {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+    pointer-events: none;
+}
+
+/* Header */
+.vh-chat-header {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+.vh-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.vh-header-avatar {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.vh-robot-svg-sm {
+    width: 24px;
+    height: 24px;
+}
+.vh-header-text h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+}
+.vh-status-online {
+    font-size: 12px;
+    color: #a7f3d0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+}
+.vh-dot {
+    width: 7px;
+    height: 7px;
+    background-color: #34d399;
+    border-radius: 50%;
+    display: inline-block;
+}
+.vh-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vh-header-actions button {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #ffffff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.vh-header-actions button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Chat Transcript Body */
+.vh-chat-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+}
+.vh-msg {
+    display: flex;
+    gap: 10px;
+    max-width: 92%;
+}
+.vh-msg-user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+}
+.vh-msg-ai {
+    margin-right: auto;
+}
+.vh-msg-avatar {
+    width: 28px;
+    height: 28px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.vh-robot-mini {
+    width: 18px;
+    height: 18px;
+}
+.vh-msg-bubble {
+    padding: 12px 15px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    word-break: break-word;
+}
+.vh-msg-user .vh-msg-bubble {
+    background: #059669;
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+.vh-msg-ai .vh-msg-bubble {
+    background: #ffffff;
+    color: #1e293b;
+    border-bottom-left-radius: 4px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.vh-msg-time {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 4px;
+    text-align: right;
+}
+.vh-msg-ai .vh-msg-time {
+    text-align: left;
+}
+
+/* Rich Property Preview Card inside Chat */
+.vh-property-card-chat {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.vh-property-card-chat:hover {
+    transform: translateY(-2px);
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+.vh-prop-thumb {
+    width: 68px;
+    height: 68px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #f1f5f9;
+    flex-shrink: 0;
+}
+.vh-prop-details {
+    flex: 1;
+    min-width: 0;
+}
+.vh-prop-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vh-prop-loc {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.vh-prop-price {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #059669;
+}
+.vh-prop-specs {
+    font-size: 10.5px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* View All Results Button */
+.vh-view-all-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    text-align: center;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.vh-view-all-btn:hover {
+    background: #d1fae5;
+}
+
+/* Typing Indicator Dots */
+.vh-typing-indicator {
+    display: flex;
+    gap: 10px;
+    margin-right: auto;
+    align-items: center;
+}
+.vh-typing-dots {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.vh-typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #059669;
+    border-radius: 50%;
+    animation: vhDotBlink 1.4s infinite ease-in-out both;
+}
+.vh-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.vh-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes vhDotBlink {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Input Footer */
+.vh-chat-input-area {
+    padding: 12px 14px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.vh-attach-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: color 0.2s;
+}
+.vh-attach-btn:hover {
+    color: #059669;
+}
+#vh-chat-input {
+    flex: 1;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    outline: none;
+    background: #f8fafc;
+    transition: border-color 0.2s, background 0.2s;
+}
+#vh-chat-input:focus {
+    border-color: #059669;
+    background: #ffffff;
+}
+#vh-chat-send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    flex-shrink: 0;
+}
+#vh-chat-send-btn:hover {
+    background: #047857;
+    transform: scale(1.05);
+}
+
+/* Mobile responsive sizing */
+@media (max-width: 480px) {
+    #vh-chatbot-window {
+        bottom: 85px;
+        right: 12px;
+        width: calc(100vw - 24px);
+        height: min(520px, calc(100vh - 100px));
+    }
+}
+</style>
+
+<!-- Widget Logic Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const launcher = document.getElementById("vh-chatbot-launcher");
+    const chatWindow = document.getElementById("vh-chatbot-window");
+    const closeBtn = document.getElementById("vh-chat-close-btn");
+    const minBtn = document.getElementById("vh-chat-minimize-btn");
+    const chatForm = document.getElementById("vh-chat-form");
+    const chatInput = document.getElementById("vh-chat-input");
+    const messagesContainer = document.getElementById("vh-chat-messages");
+    const typingIndicator = document.getElementById("vh-chat-typing");
+    const csrfToken = document.querySelector("#vh-chat-form [name=csrfmiddlewaretoken]") ? document.querySelector("#vh-chat-form [name=csrfmiddlewaretoken]").value : "";
+
+    const SESSION_KEY = "vh_chat_session_id";
+    const POS_KEY = "vh_chat_launcher_pos";
+
+    let conversationId = localStorage.getItem(SESSION_KEY) || null;
+    let isDragging = false;
+    let dragMoved = false;
+    let startX, startY, initialLeft, initialTop;
+
+    // -------------------------------------------------------------------------
+    // 1. Position Persistence & Drag Logic
+    // -------------------------------------------------------------------------
+    function restoreLauncherPosition() {
+        const savedPos = localStorage.getItem(POS_KEY);
+        if (savedPos) {
+            try {
+                const pos = JSON.parse(savedPos);
+                const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
+                const maxTop = window.innerHeight - launcher.offsetHeight - 10;
+                const clampLeft = Math.max(10, Math.min(pos.left, maxLeft));
+                const clampTop = Math.max(10, Math.min(pos.top, maxTop));
+                
+                launcher.style.left = clampLeft + "px";
+                launcher.style.top = clampTop + "px";
+                launcher.style.right = "auto";
+                launcher.style.bottom = "auto";
+                
+                // Align chat window near launcher
+                alignChatWindowWithLauncher(clampLeft, clampTop);
+            } catch(e) {
+                console.warn("Could not parse chatbot launcher position", e);
+            }
+        }
+    }
+
+    function alignChatWindowWithLauncher(left, top) {
+        const winWidth = 380;
+        let windowLeft = left - (winWidth - 60);
+        if (windowLeft < 10) windowLeft = 10;
+        if (windowLeft + winWidth > window.innerWidth - 10) {
+            windowLeft = window.innerWidth - winWidth - 10;
+        }
+
+        let windowTop = top - 570;
+        if (windowTop < 10) {
+            windowTop = top + 70;
+        }
+
+        chatWindow.style.left = windowLeft + "px";
+        chatWindow.style.top = windowTop + "px";
+        chatWindow.style.right = "auto";
+        chatWindow.style.bottom = "auto";
+    }
+
+    // Mouse Drag Events
+    launcher.addEventListener("mousedown", function(e) {
+        if (e.button !== 0) return; // Left click only
+        isDragging = true;
+        dragMoved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = launcher.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+    });
+
+    function onMouseMove(e) {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            dragMoved = true;
+        }
+
+        if (dragMoved) {
+            const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
+            const maxTop = window.innerHeight - launcher.offsetHeight - 10;
+            const newLeft = Math.max(10, Math.min(initialLeft + dx, maxLeft));
+            const newTop = Math.max(10, Math.min(initialTop + dy, maxTop));
+
+            launcher.style.left = newLeft + "px";
+            launcher.style.top = newTop + "px";
+            launcher.style.right = "auto";
+            launcher.style.bottom = "auto";
+
+            alignChatWindowWithLauncher(newLeft, newTop);
+        }
+    }
+
+    function onMouseUp() {
+        if (isDragging) {
+            isDragging = false;
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+
+            if (dragMoved) {
+                const rect = launcher.getBoundingClientRect();
+                localStorage.setItem(POS_KEY, JSON.stringify({
+                    left: rect.left,
+                    top: rect.top
+                }));
+            }
+        }
+    }
+
+    // Touch Drag Events
+    launcher.addEventListener("touchstart", function(e) {
+        if (e.touches.length !== 1) return;
+        isDragging = true;
+        dragMoved = false;
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        const rect = launcher.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+    }, { passive: true });
+
+    launcher.addEventListener("touchmove", function(e) {
+        if (!isDragging || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+            dragMoved = true;
+        }
+
+        if (dragMoved) {
+            const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
+            const maxTop = window.innerHeight - launcher.offsetHeight - 10;
+            const newLeft = Math.max(10, Math.min(initialLeft + dx, maxLeft));
+            const newTop = Math.max(10, Math.min(initialTop + dy, maxTop));
+
+            launcher.style.left = newLeft + "px";
+            launcher.style.top = newTop + "px";
+            launcher.style.right = "auto";
+            launcher.style.bottom = "auto";
+
+            alignChatWindowWithLauncher(newLeft, newTop);
+        }
+    }, { passive: true });
+
+    launcher.addEventListener("touchend", function() {
+        if (isDragging) {
+            isDragging = false;
+            if (dragMoved) {
+                const rect = launcher.getBoundingClientRect();
+                localStorage.setItem(POS_KEY, JSON.stringify({
+                    left: rect.left,
+                    top: rect.top
+                }));
+            } else {
+                toggleChatWindow();
+            }
+        }
+    });
+
+    launcher.addEventListener("click", function(e) {
+        if (!dragMoved) {
+            toggleChatWindow();
+        }
+    });
+
+    // -------------------------------------------------------------------------
+    // 2. Toggle Window Open/Close
+    // -------------------------------------------------------------------------
+    function toggleChatWindow() {
+        const isOpen = !chatWindow.classList.contains("vh-chat-closed");
+        if (isOpen) {
+            chatWindow.classList.add("vh-chat-closed");
+        } else {
+            chatWindow.classList.remove("vh-chat-closed");
+            chatInput.focus();
+            scrollToBottom();
+        }
+    }
+
+    if (closeBtn) closeBtn.addEventListener("click", toggleChatWindow);
+    if (minBtn) minBtn.addEventListener("click", toggleChatWindow);
+
+    // -------------------------------------------------------------------------
+    // 3. Load Chat Session History Across Pages
+    // -------------------------------------------------------------------------
+    async function loadChatHistory() {
+        if (!conversationId) return;
+
+        try {
+            const res = await fetch(`/chatbot/history/?conversation_id=${encodeURIComponent(conversationId)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+
+            if (data.conversation_id) {
+                conversationId = data.conversation_id;
+                localStorage.setItem(SESSION_KEY, conversationId);
+            }
+
+            if (data.messages && data.messages.length > 0) {
+                // Clear welcome greeting if previous history exists
+                messagesContainer.innerHTML = "";
+                data.messages.forEach(msg => {
+                    appendMessageBubble(msg.role, msg.content, msg.created_at);
+                });
+                scrollToBottom();
+            }
+        } catch(err) {
+            console.warn("Error loading chat history:", err);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Send Message & Render Responses
+    // -------------------------------------------------------------------------
+    chatForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Render user message immediately
+        appendMessageBubble("user", text, getCurrentTimeString());
+        chatInput.value = "";
+        scrollToBottom();
+
+        // Show typing indicator
+        showTyping(true);
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append("message", text);
+            if (conversationId) {
+                formData.append("conversation_id", conversationId);
+            }
+
+            const response = await fetch("/chatbot/chat/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            showTyping(false);
+
+            if (response.ok) {
+                if (data.conversation_id) {
+                    conversationId = data.conversation_id;
+                    localStorage.setItem(SESSION_KEY, conversationId);
+                }
+                appendMessageBubble("assistant", data.response, data.assistant_time || getCurrentTimeString(), data.properties || []);
+            } else {
+                appendMessageBubble("assistant", "Sorry, " + (data.error || "something went wrong. Please try again."), getCurrentTimeString());
+            }
+        } catch(err) {
+            showTyping(false);
+            appendMessageBubble("assistant", "Network error. Please check your connection.", getCurrentTimeString());
+        }
+
+        scrollToBottom();
+    });
+
+    function appendMessageBubble(role, content, timeStr, properties) {
+        const isUser = (role === "user");
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `vh-msg ${isUser ? "vh-msg-user" : "vh-msg-ai"}`;
+
+        let formattedContent = escapeHtml(content || "").replace(/\n/g, "<br>");
+
+        // Parse markdown-style bold
+        formattedContent = formattedContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Convert markdown links [text](url) to clickable anchors
+        formattedContent = formattedContent.replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener" style="color:#059669;text-decoration:underline;">$1</a>'
+        );
+
+        let avatarHtml = "";
+        if (!isUser) {
+            avatarHtml = `
+                <div class="vh-msg-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" class="vh-robot-mini" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="6" width="18" height="12" rx="4" fill="#059669"/>
+                        <circle cx="8.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                        <circle cx="15.5" cy="11.5" r="1.5" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        // Build property cards HTML if properties are present
+        let propertyCardsHtml = "";
+        if (!isUser && properties && properties.length > 0) {
+            propertyCardsHtml = properties.map(function(prop) {
+                const imgUrl = prop.cover_image_url || "";
+                const title = escapeHtml(prop.title || "Property");
+                const price = escapeHtml(prop.price || "");
+                const period = escapeHtml(prop.payment_period || "month");
+                const beds = prop.bedrooms || 0;
+                const baths = prop.bathrooms || 0;
+                const loc = prop.location || {};
+                const area = escapeHtml(loc.area || "");
+                const district = escapeHtml(loc.district || "");
+                const region = escapeHtml(loc.region || "");
+                const locationStr = [area, district, region].filter(Boolean).join(", ");
+                const detailUrl = prop.detail_url || "#";
+                const furnished = prop.is_furnished ? "Furnished" : "Unfurnished";
+                const roomType = escapeHtml((prop.room_type || "").replace(/_/g, " "));
+
+                const imgTag = imgUrl
+                    ? `<img class="vh-prop-thumb" src="${escapeHtml(imgUrl)}" alt="${title}" onerror="this.style.display='none'">`
+                    : `<div class="vh-prop-thumb" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:20px;"><i class="fa-solid fa-house"></i></div>`;
+
+                return `
+                    <a class="vh-property-card-chat" href="${escapeHtml(detailUrl)}" target="_blank" rel="noopener">
+                        ${imgTag}
+                        <div class="vh-prop-details">
+                            <p class="vh-prop-title">${title}</p>
+                            <p class="vh-prop-loc"><i class="fa-solid fa-location-dot" style="color:#059669;"></i> ${locationStr}</p>
+                            <div class="vh-prop-specs">${beds} bed · ${baths} bath · ${furnished} · ${roomType}</div>
+                            <span class="vh-prop-price">₵${price} /${period}</span>
+                        </div>
+                    </a>
+                `;
+            }).join("");
+
+            // Add a "View All Properties" button if multiple results
+            if (properties.length > 1) {
+                propertyCardsHtml += `<a class="vh-view-all-btn" href="/properties/" target="_blank" rel="noopener">🏠 View All Properties</a>`;
+            }
+        }
+
+        msgDiv.innerHTML = `
+            ${avatarHtml}
+            <div class="vh-msg-content-wrapper">
+                <div class="vh-msg-bubble">
+                    ${formattedContent}
+                    ${propertyCardsHtml}
+                </div>
+                <div class="vh-msg-time">${timeStr || ""}</div>
+            </div>
+        `;
+
+        messagesContainer.appendChild(msgDiv);
+    }
+
+    function showTyping(visible) {
+        typingIndicator.style.display = visible ? "flex" : "none";
+        if (visible) scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function getCurrentTimeString() {
+        const now = new Date();
+        return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Initialize position and history
+    restoreLauncherPosition();
+    loadChatHistory();
+});
+</script>

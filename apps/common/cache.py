@@ -46,14 +46,20 @@ def invalidate_property_cache(property_obj=None, landlord_id=None, property_id=N
         logger.error(f"Error invalidating property cache: {e}")
 
 def invalidate_amenities_cache():
-    cache.delete("home_finder:amenities:all")
+    try:
+        cache.delete("home_finder:amenities:all")
+    except Exception as e:
+        logger.warning(f"Error invalidating amenities cache: {e}")
 
 def invalidate_documents_cache(landlord_id=None, document_id=None):
-    if landlord_id:
-        cache.delete(f"home_finder:documents:landlord_{landlord_id}")
-    if document_id:
-        cache.delete(f"home_finder:documents:detail:{document_id}")
-    cache.delete("home_finder:documents:all")
+    try:
+        if landlord_id:
+            cache.delete(f"home_finder:documents:landlord_{landlord_id}")
+        if document_id:
+            cache.delete(f"home_finder:documents:detail:{document_id}")
+        cache.delete("home_finder:documents:all")
+    except Exception as e:
+        logger.warning(f"Error invalidating documents cache: {e}")
 
 def invalidate_locations_cache():
     cache.delete("properties:locations")

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 
     'django.contrib.sites',
 
+    'apps.common.apps.CommonConfig',
     'apps.home_finder',
     'theme',
     'apps.locations',
@@ -195,6 +196,7 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = 'apps.account.adapter.CustomSocialAccountAdapter'
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
@@ -283,8 +285,9 @@ PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default="")
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://127.0.0.1:8000")
 
-CHATBOT_AI_PROVIDER = env("OPENAI_API_KEY")
-
+GROQ_API_KEY = env("GROQ_API_KEY", default="")
+GROQ_CHAT_MODEL = env("GROQ_CHAT_MODEL", default="llama-3.3-70b-versatile")
+CHATBOT_AI_PROVIDER = env("CHATBOT_AI_PROVIDER", default="fake")
 
 STORAGES = {
     "default": {

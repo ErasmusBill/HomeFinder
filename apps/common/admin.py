@@ -1,3 +1,7 @@
-from django.contrib import admin
+"""
+apps/common/admin.py
 
-# Register your models here.
+Keep this file lean. The dashboard injection is handled via
+VacantHommieAdminSite.index() in apps/common/admin_site.py.
+"""
+# Nothing to register in the common app itself.

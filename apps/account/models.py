@@ -15,7 +15,7 @@ class User(BaseModel, AbstractUser):
 
     full_name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, unique=True)
-    phone_number = models.CharField(max_length=30, unique=True)
+    phone_number = models.CharField(max_length=30, unique=True, null=True, blank=True)
     is_email_verified = models.BooleanField(default=False)
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.TENANT)
 
@@ -115,17 +115,23 @@ class User(BaseModel, AbstractUser):
 
     objects = UserManager()
 
-    REQUIRED_FIELDS = ['full_name', 'phone_number']
+    REQUIRED_FIELDS = ['full_name']
     USERNAME_FIELD = 'email'
 
     def save(self, *args, **kwargs):
         """
-        Enforce a single rule: any user with role='admin' is automatically
-        a Django superuser and has staff access. This keeps the data layer
-        consistent so admins can never exist without admin-backend privileges
-        and so background tasks that look at is_superuser / is_staff don't
-        miss a "role=admin but not superuser" row.
+        Enforce:
+        1. phone_number is stored as NULL instead of empty string so unique
+           constraints allow multiple users without phone numbers (e.g. social signups).
+        2. full_name is populated from first_name/last_name if blank.
+        3. any user with role='admin' is automatically a Django superuser and has staff access.
         """
+        if not self.phone_number:
+            self.phone_number = None
+
+        if not self.full_name and (self.first_name or self.last_name):
+            self.full_name = f"{self.first_name} {self.last_name}".strip()
+
         if self.role == self.Role.ADMIN:
             self.is_staff = True
             self.is_superuser = True

@@ -6,19 +6,16 @@ class UserManager(BaseUserManager):
     Custom user manager to handle creating users and superusers with email,
     full_name, phone_number, and role support.
     """
-    def create_user(self, email, full_name, phone_number, password=None, role='tenant', **extra_fields):
+    def create_user(self, email, full_name='', phone_number=None, password=None, role='tenant', **extra_fields):
         if not email:
             raise ValueError('Users must have an email address')
-
-        if not phone_number:
-            raise ValueError('Users must have a phone number')
 
         email = self.normalize_email(email)
 
         user = self.model(
             email=email,
             full_name=full_name,
-            phone_number=phone_number,
+            phone_number=phone_number or None,
             role=role,
             **extra_fields
         )
@@ -32,16 +29,14 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, full_name, phone_number, password=None, is_staff=True, is_superuser=True, role='admin', **extra_fields):
+    def create_superuser(self, email, full_name='', phone_number=None, password=None, is_staff=True, is_superuser=True, role='admin', **extra_fields):
         if not email:
             raise ValueError('Superusers must have an email address')
-        if not phone_number:
-            raise ValueError('Superusers must have a phone number')
 
         user = self.create_user(
             email=email,
             full_name=full_name,
-            phone_number=phone_number,
+            phone_number=phone_number or None,
             password=password,
             role=role,
             **extra_fields
