@@ -740,129 +740,152 @@
 <!-- ===================================================================== -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const isDarkMode = document.body.classList.contains('dark-mode');
-  const textColor  = isDarkMode ? '#cbd5e1' : '#475569';
-  const gridColor  = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+  let charts = [];
 
-  // ── Chart 1: Monthly Revenue Trend ────────────────────────────────────────
-  const revCtx = document.getElementById('monthlyRevenueChart');
-  if (revCtx) {
-    const revLabels = {{ chart_revenue_labels_json|default:"[]"|safe }};
-    const revData   = {{ chart_revenue_data_json|default:"[]"|safe }};
-    const txData    = {{ chart_transactions_data_json|default:"[]"|safe }};
+  function renderDashboardCharts() {
+    // Destroy previous chart instances on re-render
+    charts.forEach(function(c) {
+      try { c.destroy(); } catch(e) {}
+    });
+    charts = [];
 
-    new Chart(revCtx, {
-      type: 'bar',
-      data: {
-        labels: revLabels,
-        datasets: [
-          {
-            label: 'Revenue (GH₵)',
-            data: revData,
-            backgroundColor: 'rgba(16,185,129,0.85)',
-            borderColor: '#10B981',
-            borderRadius: 6,
-            yAxisID: 'y',
-            order: 2
-          },
-          {
-            label: 'Transaction Count',
-            data: txData,
-            type: 'line',
-            borderColor: '#3B82F6',
-            backgroundColor: 'rgba(59,130,246,0.2)',
-            borderWidth: 2,
-            pointBackgroundColor: '#3B82F6',
-            pointRadius: 4,
-            tension: 0.3,
-            yAxisID: 'y1',
-            order: 1
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { position: 'top', labels: { color: textColor, boxWidth: 12, font: { weight: '600' } } },
-          tooltip: {
-            callbacks: {
-              label: function(ctx) {
-                if (ctx.dataset.yAxisID === 'y') return ' Revenue: GH₵ ' + Number(ctx.parsed.y||0).toLocaleString(undefined,{minimumFractionDigits:2});
-                return ' Transactions: ' + ctx.parsed.y;
+    const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
+    const textColor  = isDarkMode ? '#cbd5e1' : '#475569';
+    const gridColor  = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
+    const borderColor = isDarkMode ? '#111c2d' : '#ffffff';
+
+    // ── Chart 1: Monthly Revenue Trend ────────────────────────────────────────
+    const revCtx = document.getElementById('monthlyRevenueChart');
+    if (revCtx) {
+      const revLabels = {{ chart_revenue_labels_json|default:"[]"|safe }};
+      const revData   = {{ chart_revenue_data_json|default:"[]"|safe }};
+      const txData    = {{ chart_transactions_data_json|default:"[]"|safe }};
+
+      const c1 = new Chart(revCtx, {
+        type: 'bar',
+        data: {
+          labels: revLabels,
+          datasets: [
+            {
+              label: 'Revenue (GH₵)',
+              data: revData,
+              backgroundColor: 'rgba(16,185,129,0.85)',
+              borderColor: '#10B981',
+              borderRadius: 6,
+              yAxisID: 'y',
+              order: 2
+            },
+            {
+              label: 'Transaction Count',
+              data: txData,
+              type: 'line',
+              borderColor: '#3B82F6',
+              backgroundColor: 'rgba(59,130,246,0.2)',
+              borderWidth: 2,
+              pointBackgroundColor: '#3B82F6',
+              pointRadius: 4,
+              tension: 0.3,
+              yAxisID: 'y1',
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { color: textColor, boxWidth: 12, font: { weight: '600' } } },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  if (ctx.dataset.yAxisID === 'y') return ' Revenue: GH₵ ' + Number(ctx.parsed.y||0).toLocaleString(undefined,{minimumFractionDigits:2});
+                  return ' Transactions: ' + ctx.parsed.y;
+                }
               }
             }
-          }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: textColor } },
-          y: {
-            type: 'linear', display: true, position: 'left',
-            grid: { color: gridColor },
-            ticks: { color: textColor, callback: function(v){ return 'GH₵ ' + Number(v||0).toLocaleString(); } }
           },
-          y1: {
-            type: 'linear', display: true, position: 'right',
-            grid: { drawOnChartArea: false },
-            ticks: { color: textColor, precision: 0 }
+          scales: {
+            x: { grid: { display: false }, ticks: { color: textColor } },
+            y: {
+              type: 'linear', display: true, position: 'left',
+              grid: { color: gridColor },
+              ticks: { color: textColor, callback: function(v){ return 'GH₵ ' + Number(v||0).toLocaleString(); } }
+            },
+            y1: {
+              type: 'linear', display: true, position: 'right',
+              grid: { drawOnChartArea: false },
+              ticks: { color: textColor, precision: 0 }
+            }
           }
         }
-      }
-    });
+      });
+      charts.push(c1);
+    }
+
+    // ── Chart 2: User Role Distribution ───────────────────────────────────────
+    const userCtx = document.getElementById('userDistributionChart');
+    if (userCtx) {
+      const c2 = new Chart(userCtx, {
+        type: 'doughnut',
+        data: {
+          labels: {{ chart_users_labels_json|default:"[]"|safe }},
+          datasets: [{ data: {{ chart_users_data_json|default:"[]"|safe }}, backgroundColor: ['#3B82F6','#10B981','#8B5CF6'], borderWidth: 2, borderColor: borderColor, hoverOffset: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
+      });
+      charts.push(c2);
+    }
+
+    // ── Chart 3: Property Verification Status ─────────────────────────────────
+    const propCtx = document.getElementById('propertyStatusChart');
+    if (propCtx) {
+      const c3 = new Chart(propCtx, {
+        type: 'pie',
+        data: {
+          labels: {{ chart_property_status_labels_json|default:"[]"|safe }},
+          datasets: [{ data: {{ chart_property_status_data_json|default:"[]"|safe }}, backgroundColor: ['#10B981','#F59E0B','#EF4444'], borderWidth: 2, borderColor: borderColor, hoverOffset: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
+      });
+      charts.push(c3);
+    }
+
+    // ── Chart 4: Property Types ───────────────────────────────────────────────
+    const typeCtx = document.getElementById('propertyTypesChart');
+    if (typeCtx) {
+      const c4 = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+          labels: {{ chart_property_types_labels_json|default:"[]"|safe }},
+          datasets: [{ data: {{ chart_property_types_data_json|default:"[]"|safe }}, backgroundColor: ['#6366F1','#EC4899','#06B6D4','#F97316','#10B981','#F59E0B'], borderWidth: 2, borderColor: borderColor }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
+      });
+      charts.push(c4);
+    }
+
+    // ── Chart 5: Viewing Requests Status ─────────────────────────────────────
+    const viewCtx = document.getElementById('viewingsStatusChart');
+    if (viewCtx) {
+      const c5 = new Chart(viewCtx, {
+        type: 'doughnut',
+        data: {
+          labels: {{ chart_viewings_labels_json|default:"[]"|safe }},
+          datasets: [{ data: {{ chart_viewings_data_json|default:"[]"|safe }}, backgroundColor: ['#F59E0B','#10B981','#3B82F6','#9CA3AF'], borderWidth: 2, borderColor: borderColor }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
+      });
+      charts.push(c5);
+    }
   }
 
-  // ── Chart 2: User Role Distribution ───────────────────────────────────────
-  const userCtx = document.getElementById('userDistributionChart');
-  if (userCtx) {
-    new Chart(userCtx, {
-      type: 'doughnut',
-      data: {
-        labels: {{ chart_users_labels_json|default:"[]"|safe }},
-        datasets: [{ data: {{ chart_users_data_json|default:"[]"|safe }}, backgroundColor: ['#3B82F6','#10B981','#8B5CF6'], borderWidth: 2, borderColor: isDarkMode?'#1e293b':'#ffffff', hoverOffset: 6 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
-    });
-  }
+  renderDashboardCharts();
 
-  // ── Chart 3: Property Verification Status ─────────────────────────────────
-  const propCtx = document.getElementById('propertyStatusChart');
-  if (propCtx) {
-    new Chart(propCtx, {
-      type: 'pie',
-      data: {
-        labels: {{ chart_property_status_labels_json|default:"[]"|safe }},
-        datasets: [{ data: {{ chart_property_status_data_json|default:"[]"|safe }}, backgroundColor: ['#10B981','#F59E0B','#EF4444'], borderWidth: 2, borderColor: isDarkMode?'#1e293b':'#ffffff', hoverOffset: 6 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
-    });
-  }
-
-  // ── Chart 4: Property Types ───────────────────────────────────────────────
-  const typeCtx = document.getElementById('propertyTypesChart');
-  if (typeCtx) {
-    new Chart(typeCtx, {
-      type: 'doughnut',
-      data: {
-        labels: {{ chart_property_types_labels_json|default:"[]"|safe }},
-        datasets: [{ data: {{ chart_property_types_data_json|default:"[]"|safe }}, backgroundColor: ['#6366F1','#EC4899','#06B6D4','#F97316','#10B981','#F59E0B'], borderWidth: 2, borderColor: isDarkMode?'#1e293b':'#ffffff' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
-    });
-  }
-
-  // ── Chart 5: Viewing Requests Status ─────────────────────────────────────
-  const viewCtx = document.getElementById('viewingsStatusChart');
-  if (viewCtx) {
-    new Chart(viewCtx, {
-      type: 'doughnut',
-      data: {
-        labels: {{ chart_viewings_labels_json|default:"[]"|safe }},
-        datasets: [{ data: {{ chart_viewings_data_json|default:"[]"|safe }}, backgroundColor: ['#F59E0B','#10B981','#3B82F6','#9CA3AF'], borderWidth: 2, borderColor: isDarkMode?'#1e293b':'#ffffff' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 12 } } } }
-    });
-  }
+  // Re-render when theme toggles
+  window.addEventListener('themeChanged', function() {
+    renderDashboardCharts();
+  });
 });
 </script>
 {% endblock %}

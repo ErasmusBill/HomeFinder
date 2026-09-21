@@ -334,6 +334,7 @@ JAZZMIN_SETTINGS = {
         "auth",
     ],
     "custom_css": "css/admin_custom.css",
+    "custom_js": "js/admin_theme_toggle.js",
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
