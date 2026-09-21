@@ -1,0 +1,293 @@
+/* ==========================================================================
+   VacantHommie Django Admin - Custom Green & Emerald Theme
+   ========================================================================== */
+
+:root {
+  --vh-admin-green-900: #062f26;
+  --vh-admin-green-800: #064e3b;
+  --vh-admin-green-700: #047857;
+  --vh-admin-green-600: #059669;
+  --vh-admin-green-500: #10b981;
+  --vh-admin-green-400: #34d399;
+  --vh-admin-green-300: #6ee7b7;
+  --vh-admin-green-200: #a7f3d0;
+  --vh-admin-green-100: #d1fae5;
+  --vh-admin-green-50:  #ecfdf5;
+}
+
+/* --------------------------------------------------------------------------
+   1. MAIN SIDEBAR CONTAINER & BACKGROUND
+   -------------------------------------------------------------------------- */
+.main-sidebar,
+aside.main-sidebar,
+.sidebar-dark-primary,
+.sidebar-dark-success,
+.main-sidebar.sidebar-dark-primary,
+.main-sidebar.sidebar-dark-success {
+  background: linear-gradient(180deg, #04241d 0%, #064e3b 45%, #053b2d 100%) !important;
+  box-shadow: 3px 0 16px rgba(4, 36, 29, 0.25) !important;
+  border-right: 1px solid rgba(16, 185, 129, 0.15) !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. BRAND LOGO & HEADER PANEL
+   -------------------------------------------------------------------------- */
+.brand-link {
+  background: #031b15 !important;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.25) !important;
+  padding: 0.9rem 1rem !important;
+  transition: background 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.brand-link:hover {
+  background: #04241d !important;
+}
+
+.brand-link .brand-text {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+  letter-spacing: 0.5px !important;
+}
+
+.brand-link .brand-image {
+  max-height: 34px !important;
+  margin-right: 0.65rem !important;
+  border-radius: 6px !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. USER PROFILE PANEL
+   -------------------------------------------------------------------------- */
+.user-panel {
+  border-bottom: 1px solid rgba(16, 185, 129, 0.18) !important;
+  padding: 0.85rem 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.user-panel .info {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.user-panel .info a {
+  color: var(--vh-admin-green-200) !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  transition: color 0.15s ease !important;
+}
+
+.user-panel .info a:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.user-panel .image i,
+.user-panel i.fa-user,
+.user-panel i.fa-user-circle {
+  color: var(--vh-admin-green-400) !important;
+  font-size: 1.25rem !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. SIDEBAR NAVIGATION HEADERS (Categories / App Sections)
+   -------------------------------------------------------------------------- */
+.nav-sidebar .nav-header {
+  color: var(--vh-admin-green-300) !important;
+  font-size: 0.74rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  padding: 1rem 1rem 0.35rem 1.1rem !important;
+  opacity: 0.95 !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. SIDEBAR NAVIGATION ITEMS & LINKS
+   -------------------------------------------------------------------------- */
+.nav-sidebar .nav-item {
+  margin: 2px 8px !important;
+}
+
+.nav-sidebar .nav-item .nav-link {
+  color: #f1f5f9 !important;
+  border-radius: 8px !important;
+  padding: 0.55rem 0.85rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.nav-sidebar .nav-item .nav-link p {
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Navigation Icons */
+.nav-sidebar .nav-item .nav-link i.nav-icon {
+  color: var(--vh-admin-green-400) !important;
+  margin-right: 0.75rem !important;
+  font-size: 0.95rem !important;
+  width: 1.25rem !important;
+  text-align: center !important;
+  transition: transform 0.2s ease, color 0.2s ease !important;
+}
+
+/* Hover State */
+.nav-sidebar .nav-item .nav-link:hover {
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #ffffff !important;
+  transform: translateX(4px) !important;
+}
+
+.nav-sidebar .nav-item .nav-link:hover i.nav-icon {
+  color: #ffffff !important;
+  transform: scale(1.18) !important;
+}
+
+/* Active State (Current selected model/page) */
+.nav-sidebar .nav-item > .nav-link.active,
+.nav-sidebar .nav-treeview > .nav-item > .nav-link.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important;
+  border: none !important;
+}
+
+.nav-sidebar .nav-item > .nav-link.active i.nav-icon,
+.nav-sidebar .nav-treeview > .nav-item > .nav-link.active i.nav-icon {
+  color: #ffffff !important;
+}
+
+/* Treeview submenu styling */
+.nav-sidebar .nav-treeview {
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  margin: 2px 0 4px 8px !important;
+  padding: 4px 0 !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. SIDEBAR SEARCH INPUT (if enabled)
+   -------------------------------------------------------------------------- */
+.sidebar-search input,
+.sidebar-form input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+
+.sidebar-search input::placeholder {
+  color: var(--vh-admin-green-200) !important;
+  opacity: 0.7 !important;
+}
+
+.sidebar-search input:focus {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: var(--vh-admin-green-400) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3) !important;
+}
+
+.sidebar-search .btn,
+.sidebar-form .btn {
+  background: rgba(16, 185, 129, 0.3) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. SIDEBAR SCROLLBAR
+   -------------------------------------------------------------------------- */
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   8. TOP NAVBAR & ACTION ACCENTS
+   -------------------------------------------------------------------------- */
+.main-header.navbar {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+  color: var(--vh-admin-green-600) !important;
+}
+
+.breadcrumb-item a {
+  color: var(--vh-admin-green-600) !important;
+  font-weight: 500;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--vh-admin-green-700) !important;
+  text-decoration: underline;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-success {
+  background-color: var(--vh-admin-green-600) !important;
+  border-color: var(--vh-admin-green-700) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+  background-color: var(--vh-admin-green-700) !important;
+  border-color: var(--vh-admin-green-800) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+  color: var(--vh-admin-green-600) !important;
+  border-color: var(--vh-admin-green-500) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover {
+  background-color: var(--vh-admin-green-600) !important;
+  border-color: var(--vh-admin-green-600) !important;
+  color: #ffffff !important;
+}
+
+/* Pagination in change lists */
+.page-item.active .page-link {
+  background-color: var(--vh-admin-green-600) !important;
+  border-color: var(--vh-admin-green-600) !important;
+  color: #ffffff !important;
+}
+
+.page-link {
+  color: var(--vh-admin-green-700) !important;
+}
+
+/* Search bar button in list view */
+#changelist-search input[type="submit"],
+.actions button.button {
+  background: var(--vh-admin-green-600) !important;
+  border-color: var(--vh-admin-green-700) !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+}
