@@ -74,7 +74,7 @@ class Property(BaseModel):
 
     class PaymentPeriod(models.TextChoices):
         DAILY = "daily", "Daily"
-        HOURLY = "hourly", "Hourly"
+        HOURLY = "hourly", "Hourlyb "
         MONTHLY = "monthly", "Monthly"
         YEARLY = "yearly", "Yearly"
 

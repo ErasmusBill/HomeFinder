@@ -113,20 +113,29 @@
 
 <!-- Widget Stylesheet -->
 <style>
-/* Chatbot Container Root */
+/* ==========================================================================
+   Root sizing tokens — drive every dimension from a few variables so the
+   whole widget scales smoothly between phones, tablets and desktops.
+   ========================================================================== */
 #vh-chatbot-root {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     z-index: 99999;
     position: fixed;
+    --vh-launcher-size: clamp(48px, 8vw, 60px);
+    --vh-gutter: clamp(12px, 4vw, 24px);
+    --vh-window-width: min(380px, calc(100vw - (2 * var(--vh-gutter))));
+    --vh-window-height: min(560px, calc(100dvh - var(--vh-launcher-size) - (3 * var(--vh-gutter))));
+    --vh-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --vh-safe-top: env(safe-area-inset-top, 0px);
 }
 
 /* Draggable Launcher Icon */
 #vh-chatbot-launcher {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 60px;
-    height: 60px;
+    bottom: calc(var(--vh-gutter) + var(--vh-safe-bottom));
+    right: var(--vh-gutter);
+    width: var(--vh-launcher-size);
+    height: var(--vh-launcher-size);
     border-radius: 50%;
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
     box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4), 0 2px 6px rgba(0, 0, 0, 0.15);
@@ -138,6 +147,7 @@
     touch-action: none;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
     z-index: 99999;
+    box-sizing: border-box;
 }
 #vh-chatbot-launcher:hover {
     transform: scale(1.08);
@@ -149,15 +159,15 @@
 }
 .vh-launcher-avatar {
     position: relative;
-    width: 34px;
-    height: 34px;
+    width: 56%;
+    height: 56%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .vh-robot-svg {
-    width: 32px;
-    height: 32px;
+    width: 100%;
+    height: 100%;
 }
 .vh-online-badge {
     position: absolute;
@@ -189,19 +199,21 @@
 /* Floating Chat Window Panel */
 #vh-chatbot-window {
     position: fixed;
-    bottom: 95px;
-    right: 24px;
-    width: 380px;
-    max-width: calc(100vw - 32px);
-    height: 560px;
-    max-height: calc(100vh - 120px);
+    bottom: calc(var(--vh-launcher-size) + (var(--vh-gutter) * 1.6) + var(--vh-safe-bottom));
+    right: var(--vh-gutter);
+    left: auto;
+    width: var(--vh-window-width);
+    max-width: calc(100vw - (2 * var(--vh-gutter)));
+    height: var(--vh-window-height);
+    max-height: calc(100dvh - var(--vh-launcher-size) - (3 * var(--vh-gutter)) - var(--vh-safe-bottom));
     background: #ffffff;
-    border-radius: 20px;
+    border-radius: clamp(12px, 3vw, 20px);
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     border: 1px solid #e2e8f0;
+    box-sizing: border-box;
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
     z-index: 99998;
 }
@@ -216,40 +228,49 @@
 .vh-chat-header {
     background: linear-gradient(135deg, #047857 0%, #059669 100%);
     color: #ffffff;
-    padding: 16px 20px;
+    padding: clamp(10px, 3vw, 16px) clamp(12px, 4vw, 20px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    gap: 8px;
 }
 .vh-header-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
 }
 .vh-header-avatar {
-    width: 36px;
-    height: 36px;
+    width: clamp(30px, 8vw, 36px);
+    height: clamp(30px, 8vw, 36px);
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(4px);
+    flex-shrink: 0;
 }
 .vh-robot-svg-sm {
-    width: 24px;
-    height: 24px;
+    width: 65%;
+    height: 65%;
+}
+.vh-header-text {
+    min-width: 0;
 }
 .vh-header-text h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: clamp(13px, 3.5vw, 15px);
     font-weight: 700;
     color: #ffffff;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .vh-status-online {
-    font-size: 12px;
+    font-size: 11px;
     color: #a7f3d0;
     display: flex;
     align-items: center;
@@ -262,25 +283,28 @@
     background-color: #34d399;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 .vh-header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
 }
 .vh-header-actions button {
     background: rgba(255, 255, 255, 0.15);
     border: none;
     color: #ffffff;
-    width: 28px;
-    height: 28px;
+    width: clamp(24px, 7vw, 28px);
+    height: clamp(24px, 7vw, 28px);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     transition: background 0.2s;
+    flex-shrink: 0;
 }
 .vh-header-actions button:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -289,17 +313,19 @@
 /* Chat Transcript Body */
 .vh-chat-body {
     flex: 1;
-    padding: 16px;
+    padding: clamp(10px, 3vw, 16px);
     overflow-y: auto;
+    overflow-x: hidden;
     background: #f8fafc;
     display: flex;
     flex-direction: column;
     gap: 14px;
     scroll-behavior: smooth;
+    min-height: 0;
 }
 .vh-msg {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     max-width: 92%;
 }
 .vh-msg-user {
@@ -310,8 +336,8 @@
     margin-right: auto;
 }
 .vh-msg-avatar {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     background: #e2e8f0;
     border-radius: 50%;
     display: flex;
@@ -324,12 +350,17 @@
     width: 18px;
     height: 18px;
 }
+.vh-msg-content-wrapper {
+    min-width: 0;
+    max-width: 100%;
+}
 .vh-msg-bubble {
-    padding: 12px 15px;
+    padding: 10px 13px;
     border-radius: 16px;
-    font-size: 13.5px;
+    font-size: clamp(12.5px, 3.4vw, 13.5px);
     line-height: 1.45;
     word-break: break-word;
+    overflow-wrap: anywhere;
 }
 .vh-msg-user .vh-msg-bubble {
     background: #059669;
@@ -368,6 +399,8 @@
     color: inherit;
     transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .vh-property-card-chat:hover {
     transform: translateY(-2px);
@@ -375,8 +408,8 @@
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
 }
 .vh-prop-thumb {
-    width: 68px;
-    height: 68px;
+    width: clamp(52px, 15vw, 68px);
+    height: clamp(52px, 15vw, 68px);
     border-radius: 8px;
     object-fit: cover;
     background: #f1f5f9;
@@ -387,7 +420,7 @@
     min-width: 0;
 }
 .vh-prop-title {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     color: #0f172a;
     margin: 0 0 2px 0;
@@ -396,22 +429,28 @@
     text-overflow: ellipsis;
 }
 .vh-prop-loc {
-    font-size: 11px;
+    font-size: 10.5px;
     color: #64748b;
     margin-bottom: 4px;
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .vh-prop-price {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
     color: #059669;
 }
 .vh-prop-specs {
-    font-size: 10.5px;
+    font-size: 10px;
     color: #64748b;
     margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* View All Results Button */
@@ -429,6 +468,7 @@
     font-weight: 700;
     text-decoration: none;
     transition: background 0.2s;
+    box-sizing: border-box;
 }
 .vh-view-all-btn:hover {
     background: #d1fae5;
@@ -440,6 +480,7 @@
     gap: 10px;
     margin-right: auto;
     align-items: center;
+    padding: 0 clamp(10px, 3vw, 16px);
 }
 .vh-typing-dots {
     background: #ffffff;
@@ -467,44 +508,51 @@
 
 /* Input Footer */
 .vh-chat-input-area {
-    padding: 12px 14px;
+    padding: clamp(8px, 2.5vw, 12px) clamp(10px, 3vw, 14px);
+    padding-bottom: calc(clamp(8px, 2.5vw, 12px) + var(--vh-safe-bottom));
     background: #ffffff;
     border-top: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 .vh-attach-btn {
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
     padding: 6px;
     border-radius: 50%;
     transition: color 0.2s;
+    flex-shrink: 0;
 }
 .vh-attach-btn:hover {
     color: #059669;
 }
 #vh-chat-input {
     flex: 1;
+    min-width: 0;
     border: 1px solid #e2e8f0;
     border-radius: 20px;
-    padding: 9px 16px;
+    padding: 9px 14px;
     font-size: 13.5px;
     outline: none;
     background: #f8fafc;
     transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+    /* Prevent iOS Safari from auto-zooming the page on focus */
+    font-size: max(13.5px, 16px);
 }
 #vh-chat-input:focus {
     border-color: #059669;
     background: #ffffff;
 }
 #vh-chat-send-btn {
-    width: 36px;
-    height: 36px;
+    width: clamp(32px, 9vw, 36px);
+    height: clamp(32px, 9vw, 36px);
     border-radius: 50%;
     background: #059669;
     color: #ffffff;
@@ -512,7 +560,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
     flex-shrink: 0;
@@ -522,13 +570,81 @@
     transform: scale(1.05);
 }
 
-/* Mobile responsive sizing */
+/* ==========================================================================
+   Breakpoints
+   ========================================================================== */
+
+/* Tablets / small laptops: tighten gutters slightly */
+@media (max-width: 768px) {
+    #vh-chatbot-root {
+        --vh-gutter: 16px;
+    }
+}
+
+/* Phones: chat window becomes a near-fullscreen sheet, launcher stays a
+   comfortable thumb-reach circle regardless of viewport width. */
 @media (max-width: 480px) {
+    #vh-chatbot-root {
+        --vh-gutter: 10px;
+        --vh-launcher-size: 52px;
+    }
     #vh-chatbot-window {
-        bottom: 85px;
-        right: 12px;
-        width: calc(100vw - 24px);
-        height: min(520px, calc(100vh - 100px));
+        width: calc(100vw - (2 * var(--vh-gutter)));
+        height: calc(100dvh - var(--vh-launcher-size) - (3 * var(--vh-gutter)) - var(--vh-safe-bottom));
+        max-height: calc(100dvh - var(--vh-launcher-size) - (3 * var(--vh-gutter)) - var(--vh-safe-bottom));
+    }
+}
+
+/* Very small / narrow phones (e.g. older iPhone SE, 320px width) */
+@media (max-width: 360px) {
+    #vh-chatbot-root {
+        --vh-gutter: 8px;
+        --vh-launcher-size: 48px;
+    }
+    .vh-header-text h3 {
+        font-size: 13px;
+    }
+    .vh-msg-bubble {
+        font-size: 12.5px;
+        padding: 9px 11px;
+    }
+}
+
+/* Short viewports / landscape phones: cap the window height so it never
+   overflows above the top of the screen, and shrink vertical paddings. */
+@media (max-height: 480px) {
+    #vh-chatbot-root {
+        --vh-launcher-size: 44px;
+        --vh-gutter: 8px;
+    }
+    #vh-chatbot-window {
+        height: calc(100dvh - var(--vh-launcher-size) - (2 * var(--vh-gutter)) - var(--vh-safe-bottom));
+        max-height: calc(100dvh - var(--vh-launcher-size) - (2 * var(--vh-gutter)) - var(--vh-safe-bottom));
+    }
+    .vh-chat-header {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    .vh-chat-body {
+        gap: 8px;
+    }
+}
+
+/* Larger desktop screens: let the window grow a little for readability */
+@media (min-width: 1440px) {
+    #vh-chatbot-root {
+        --vh-window-width: 400px;
+        --vh-window-height: min(620px, calc(100dvh - var(--vh-launcher-size) - (3 * var(--vh-gutter))));
+    }
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    #vh-chatbot-launcher,
+    #vh-chatbot-window,
+    .vh-typing-dots span {
+        transition: none !important;
+        animation-duration: 0.01ms !important;
     }
 }
 </style>
@@ -557,23 +673,34 @@ document.addEventListener("DOMContentLoaded", function() {
     // -------------------------------------------------------------------------
     // 1. Position Persistence & Drag Logic
     // -------------------------------------------------------------------------
+    function getLauncherSize() {
+        return launcher.offsetWidth || parseFloat(getComputedStyle(document.getElementById("vh-chatbot-root")).getPropertyValue("--vh-launcher-size")) || 60;
+    }
+
+    function clampLauncherPosition(left, top) {
+        const size = getLauncherSize();
+        const maxLeft = window.innerWidth - size - 10;
+        const maxTop = window.innerHeight - size - 10;
+        return {
+            left: Math.max(10, Math.min(left, Math.max(10, maxLeft))),
+            top: Math.max(10, Math.min(top, Math.max(10, maxTop)))
+        };
+    }
+
     function restoreLauncherPosition() {
         const savedPos = localStorage.getItem(POS_KEY);
         if (savedPos) {
             try {
                 const pos = JSON.parse(savedPos);
-                const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
-                const maxTop = window.innerHeight - launcher.offsetHeight - 10;
-                const clampLeft = Math.max(10, Math.min(pos.left, maxLeft));
-                const clampTop = Math.max(10, Math.min(pos.top, maxTop));
-                
-                launcher.style.left = clampLeft + "px";
-                launcher.style.top = clampTop + "px";
+                const clamped = clampLauncherPosition(pos.left, pos.top);
+
+                launcher.style.left = clamped.left + "px";
+                launcher.style.top = clamped.top + "px";
                 launcher.style.right = "auto";
                 launcher.style.bottom = "auto";
-                
+
                 // Align chat window near launcher
-                alignChatWindowWithLauncher(clampLeft, clampTop);
+                alignChatWindowWithLauncher(clamped.left, clamped.top);
             } catch(e) {
                 console.warn("Could not parse chatbot launcher position", e);
             }
@@ -581,16 +708,22 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function alignChatWindowWithLauncher(left, top) {
-        const winWidth = 380;
-        let windowLeft = left - (winWidth - 60);
-        if (windowLeft < 10) windowLeft = 10;
-        if (windowLeft + winWidth > window.innerWidth - 10) {
-            windowLeft = window.innerWidth - winWidth - 10;
+        const winWidth = chatWindow.offsetWidth || window.innerWidth;
+        const winHeight = chatWindow.offsetHeight || window.innerHeight;
+        const margin = 10;
+
+        let windowLeft = left - (winWidth - getLauncherSize());
+        if (windowLeft < margin) windowLeft = margin;
+        if (windowLeft + winWidth > window.innerWidth - margin) {
+            windowLeft = Math.max(margin, window.innerWidth - winWidth - margin);
         }
 
-        let windowTop = top - 570;
-        if (windowTop < 10) {
-            windowTop = top + 70;
+        let windowTop = top - winHeight - 10;
+        if (windowTop < margin) {
+            windowTop = top + getLauncherSize() + 10;
+        }
+        if (windowTop + winHeight > window.innerHeight - margin) {
+            windowTop = Math.max(margin, window.innerHeight - winHeight - margin);
         }
 
         chatWindow.style.left = windowLeft + "px";
@@ -598,6 +731,34 @@ document.addEventListener("DOMContentLoaded", function() {
         chatWindow.style.right = "auto";
         chatWindow.style.bottom = "auto";
     }
+
+    // Re-clamp positions whenever the viewport changes (rotation, resize,
+    // browser chrome showing/hiding on mobile) so the widget never ends up
+    // off-screen or overlapping content awkwardly.
+    function handleViewportChange() {
+        const savedPos = localStorage.getItem(POS_KEY);
+        if (!savedPos) return;
+        try {
+            const pos = JSON.parse(savedPos);
+            const clamped = clampLauncherPosition(pos.left, pos.top);
+            launcher.style.left = clamped.left + "px";
+            launcher.style.top = clamped.top + "px";
+            if (!chatWindow.classList.contains("vh-chat-closed")) {
+                alignChatWindowWithLauncher(clamped.left, clamped.top);
+            }
+        } catch(e) {
+            // ignore malformed saved position
+        }
+    }
+
+    let resizeTimeout;
+    window.addEventListener("resize", function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleViewportChange, 120);
+    });
+    window.addEventListener("orientationchange", function() {
+        setTimeout(handleViewportChange, 200);
+    });
 
     // Mouse Drag Events
     launcher.addEventListener("mousedown", function(e) {
@@ -625,17 +786,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if (dragMoved) {
-            const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
-            const maxTop = window.innerHeight - launcher.offsetHeight - 10;
-            const newLeft = Math.max(10, Math.min(initialLeft + dx, maxLeft));
-            const newTop = Math.max(10, Math.min(initialTop + dy, maxTop));
+            const clamped = clampLauncherPosition(initialLeft + dx, initialTop + dy);
 
-            launcher.style.left = newLeft + "px";
-            launcher.style.top = newTop + "px";
+            launcher.style.left = clamped.left + "px";
+            launcher.style.top = clamped.top + "px";
             launcher.style.right = "auto";
             launcher.style.bottom = "auto";
 
-            alignChatWindowWithLauncher(newLeft, newTop);
+            alignChatWindowWithLauncher(clamped.left, clamped.top);
         }
     }
 
@@ -680,17 +838,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if (dragMoved) {
-            const maxLeft = window.innerWidth - launcher.offsetWidth - 10;
-            const maxTop = window.innerHeight - launcher.offsetHeight - 10;
-            const newLeft = Math.max(10, Math.min(initialLeft + dx, maxLeft));
-            const newTop = Math.max(10, Math.min(initialTop + dy, maxTop));
+            const clamped = clampLauncherPosition(initialLeft + dx, initialTop + dy);
 
-            launcher.style.left = newLeft + "px";
-            launcher.style.top = newTop + "px";
+            launcher.style.left = clamped.left + "px";
+            launcher.style.top = clamped.top + "px";
             launcher.style.right = "auto";
             launcher.style.bottom = "auto";
 
-            alignChatWindowWithLauncher(newLeft, newTop);
+            alignChatWindowWithLauncher(clamped.left, clamped.top);
         }
     }, { passive: true });
 

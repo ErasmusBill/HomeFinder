@@ -2,7 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>VacantHommie AI</title>
+    <style>
+        :root {
+            --vh-safe-top: env(safe-area-inset-top, 0px);
+            --vh-safe-bottom: env(safe-area-inset-bottom, 0px);
+            --vh-gutter: clamp(12px, 4vw, 32px);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            /* dvh accounts for mobile browser chrome showing/hiding */
+            height: 100dvh;
+            padding-top: var(--vh-safe-top);
+            padding-bottom: var(--vh-safe-bottom);
+            overflow: hidden;
+        }
+
+        h1 {
+            margin: 0;
+            padding: clamp(12px, 3vw, 20px) var(--vh-gutter);
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+            flex-shrink: 0;
+            line-height: 1.3;
+        }
+
+        #chat-messages {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: var(--vh-gutter);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scroll-behavior: smooth;
+        }
+
+        #chat-messages p {
+            margin: 0;
+            max-width: min(640px, 88%);
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: clamp(13.5px, 3.2vw, 15px);
+            line-height: 1.5;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* "You" bubbles align right, "AI" bubbles align left (see nth-of-type rules below) */
+        #chat-messages p strong {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 3px;
+            color: #64748b;
+        }
+
+        #chat-messages p:nth-of-type(odd) {
+            align-self: flex-end;
+            background: #059669;
+            color: #ffffff;
+            border-color: transparent;
+        }
+        #chat-messages p:nth-of-type(odd) strong {
+            color: #d1fae5;
+        }
+
+        #chat-messages p:nth-of-type(even) {
+            align-self: flex-start;
+        }
+
+        #chat-form {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: clamp(10px, 3vw, 16px) var(--vh-gutter);
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        #message {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 22px;
+            padding: 11px 16px;
+            /* max(..., 16px) prevents iOS Safari auto-zoom on focus */
+            font-size: max(14px, 16px);
+            outline: none;
+            background: #f8fafc;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        #message:focus {
+            border-color: #059669;
+            background: #ffffff;
+        }
+
+        #chat-form button {
+            flex-shrink: 0;
+            border: none;
+            border-radius: 22px;
+            padding: 11px clamp(16px, 4vw, 22px);
+            font-size: clamp(13.5px, 3.2vw, 15px);
+            font-weight: 700;
+            color: #ffffff;
+            background: #059669;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            white-space: nowrap;
+        }
+
+        #chat-form button:hover {
+            background: #047857;
+        }
+        #chat-form button:active {
+            transform: scale(0.97);
+        }
+
+        /* Small phones: tighten paddings a touch further */
+        @media (max-width: 360px) {
+            #chat-form {
+                gap: 6px;
+            }
+            #chat-form button {
+                padding: 10px 14px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -33,6 +190,10 @@
 const form = document.getElementById("chat-form");
 const messageInput = document.getElementById("message");
 const chatMessages = document.getElementById("chat-messages");
+
+function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 form.addEventListener("submit", async function (event) {
     event.preventDefault();
@@ -77,6 +238,7 @@ form.addEventListener("submit", async function (event) {
     }
 
     messageInput.value = "";
+    scrollToBottom();
 });
 </script>
 
