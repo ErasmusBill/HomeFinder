@@ -23,7 +23,7 @@
         }
 
         /* Header / Navbar */
-        header {
+        header:not(.vh-navbar-header) {
             display: flex;
             justify-content: space-between;
             align-items: center;
