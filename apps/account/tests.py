@@ -1,8 +1,8 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
-from allauth.socialaccount.models import SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialLogin
 
-from .models import LandlordProfile, User
+from .models import LandlordProfile, TenantProfile, User
 from .adapter import CustomSocialAccountAdapter
 
 
@@ -59,7 +59,8 @@ class UserModelAndSocialLoginTests(TestCase):
         """Verify adapter populates full_name, verified email, and phone_number=None."""
         adapter = CustomSocialAccountAdapter()
         user = User()
-        sociallogin = SocialLogin(user=user)
+        account = SocialAccount(provider='google', uid='10001')
+        sociallogin = SocialLogin(user=user, account=account)
         data = {
             'email': 'socialuser@gmail.com',
             'name': 'Google User',
@@ -74,3 +75,59 @@ class UserModelAndSocialLoginTests(TestCase):
         self.assertEqual(user.full_name, 'Google User')
         self.assertTrue(user.is_email_verified)
         self.assertIsNone(user.phone_number)
+
+    def test_landlord_social_signup_assigns_landlord_role_and_trial(self):
+        """Verify social registration with role=landlord creates Landlord user, LandlordProfile, and seeds 30-day trial."""
+        factory = RequestFactory()
+        request = factory.get('/account/register/?role=landlord')
+        request.session = {'social_signup_role': 'landlord'}
+
+        adapter = CustomSocialAccountAdapter()
+        user = User()
+        account = SocialAccount(provider='google', uid='20002')
+        sociallogin = SocialLogin(user=user, account=account)
+        data = {
+            'email': 'landlord_social@gmail.com',
+            'name': 'Landlord Google User',
+        }
+
+        user = adapter.populate_user(request, sociallogin, data)
+        user = adapter.save_user(request, sociallogin)
+        user.refresh_from_db()
+
+        self.assertEqual(user.role, User.Role.LANDLORD)
+        self.assertTrue(LandlordProfile.objects.filter(user=user).exists())
+        self.assertTrue(user.trial_started)
+        self.assertTrue(user.is_trial_active)
+
+        # Verify login redirect points to landlord dashboard
+        request.user = user
+        redirect_url = adapter.get_login_redirect_url(request)
+        self.assertEqual(redirect_url, reverse('landloards:landloards_dashboard'))
+
+    def test_tenant_social_signup_assigns_tenant_role(self):
+        """Verify social registration with role=tenant creates Tenant user and TenantProfile."""
+        factory = RequestFactory()
+        request = factory.get('/account/register/?role=tenant')
+        request.session = {'social_signup_role': 'tenant'}
+
+        adapter = CustomSocialAccountAdapter()
+        user = User()
+        account = SocialAccount(provider='facebook', uid='30003')
+        sociallogin = SocialLogin(user=user, account=account)
+        data = {
+            'email': 'tenant_social@gmail.com',
+            'name': 'Tenant Facebook User',
+        }
+
+        user = adapter.populate_user(request, sociallogin, data)
+        user = adapter.save_user(request, sociallogin)
+        user.refresh_from_db()
+
+        self.assertEqual(user.role, User.Role.TENANT)
+        self.assertTrue(TenantProfile.objects.filter(user=user).exists())
+
+        # Verify login redirect points to tenant dashboard
+        request.user = user
+        redirect_url = adapter.get_login_redirect_url(request)
+        self.assertEqual(redirect_url, reverse('tenant:dashboard'))

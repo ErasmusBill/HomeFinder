@@ -86,6 +86,9 @@ def register_view(request):
 
     initial_role = role_param if role_param in valid_roles else User.Role.TENANT
 
+    # Save signup role in session for social auth callback (Google/Facebook)
+    request.session['social_signup_role'] = initial_role
+
     if request.method == 'POST':
         form = RegisterUserForm(request.POST, request.FILES, initial_role=initial_role)
         if form.is_valid():

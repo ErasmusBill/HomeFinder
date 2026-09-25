@@ -45,7 +45,7 @@
     <div class="social-auth-buttons">
 
         {# === Google === #}
-        <a href="{% provider_login_url 'google' %}"
+        <a href="{% if role %}{% provider_login_url 'google' role=role %}{% else %}{% provider_login_url 'google' %}{% endif %}"
            class="social-btn social-btn-google"
            data-provider="google"
            aria-label="Continue with Google">
@@ -67,7 +67,7 @@
         </a>
 
         {# === Facebook === #}
-        <a href="{% provider_login_url 'facebook' %}"
+        <a href="{% if role %}{% provider_login_url 'facebook' role=role %}{% else %}{% provider_login_url 'facebook' %}{% endif %}"
            class="social-btn social-btn-facebook"
            data-provider="facebook"
            aria-label="Continue with Facebook">
